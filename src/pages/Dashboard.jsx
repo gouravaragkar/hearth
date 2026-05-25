@@ -105,6 +105,12 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* Upcoming Payments */}
+      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
+        <h2 className="font-semibold text-foreground mb-3">Due in the Next 7 Days</h2>
+        <UpcomingPayments recurringExpenses={enrichedRecurring} />
+      </div>
+
       {/* Donut Chart */}
       <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
         <div className="flex items-center justify-between mb-2">
@@ -116,12 +122,6 @@ export default function Dashboard() {
           )}
         </div>
         <SpendingDonut data={donutData} totalMonthly={totalMonthly} />
-      </div>
-
-      {/* Upcoming Payments */}
-      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
-        <h2 className="font-semibold text-foreground mb-3">Due in the Next 7 Days</h2>
-        <UpcomingPayments recurringExpenses={enrichedRecurring} />
       </div>
     </div>
   );
