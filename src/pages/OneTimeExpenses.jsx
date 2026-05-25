@@ -6,12 +6,15 @@ import { Plus, Receipt } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import ExpenseCard from '@/components/ExpenseCard';
 import ExpenseFormModal from '@/components/ExpenseFormModal';
+import ExpenseFilters from '@/components/ExpenseFilters';
 import { formatAUD } from '@/lib/utils';
-import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { startOfMonth, endOfMonth, isWithinInterval, addMonths } from 'date-fns';
 
 export default function OneTimeExpenses() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [category, setCategory] = useState('all');
+  const [monthOffset, setMonthOffset] = useState(0);
   const qc = useQueryClient();
 
   const { data: items = [], isLoading } = useQuery({
@@ -19,16 +22,17 @@ export default function OneTimeExpenses() {
     queryFn: () => base44.entities.Expense.list('-date', 200),
   });
 
-  const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
+  const targetDate = addMonths(new Date(), monthOffset);
+  const monthStart = startOfMonth(targetDate);
+  const monthEnd = endOfMonth(targetDate);
 
-  const thisMonthItems = items.filter(e => {
+  const monthItems = items.filter(e => {
     if (!e.date) return false;
     return isWithinInterval(new Date(e.date), { start: monthStart, end: monthEnd });
   });
 
-  const total = thisMonthItems.reduce((s, e) => s + (e.amount || 0), 0);
+  const filtered = category === 'all' ? monthItems : monthItems.filter(e => e.category === category);
+  const total = filtered.reduce((s, e) => s + (e.amount || 0), 0);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -46,22 +50,6 @@ export default function OneTimeExpenses() {
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
 
-  // Group by month
-  const groupedByMonth = items.reduce((acc, e) => {
-    if (!e.date) return acc;
-    const key = e.date.slice(0, 7); // YYYY-MM
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(e);
-    return acc;
-  }, {});
-
-  const sortedMonths = Object.keys(groupedByMonth).sort((a, b) => b.localeCompare(a));
-
-  const monthLabel = (key) => {
-    const [y, m] = key.split('-');
-    return new Date(parseInt(y), parseInt(m) - 1).toLocaleString('en-AU', { month: 'long', year: 'numeric' });
-  };
-
   return (
     <div className="space-y-5 animate-fade-up">
       <div className="flex items-center justify-between">
@@ -70,8 +58,8 @@ export default function OneTimeExpenses() {
             <Receipt size={20} className="text-primary" /> One-Time Expenses
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            This month: <span className="font-medium text-foreground">{formatAUD(total)}</span>
-            {' · '}{thisMonthItems.length} transactions
+            <span className="font-medium text-foreground">{formatAUD(total)}</span>
+            {' · '}{filtered.length} transactions
           </p>
         </div>
         <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5">
@@ -79,43 +67,47 @@ export default function OneTimeExpenses() {
         </Button>
       </div>
 
+      {/* Filters */}
+      <ExpenseFilters
+        category={category}
+        setCategory={setCategory}
+        monthOffset={monthOffset}
+        setMonthOffset={setMonthOffset}
+        showMonthPicker={true}
+      />
+
       {isLoading && (
         <div className="space-y-3">
           {[1,2,3].map(i => <div key={i} className="h-20 bg-muted animate-pulse rounded-2xl" />)}
         </div>
       )}
 
-      {!isLoading && items.length === 0 && (
+      {!isLoading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-center">
           <span className="text-5xl mb-3">🧾</span>
-          <p className="font-medium text-foreground">No one-time expenses yet</p>
-          <p className="text-sm mt-1">Track groceries, repairs, dining out and more</p>
-          <Button onClick={handleAdd} variant="outline" className="mt-4 rounded-xl">
-            <Plus size={16} className="mr-1" /> Add your first
-          </Button>
+          <p className="font-medium text-foreground">{items.length === 0 ? 'No one-time expenses yet' : 'No results for this filter'}</p>
+          <p className="text-sm mt-1">{items.length === 0 ? 'Track groceries, repairs, dining out and more' : 'Try a different month or category'}</p>
+          {items.length === 0 && (
+            <Button onClick={handleAdd} variant="outline" className="mt-4 rounded-xl">
+              <Plus size={16} className="mr-1" /> Add your first
+            </Button>
+          )}
         </div>
       )}
 
-      {sortedMonths.map(monthKey => (
-        <div key={monthKey}>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-            {monthLabel(monthKey)}
-          </h3>
-          <AnimatePresence>
-            <div className="space-y-2">
-              {groupedByMonth[monthKey].sort((a, b) => b.date.localeCompare(a.date)).map(item => (
-                <ExpenseCard
-                  key={item.id}
-                  expense={item}
-                  type="one-time"
-                  onEdit={handleEdit}
-                  onDelete={deleteMutation.mutate}
-                />
-              ))}
-            </div>
-          </AnimatePresence>
+      <AnimatePresence>
+        <div className="space-y-2">
+          {filtered.sort((a, b) => b.date?.localeCompare(a.date)).map(item => (
+            <ExpenseCard
+              key={item.id}
+              expense={item}
+              type="one-time"
+              onEdit={handleEdit}
+              onDelete={deleteMutation.mutate}
+            />
+          ))}
         </div>
-      ))}
+      </AnimatePresence>
 
       <ExpenseFormModal
         open={modalOpen}
