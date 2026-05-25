@@ -73,6 +73,12 @@ export default function Dashboard() {
         <p className="text-muted-foreground text-sm mt-1">Here's your household spending overview</p>
       </div>
 
+      {/* Upcoming Payments — topmost */}
+      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
+        <h2 className="font-semibold text-foreground mb-3">Due in the Next 7 Days</h2>
+        <UpcomingPayments recurringExpenses={enrichedRecurring} />
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard
@@ -103,12 +109,6 @@ export default function Dashboard() {
           emoji="📋"
           color={unpaidRecurring > 0 ? 'hsl(0 72% 55%)' : 'hsl(130 20% 45%)'}
         />
-      </div>
-
-      {/* Upcoming Payments */}
-      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
-        <h2 className="font-semibold text-foreground mb-3">Due in the Next 7 Days</h2>
-        <UpcomingPayments recurringExpenses={enrichedRecurring} />
       </div>
 
       {/* Donut Chart */}
