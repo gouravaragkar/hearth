@@ -1,0 +1,65 @@
+{
+  "name": "RecurringExpense",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the recurring expense"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount in AUD"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Housing",
+        "Utilities",
+        "Insurance",
+        "Subscriptions",
+        "Groceries",
+        "Transport",
+        "Health",
+        "Entertainment",
+        "Education",
+        "Other"
+      ],
+      "description": "Expense category"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "fortnightly",
+        "monthly"
+      ],
+      "description": "How often this expense recurs"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of recurrence"
+    },
+    "next_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next due date"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes"
+    },
+    "paid_this_cycle": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether it has been paid this cycle"
+    }
+  },
+  "required": [
+    "name",
+    "amount",
+    "category",
+    "frequency",
+    "start_date"
+  ]
+}

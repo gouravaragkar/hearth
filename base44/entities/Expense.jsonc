@@ -1,0 +1,45 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the expense"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount in AUD"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Housing",
+        "Utilities",
+        "Insurance",
+        "Subscriptions",
+        "Groceries",
+        "Transport",
+        "Health",
+        "Entertainment",
+        "Education",
+        "Other"
+      ],
+      "description": "Expense category"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of payment"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes"
+    }
+  },
+  "required": [
+    "name",
+    "amount",
+    "category",
+    "date"
+  ]
+}
