@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { formatAUD, getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
 import SpendingDonut from '@/components/SpendingDonut';
 import UpcomingPayments from '@/components/UpcomingPayments';
-import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import MonthlySummary from '@/components/MonthlySummary';
+import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
 
 function StatCard({ label, value, sub, emoji, color }) {
   return (
@@ -28,6 +29,13 @@ export default function Dashboard() {
     queryKey: ['recurring'],
     queryFn: () => base44.entities.RecurringExpense.list('-created_date', 100),
   });
+
+  const currentMonth = format(new Date(), 'yyyy-MM');
+  const { data: budgets = [] } = useQuery({
+    queryKey: ['budget'],
+    queryFn: () => base44.entities.Budget.filter({ month: currentMonth }),
+  });
+  const budget = budgets[0] || null;
 
   // Enrich recurring with computed next_due_date
   const enrichedRecurring = recurring.map(e => ({
@@ -78,6 +86,9 @@ export default function Dashboard() {
         <h2 className="font-semibold text-foreground mb-3">Due in the Next 7 Days</h2>
         <UpcomingPayments recurringExpenses={enrichedRecurring} />
       </div>
+
+      {/* Monthly Summary */}
+      <MonthlySummary totalSpent={totalMonthly} budget={budget} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
