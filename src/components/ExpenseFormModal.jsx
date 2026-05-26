@@ -3,9 +3,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { CATEGORIES } from '@/lib/utils';
+
+const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c }));
+const FREQUENCY_OPTIONS = [
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'fortnightly', label: 'Fortnightly' },
+  { value: 'monthly', label: 'Monthly' },
+];
 
 export default function ExpenseFormModal({ open, onClose, onSave, initialData, type }) {
   const isRecurring = type === 'recurring';
@@ -52,30 +59,28 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
 
           <div>
             <Label>Category</Label>
-            <Select value={form.category} onValueChange={v => set('category', v)}>
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <div className="mt-1">
+              <BottomSheetSelect
+                value={form.category}
+                onValueChange={v => set('category', v)}
+                options={CATEGORY_OPTIONS}
+                placeholder="Select category"
+              />
+            </div>
           </div>
 
           {isRecurring ? (
             <>
               <div>
                 <Label>Frequency</Label>
-                <Select value={form.frequency} onValueChange={v => set('frequency', v)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="fortnightly">Fortnightly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="mt-1">
+                  <BottomSheetSelect
+                    value={form.frequency}
+                    onValueChange={v => set('frequency', v)}
+                    options={FREQUENCY_OPTIONS}
+                    placeholder="Select frequency"
+                  />
+                </div>
               </div>
               <div>
                 <Label>Start / Next Due Date</Label>
@@ -95,8 +100,8 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-            <Button onClick={handleSave} className="flex-1 bg-primary text-primary-foreground">
+            <Button variant="outline" onClick={onClose} className="flex-1 select-none">Cancel</Button>
+            <Button onClick={handleSave} className="flex-1 bg-primary text-primary-foreground select-none">
               {initialData ? 'Save Changes' : 'Add Expense'}
             </Button>
           </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import PullToRefresh from '@/components/PullToRefresh';
 import { formatAUD, getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
 import SpendingDonut from '@/components/SpendingDonut';
 import UpcomingPayments from '@/components/UpcomingPayments';
@@ -25,6 +26,12 @@ function StatCard({ label, value, sub, emoji, color }) {
 
 export default function Dashboard() {
   const [reportOpen, setReportOpen] = useState(false);
+  const qc = useQueryClient();
+  const handleRefresh = () => Promise.all([
+    qc.invalidateQueries({ queryKey: ['expenses'] }),
+    qc.invalidateQueries({ queryKey: ['recurring'] }),
+    qc.invalidateQueries({ queryKey: ['budget'] }),
+  ]);
 
   const { data: expenses = [] } = useQuery({
     queryKey: ['expenses'],
@@ -80,7 +87,8 @@ export default function Dashboard() {
   const unpaidRecurring = enrichedRecurring.filter(e => !e.paid_this_cycle).length;
 
   return (
-    <div className="space-y-6 animate-fade-up">
+    <PullToRefresh onRefresh={handleRefresh}>
+    <div className="space-y-6 animate-fade-up px-4 py-6 pb-28">
       {/* Greeting */}
       <div className="flex items-start justify-between">
         <div>
@@ -159,5 +167,6 @@ export default function Dashboard() {
         budget={budget}
       />
     </div>
+    </PullToRefresh>
   );
 }

@@ -7,6 +7,7 @@ import { AnimatePresence } from 'framer-motion';
 import ExpenseCard from '@/components/ExpenseCard';
 import ExpenseFormModal from '@/components/ExpenseFormModal';
 import ExpenseFilters from '@/components/ExpenseFilters';
+import PullToRefresh from '@/components/PullToRefresh';
 import { formatAUD } from '@/lib/utils';
 import { startOfMonth, endOfMonth, isWithinInterval, addMonths } from 'date-fns';
 
@@ -39,83 +40,106 @@ export default function OneTimeExpenses() {
       if (editing) return base44.entities.Expense.update(editing.id, data);
       return base44.entities.Expense.create(data);
     },
-    onSuccess: () => { qc.invalidateQueries(['expenses']); setModalOpen(false); setEditing(null); },
+    onMutate: async (data) => {
+      await qc.cancelQueries({ queryKey: ['expenses'] });
+      const prev = qc.getQueryData(['expenses']);
+      if (editing) {
+        qc.setQueryData(['expenses'], old =>
+          old.map(e => e.id === editing.id ? { ...e, ...data } : e)
+        );
+      } else {
+        const optimistic = { ...data, id: `tmp-${Date.now()}`, created_date: new Date().toISOString() };
+        qc.setQueryData(['expenses'], old => [optimistic, ...old]);
+      }
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => { qc.setQueryData(['expenses'], ctx.prev); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['expenses'] }); setModalOpen(false); setEditing(null); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Expense.delete(id),
-    onSuccess: () => qc.invalidateQueries(['expenses']),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['expenses'] });
+      const prev = qc.getQueryData(['expenses']);
+      qc.setQueryData(['expenses'], old => old.filter(e => e.id !== id));
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => { qc.setQueryData(['expenses'], ctx.prev); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['expenses'] });
 
   return (
-    <div className="space-y-5 animate-fade-up">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <Receipt size={20} className="text-primary" /> One-Time Expenses
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            <span className="font-medium text-foreground">{formatAUD(total)}</span>
-            {' · '}{filtered.length} transactions
-          </p>
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="space-y-5 animate-fade-up px-4 py-6 pb-28">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <Receipt size={20} className="text-primary" /> One-Time Expenses
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              <span className="font-medium text-foreground">{formatAUD(total)}</span>
+              {' · '}{filtered.length} transactions
+            </p>
+          </div>
+          <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
+            <Plus size={16} /> Add
+          </Button>
         </div>
-        <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5">
-          <Plus size={16} /> Add
-        </Button>
+
+        <ExpenseFilters
+          category={category}
+          setCategory={setCategory}
+          monthOffset={monthOffset}
+          setMonthOffset={setMonthOffset}
+          showMonthPicker={true}
+        />
+
+        {isLoading && (
+          <div className="space-y-3">
+            {[1,2,3].map(i => <div key={i} className="h-20 bg-muted animate-pulse rounded-2xl" />)}
+          </div>
+        )}
+
+        {!isLoading && filtered.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-center">
+            <span className="text-5xl mb-3">🧾</span>
+            <p className="font-medium text-foreground">{items.length === 0 ? 'No one-time expenses yet' : 'No results for this filter'}</p>
+            <p className="text-sm mt-1">{items.length === 0 ? 'Track groceries, repairs, dining out and more' : 'Try a different month or category'}</p>
+            {items.length === 0 && (
+              <Button onClick={handleAdd} variant="outline" className="mt-4 rounded-xl select-none">
+                <Plus size={16} className="mr-1" /> Add your first
+              </Button>
+            )}
+          </div>
+        )}
+
+        <AnimatePresence>
+          <div className="space-y-2">
+            {filtered.sort((a, b) => b.date?.localeCompare(a.date)).map(item => (
+              <ExpenseCard
+                key={item.id}
+                expense={item}
+                type="one-time"
+                onEdit={handleEdit}
+                onDelete={deleteMutation.mutate}
+              />
+            ))}
+          </div>
+        </AnimatePresence>
+
+        <ExpenseFormModal
+          open={modalOpen}
+          onClose={() => { setModalOpen(false); setEditing(null); }}
+          onSave={saveMutation.mutate}
+          initialData={editing}
+          type="one-time"
+        />
       </div>
-
-      {/* Filters */}
-      <ExpenseFilters
-        category={category}
-        setCategory={setCategory}
-        monthOffset={monthOffset}
-        setMonthOffset={setMonthOffset}
-        showMonthPicker={true}
-      />
-
-      {isLoading && (
-        <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-20 bg-muted animate-pulse rounded-2xl" />)}
-        </div>
-      )}
-
-      {!isLoading && filtered.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-center">
-          <span className="text-5xl mb-3">🧾</span>
-          <p className="font-medium text-foreground">{items.length === 0 ? 'No one-time expenses yet' : 'No results for this filter'}</p>
-          <p className="text-sm mt-1">{items.length === 0 ? 'Track groceries, repairs, dining out and more' : 'Try a different month or category'}</p>
-          {items.length === 0 && (
-            <Button onClick={handleAdd} variant="outline" className="mt-4 rounded-xl">
-              <Plus size={16} className="mr-1" /> Add your first
-            </Button>
-          )}
-        </div>
-      )}
-
-      <AnimatePresence>
-        <div className="space-y-2">
-          {filtered.sort((a, b) => b.date?.localeCompare(a.date)).map(item => (
-            <ExpenseCard
-              key={item.id}
-              expense={item}
-              type="one-time"
-              onEdit={handleEdit}
-              onDelete={deleteMutation.mutate}
-            />
-          ))}
-        </div>
-      </AnimatePresence>
-
-      <ExpenseFormModal
-        open={modalOpen}
-        onClose={() => { setModalOpen(false); setEditing(null); }}
-        onSave={saveMutation.mutate}
-        initialData={editing}
-        type="one-time"
-      />
-    </div>
+    </PullToRefresh>
   );
 }

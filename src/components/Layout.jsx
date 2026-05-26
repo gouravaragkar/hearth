@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,12 +21,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import Dashboard from '@/pages/Dashboard';
+import RecurringExpenses from '@/pages/RecurringExpenses';
+import OneTimeExpenses from '@/pages/OneTimeExpenses';
+import CalendarPage from '@/pages/CalendarPage';
 
-const navItems = [
-  { label: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { label: 'Recurring', path: '/recurring', icon: RefreshCw },
-  { label: 'One-Time', path: '/one-time', icon: Receipt },
-  { label: 'Calendar', path: '/calendar', icon: CalendarDays },
+const TABS = [
+  { label: 'Dashboard', path: '/', icon: LayoutDashboard, component: Dashboard },
+  { label: 'Recurring', path: '/recurring', icon: RefreshCw, component: RecurringExpenses },
+  { label: 'One-Time', path: '/one-time', icon: Receipt, component: OneTimeExpenses },
+  { label: 'Calendar', path: '/calendar', icon: CalendarDays, component: CalendarPage },
 ];
 
 function UserMenu() {
@@ -136,14 +141,34 @@ function UserMenu() {
   );
 }
 
+const slideVariants = {
+  enterFromRight: { x: '100%', opacity: 0 },
+  enterFromLeft: { x: '-100%', opacity: 0 },
+  center: { x: 0, opacity: 1 },
+  exitToLeft: { x: '-100%', opacity: 0 },
+  exitToRight: { x: '100%', opacity: 0 },
+};
+
 export default function Layout() {
   const location = useLocation();
+  const currentIdx = TABS.findIndex(t => t.path === location.pathname);
+  const activeIdx = currentIdx === -1 ? 0 : currentIdx;
+  const prevIdxRef = useRef(activeIdx);
+  const [direction, setDirection] = useState(0); // 1 = going right, -1 = going left
+
+  useEffect(() => {
+    const prev = prevIdxRef.current;
+    if (prev !== activeIdx) {
+      setDirection(activeIdx > prev ? 1 : -1);
+      prevIdxRef.current = activeIdx;
+    }
+  }, [activeIdx]);
 
   return (
-    <div className="min-h-screen bg-background font-inter flex flex-col">
-      {/* Top Header — safe area top */}
+    <div className="min-h-screen bg-background font-inter flex flex-col overflow-hidden">
+      {/* Top Header */}
       <header
-        className="sticky top-0 z-30 bg-background/90 backdrop-blur-sm border-b border-border"
+        className="sticky top-0 z-30 bg-background/90 backdrop-blur-sm border-b border-border shrink-0"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-3xl mx-auto px-4">
@@ -157,19 +182,42 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Page Content — bottom padding to clear tab bar */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-6 pb-28">
-        <Outlet />
-      </main>
+      {/* Tab content — keep all mounted, slide between them */}
+      <div className="flex-1 relative overflow-hidden">
+        <div className="max-w-3xl mx-auto h-full w-full relative">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={activeIdx}
+              custom={direction}
+              variants={slideVariants}
+              initial={direction === 1 ? 'enterFromRight' : 'enterFromLeft'}
+              animate="center"
+              exit={direction === 1 ? 'exitToLeft' : 'exitToRight'}
+              transition={{ type: 'tween', duration: 0.25, ease: 'easeInOut' }}
+              className="absolute inset-0 overflow-y-auto"
+              style={{ overscrollBehavior: 'none' }}
+            >
+              {TABS.map((tab, i) => {
+                const Component = tab.component;
+                return (
+                  <div key={tab.path} style={{ display: i === activeIdx ? 'block' : 'none' }}>
+                    <Component />
+                  </div>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
 
-      {/* Bottom Tab Bar — safe area bottom */}
+      {/* Bottom Tab Bar */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-t border-border"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="max-w-3xl mx-auto flex items-center justify-around px-2">
-          {navItems.map(({ label, path, icon: Icon }) => {
-            const active = location.pathname === path;
+          {TABS.map(({ label, path, icon: Icon }, i) => {
+            const active = i === activeIdx;
             return (
               <Link
                 key={path}

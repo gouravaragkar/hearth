@@ -7,10 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ThemeProvider from '@/lib/ThemeProvider';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from '@/components/Layout';
-import Dashboard from '@/pages/Dashboard';
-import RecurringExpenses from '@/pages/RecurringExpenses';
-import OneTimeExpenses from '@/pages/OneTimeExpenses';
-import CalendarPage from '@/pages/CalendarPage';
+
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,12 +30,10 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/recurring" element={<RecurringExpenses />} />
-        <Route path="/one-time" element={<OneTimeExpenses />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-      </Route>
+      <Route path="/" element={<Layout />} />
+      <Route path="/recurring" element={<Layout />} />
+      <Route path="/one-time" element={<Layout />} />
+      <Route path="/calendar" element={<Layout />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
