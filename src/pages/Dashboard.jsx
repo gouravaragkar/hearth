@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { formatAUD, getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
 import SpendingDonut from '@/components/SpendingDonut';
 import UpcomingPayments from '@/components/UpcomingPayments';
 import MonthlySummary from '@/components/MonthlySummary';
+import MonthlyReportCard from '@/components/MonthlyReportCard';
 import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
+import { FileBarChart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function StatCard({ label, value, sub, emoji, color }) {
   return (
@@ -20,6 +24,8 @@ function StatCard({ label, value, sub, emoji, color }) {
 }
 
 export default function Dashboard() {
+  const [reportOpen, setReportOpen] = useState(false);
+
   const { data: expenses = [] } = useQuery({
     queryKey: ['expenses'],
     queryFn: () => base44.entities.Expense.list('-date', 100),
@@ -76,9 +82,19 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-fade-up">
       {/* Greeting */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Good day! 👋</h1>
-        <p className="text-muted-foreground text-sm mt-1">Here's your household spending overview</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Good day! 👋</h1>
+          <p className="text-muted-foreground text-sm mt-1">Here's your household spending overview</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-xl gap-1.5 mt-1"
+          onClick={() => setReportOpen(true)}
+        >
+          <FileBarChart size={14} /> Report
+        </Button>
       </div>
 
       {/* Upcoming Payments — topmost */}
@@ -134,6 +150,14 @@ export default function Dashboard() {
         </div>
         <SpendingDonut data={donutData} totalMonthly={totalMonthly} />
       </div>
+
+      <MonthlyReportCard
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        expenses={expenses}
+        recurring={enrichedRecurring}
+        budget={budget}
+      />
     </div>
   );
 }
