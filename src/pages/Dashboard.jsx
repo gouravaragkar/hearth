@@ -6,6 +6,7 @@ import SpendingDonut from '@/components/SpendingDonut';
 import UpcomingPayments from '@/components/UpcomingPayments';
 import MonthlySummary from '@/components/MonthlySummary';
 import MonthlyReportCard from '@/components/MonthlyReportCard';
+import CalendarView from '@/components/CalendarView';
 import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
 import { FileBarChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -136,6 +137,12 @@ export default function Dashboard() {
           emoji="📋"
           color={unpaidRecurring > 0 ? 'hsl(0 72% 55%)' : 'hsl(130 20% 45%)'}
         />
+      </div>
+
+      {/* Calendar */}
+      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
+        <h2 className="font-semibold text-foreground mb-3">Bill Calendar</h2>
+        <CalendarView recurring={enrichedRecurring} />
       </div>
 
       {/* Donut Chart */}
