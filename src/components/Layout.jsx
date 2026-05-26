@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, RefreshCw, Receipt, LogOut, Share2, Copy, Check, Trash2 } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
   DropdownMenu,
@@ -25,6 +25,7 @@ const navItems = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard },
   { label: 'Recurring', path: '/recurring', icon: RefreshCw },
   { label: 'One-Time', path: '/one-time', icon: Receipt },
+  { label: 'Calendar', path: '/calendar', icon: CalendarDays },
 ];
 
 function UserMenu() {

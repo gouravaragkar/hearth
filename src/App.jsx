@@ -10,6 +10,7 @@ import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
 import RecurringExpenses from '@/pages/RecurringExpenses';
 import OneTimeExpenses from '@/pages/OneTimeExpenses';
+import CalendarPage from '@/pages/CalendarPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -36,6 +37,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Dashboard />} />
         <Route path="/recurring" element={<RecurringExpenses />} />
         <Route path="/one-time" element={<OneTimeExpenses />} />
+        <Route path="/calendar" element={<CalendarPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
