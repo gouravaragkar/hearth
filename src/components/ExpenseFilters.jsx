@@ -12,20 +12,20 @@ export default function ExpenseFilters({ category, setCategory, monthOffset, set
     <div className="flex flex-wrap items-center gap-2">
       {/* Month picker */}
       {showMonthPicker && (
-        <div className="flex items-center gap-1 bg-muted rounded-xl px-2 py-1">
+        <div className="flex items-center gap-1 bg-muted rounded-xl px-1">
           <button
             onClick={() => setMonthOffset(monthOffset - 1)}
-            className="p-1 rounded-lg hover:bg-border transition-colors"
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg hover:bg-border transition-colors select-none"
           >
-            <ChevronLeft size={14} className="text-muted-foreground" />
+            <ChevronLeft size={16} className="text-muted-foreground" />
           </button>
-          <span className="text-sm font-medium text-foreground min-w-[110px] text-center">{displayMonth}</span>
+          <span className="text-sm font-medium text-foreground min-w-[110px] text-center select-none">{displayMonth}</span>
           <button
             onClick={() => setMonthOffset(monthOffset + 1)}
             disabled={isCurrentMonth}
-            className="p-1 rounded-lg hover:bg-border transition-colors disabled:opacity-30"
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg hover:bg-border transition-colors disabled:opacity-30 select-none"
           >
-            <ChevronRight size={14} className="text-muted-foreground" />
+            <ChevronRight size={16} className="text-muted-foreground" />
           </button>
         </div>
       )}

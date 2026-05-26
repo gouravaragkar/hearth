@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, RefreshCw, Receipt, LogOut, Share2, Copy, Check, User } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Receipt, LogOut, Share2, Copy, Check, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
   DropdownMenu,
@@ -9,6 +9,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
@@ -20,6 +30,7 @@ const navItems = [
 function UserMenu() {
   const [user, setUser] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -33,7 +44,10 @@ function UserMenu() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = () => base44.auth.logout('/');
+
+  const handleDeleteAccount = async () => {
+    if (user?.id) await base44.entities.User.delete(user.id).catch(() => {});
     base44.auth.logout('/');
   };
 
@@ -42,54 +56,82 @@ function UserMenu() {
     : '?';
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-sm">
-          {initials}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60 rounded-xl">
-        {/* Profile info */}
-        <div className="px-3 py-2.5 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-sm select-none"
+          >
             {initials}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-60 rounded-xl">
+          <div className="px-3 py-2.5 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'User'}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'User'}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
-          </div>
-        </div>
-        <DropdownMenuSeparator />
+          <DropdownMenuSeparator />
 
-        {/* Share / Referral */}
-        <div className="px-3 py-2">
-          <p className="text-xs text-muted-foreground mb-1.5 font-medium flex items-center gap-1">
-            <Share2 size={11} /> Share HomeSpend
-          </p>
-          <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1.5">
-            <span className="text-xs text-muted-foreground truncate flex-1">{referralLink}</span>
-            <button
-              onClick={handleCopyLink}
-              className="shrink-0 text-primary hover:text-primary/80 transition-colors"
-              title="Copy link"
+          <div className="px-3 py-2">
+            <p className="text-xs text-muted-foreground mb-1.5 font-medium flex items-center gap-1">
+              <Share2 size={11} /> Share HomeSpend
+            </p>
+            <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1.5">
+              <span className="text-xs text-muted-foreground truncate flex-1">{referralLink}</span>
+              <button
+                onClick={handleCopyLink}
+                className="shrink-0 text-primary hover:text-primary/80 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center select-none"
+              >
+                {copied ? <Check size={13} className="text-sage" /> : <Copy size={13} />}
+              </button>
+            </div>
+            {copied && <p className="text-xs text-sage mt-1">Link copied!</p>}
+          </div>
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            onClick={handleSignOut}
+            className="text-destructive focus:text-destructive cursor-pointer min-h-[44px] select-none"
+          >
+            <LogOut size={14} className="mr-2" /> Sign out
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => setDeleteDialogOpen(true)}
+            className="text-destructive focus:text-destructive cursor-pointer min-h-[44px] select-none"
+          >
+            <Trash2 size={14} className="mr-2" /> Delete Account
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your account and all associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
             >
-              {copied ? <Check size={13} className="text-sage" /> : <Copy size={13} />}
-            </button>
-          </div>
-          {copied && <p className="text-xs text-sage mt-1">Link copied!</p>}
-        </div>
-        <DropdownMenuSeparator />
-
-        {/* Sign out */}
-        <DropdownMenuItem
-          onClick={handleSignOut}
-          className="text-destructive focus:text-destructive cursor-pointer"
-        >
-          <LogOut size={14} className="mr-2" />
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -97,45 +139,51 @@ export default function Layout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-background font-inter">
-      {/* Top Header */}
-      <header className="sticky top-0 z-30 bg-background/90 backdrop-blur-sm border-b border-border">
+    <div className="min-h-screen bg-background font-inter flex flex-col">
+      {/* Top Header — safe area top */}
+      <header
+        className="sticky top-0 z-30 bg-background/90 backdrop-blur-sm border-b border-border"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 select-none">
               <span className="text-xl">🏡</span>
               <span className="font-semibold text-foreground text-lg tracking-tight">HomeSpend</span>
             </div>
-            <div className="flex items-center gap-2">
-              <nav className="flex items-center gap-1 bg-muted rounded-full px-1 py-1">
-                {navItems.map(({ label, path, icon: Icon }) => {
-                  const active = location.pathname === path;
-                  return (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                        active
-                          ? 'bg-primary text-primary-foreground shadow-warm-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <Icon size={14} />
-                      <span className="hidden sm:inline">{label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-              <UserMenu />
-            </div>
+            <UserMenu />
           </div>
         </div>
       </header>
 
-      {/* Page Content */}
-      <main className="max-w-3xl mx-auto px-4 py-6">
+      {/* Page Content — bottom padding to clear tab bar */}
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-6 pb-28">
         <Outlet />
       </main>
+
+      {/* Bottom Tab Bar — safe area bottom */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-t border-border"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="max-w-3xl mx-auto flex items-center justify-around px-2">
+          {navItems.map(({ label, path, icon: Icon }) => {
+            const active = location.pathname === path;
+            return (
+              <Link
+                key={path}
+                to={path}
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] select-none transition-colors ${
+                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
+                <span className="text-[11px] font-medium">{label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

@@ -63,17 +63,17 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
       {/* Actions */}
       <div className="flex items-center gap-1 shrink-0">
         {isRecurring && (
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onTogglePaid(expense)}>
+          <Button variant="ghost" size="icon" className="h-11 w-11 select-none" onClick={() => onTogglePaid(expense)}>
             {expense.paid_this_cycle
-              ? <CheckCircle2 size={16} className="text-sage" />
-              : <Circle size={16} className="text-muted-foreground" />}
+              ? <CheckCircle2 size={18} className="text-sage" />
+              : <Circle size={18} className="text-muted-foreground" />}
           </Button>
         )}
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(expense)}>
-          <Pencil size={14} className="text-muted-foreground" />
+        <Button variant="ghost" size="icon" className="h-11 w-11 select-none" onClick={() => onEdit(expense)}>
+          <Pencil size={15} className="text-muted-foreground" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDelete(expense.id)}>
-          <Trash2 size={14} className="text-destructive" />
+        <Button variant="ghost" size="icon" className="h-11 w-11 select-none" onClick={() => onDelete(expense.id)}>
+          <Trash2 size={15} className="text-destructive" />
         </Button>
       </div>
     </motion.div>
