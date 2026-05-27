@@ -7,6 +7,7 @@ import SpendingDonut from '@/components/SpendingDonut';
 import UpcomingPayments from '@/components/UpcomingPayments';
 import MonthlySummary from '@/components/MonthlySummary';
 import MonthlyReportCard from '@/components/MonthlyReportCard';
+import SpendingTrend from '@/components/SpendingTrend';
 import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
 import { FileBarChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -144,6 +145,11 @@ export default function Dashboard() {
           emoji="📋"
           color={unpaidRecurring > 0 ? 'hsl(0 72% 55%)' : 'hsl(130 20% 45%)'}
         />
+      </div>
+
+      {/* Spending Trend */}
+      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
+        <SpendingTrend expenses={expenses} recurring={enrichedRecurring} />
       </div>
 
       {/* Donut Chart */}
