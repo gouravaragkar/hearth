@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { AnimatePresence, motion } from 'framer-motion';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,28 +140,10 @@ function UserMenu() {
   );
 }
 
-const slideVariants = {
-  enterFromRight: { x: '100%', opacity: 0 },
-  enterFromLeft: { x: '-100%', opacity: 0 },
-  center: { x: 0, opacity: 1 },
-  exitToLeft: { x: '-100%', opacity: 0 },
-  exitToRight: { x: '100%', opacity: 0 },
-};
-
 export default function Layout() {
   const location = useLocation();
   const currentIdx = TABS.findIndex(t => t.path === location.pathname);
   const activeIdx = currentIdx === -1 ? 0 : currentIdx;
-  const prevIdxRef = useRef(activeIdx);
-  const [direction, setDirection] = useState(0); // 1 = going right, -1 = going left
-
-  useEffect(() => {
-    const prev = prevIdxRef.current;
-    if (prev !== activeIdx) {
-      setDirection(activeIdx > prev ? 1 : -1);
-      prevIdxRef.current = activeIdx;
-    }
-  }, [activeIdx]);
 
   return (
     <div className="min-h-screen bg-background font-inter flex flex-col overflow-hidden">
@@ -182,31 +163,17 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Tab content — keep all mounted, slide between them */}
-      <div className="flex-1 relative overflow-hidden">
-        <div className="max-w-3xl mx-auto h-full w-full relative">
-          <AnimatePresence initial={false} custom={direction} mode="popLayout">
-            <motion.div
-              key={activeIdx}
-              custom={direction}
-              variants={slideVariants}
-              initial={direction === 1 ? 'enterFromRight' : 'enterFromLeft'}
-              animate="center"
-              exit={direction === 1 ? 'exitToLeft' : 'exitToRight'}
-              transition={{ type: 'tween', duration: 0.25, ease: 'easeInOut' }}
-              className="absolute inset-0 overflow-y-auto"
-              style={{ overscrollBehavior: 'none' }}
-            >
-              {TABS.map((tab, i) => {
-                const Component = tab.component;
-                return (
-                  <div key={tab.path} style={{ display: i === activeIdx ? 'block' : 'none' }}>
-                    <Component />
-                  </div>
-                );
-              })}
-            </motion.div>
-          </AnimatePresence>
+      {/* Tab content — all tabs stay mounted, only active one is visible */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto w-full">
+          {TABS.map((tab, i) => {
+            const Component = tab.component;
+            return (
+              <div key={tab.path} style={{ display: i === activeIdx ? 'block' : 'none' }}>
+                <Component />
+              </div>
+            );
+          })}
         </div>
       </div>
 
