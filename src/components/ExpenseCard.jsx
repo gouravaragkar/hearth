@@ -57,7 +57,11 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
       {/* Amount */}
       <div className="text-right shrink-0">
         <p className="font-bold text-foreground">{formatAUD(expense.amount)}</p>
-        {isRecurring && <p className="text-xs text-muted-foreground">/mo est.</p>}
+        {isRecurring && (
+          <p className="text-xs text-muted-foreground">
+            {expense.frequency === 'weekly' ? '/wk' : expense.frequency === 'fortnightly' ? '/fortnight' : '/mo'}
+          </p>
+        )}
       </div>
 
       {/* Actions */}
