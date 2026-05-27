@@ -10,7 +10,7 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
   const color = CATEGORY_COLORS[expense.category] || '#ADB5BD';
   const icon = CATEGORY_ICONS[expense.category] || '📦';
 
-  const freqLabel = { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly' };
+  const freqLabel = { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly', quarterly: 'Quarterly' };
 
   return (
     <motion.div
@@ -59,7 +59,7 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
         <p className="font-bold text-foreground">{formatAUD(expense.amount)}</p>
         {isRecurring && (
           <p className="text-xs text-muted-foreground">
-            {expense.frequency === 'weekly' ? '/wk' : expense.frequency === 'fortnightly' ? '/fortnight' : '/mo'}
+            {expense.frequency === 'weekly' ? '/wk' : expense.frequency === 'fortnightly' ? '/fortnight' : expense.frequency === 'quarterly' ? '/qtr' : '/mo'}
           </p>
         )}
       </div>

@@ -12,6 +12,7 @@ const FREQUENCY_OPTIONS = [
   { value: 'weekly', label: 'Weekly' },
   { value: 'fortnightly', label: 'Fortnightly' },
   { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
 ];
 
 export default function ExpenseFormModal({ open, onClose, onSave, initialData, type }) {

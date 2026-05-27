@@ -31,7 +31,8 @@
       "enum": [
         "weekly",
         "fortnightly",
-        "monthly"
+        "monthly",
+        "quarterly"
       ],
       "description": "How often this expense recurs"
     },
