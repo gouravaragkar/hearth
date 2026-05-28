@@ -9,16 +9,19 @@ import ExpenseFormModal from '@/components/ExpenseFormModal';
 import ExpenseFilters from '@/components/ExpenseFilters';
 import PullToRefresh from '@/components/PullToRefresh';
 import { formatAUD, getMonthlyEquivalent, getNextDueDate } from '@/lib/utils';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function RecurringExpenses() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [category, setCategory] = useState('all');
   const qc = useQueryClient();
+  const user = useCurrentUser();
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['recurring'],
-    queryFn: () => base44.entities.RecurringExpense.list('-created_date', 100),
+    queryKey: ['recurring', user?.id],
+    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 100),
+    enabled: !!user?.id,
   });
 
   const enriched = items.map(e => ({
@@ -50,38 +53,38 @@ export default function RecurringExpenses() {
       return { prev };
     },
     onError: (_e, _v, ctx) => { qc.setQueryData(['recurring'], ctx.prev); },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['recurring'] }); setModalOpen(false); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['recurring', user?.id] }); setModalOpen(false); setEditing(null); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.RecurringExpense.delete(id),
     onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['recurring'] });
-      const prev = qc.getQueryData(['recurring']);
-      qc.setQueryData(['recurring'], old => old.filter(e => e.id !== id));
+      await qc.cancelQueries({ queryKey: ['recurring', user?.id] });
+      const prev = qc.getQueryData(['recurring', user?.id]);
+      qc.setQueryData(['recurring', user?.id], old => old.filter(e => e.id !== id));
       return { prev };
     },
-    onError: (_e, _v, ctx) => { qc.setQueryData(['recurring'], ctx.prev); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recurring'] }),
+    onError: (_e, _v, ctx) => { qc.setQueryData(['recurring', user?.id], ctx.prev); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['recurring', user?.id] }),
   });
 
   const togglePaidMutation = useMutation({
     mutationFn: (e) => base44.entities.RecurringExpense.update(e.id, { paid_this_cycle: !e.paid_this_cycle }),
     onMutate: async (expense) => {
-      await qc.cancelQueries({ queryKey: ['recurring'] });
-      const prev = qc.getQueryData(['recurring']);
-      qc.setQueryData(['recurring'], old =>
+      await qc.cancelQueries({ queryKey: ['recurring', user?.id] });
+      const prev = qc.getQueryData(['recurring', user?.id]);
+      qc.setQueryData(['recurring', user?.id], old =>
         old.map(e => e.id === expense.id ? { ...e, paid_this_cycle: !e.paid_this_cycle } : e)
       );
       return { prev };
     },
-    onError: (_e, _v, ctx) => { qc.setQueryData(['recurring'], ctx.prev); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recurring'] }),
+    onError: (_e, _v, ctx) => { qc.setQueryData(['recurring', user?.id], ctx.prev); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['recurring', user?.id] }),
   });
 
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
-  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['recurring'] });
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['recurring', user?.id] });
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>

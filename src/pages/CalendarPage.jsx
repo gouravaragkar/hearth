@@ -3,13 +3,16 @@ import { base44 } from '@/api/base44Client';
 import { getNextDueDate } from '@/lib/utils';
 import CalendarView from '@/components/CalendarView';
 import PullToRefresh from '@/components/PullToRefresh';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function CalendarPage() {
   const qc = useQueryClient();
+  const user = useCurrentUser();
 
   const { data: recurring = [] } = useQuery({
-    queryKey: ['recurring'],
-    queryFn: () => base44.entities.RecurringExpense.list('-created_date', 100),
+    queryKey: ['recurring', user?.id],
+    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 100),
+    enabled: !!user?.id,
   });
 
   const enriched = recurring.map(e => ({
@@ -17,7 +20,7 @@ export default function CalendarPage() {
     next_due_date: e.next_due_date || getNextDueDate(e.start_date, e.frequency).toISOString().split('T')[0],
   }));
 
-  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['recurring'] });
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['recurring', user?.id] });
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>

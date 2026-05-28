@@ -10,6 +10,7 @@ import ExpenseFilters from '@/components/ExpenseFilters';
 import PullToRefresh from '@/components/PullToRefresh';
 import { formatAUD } from '@/lib/utils';
 import { startOfMonth, endOfMonth, isWithinInterval, addMonths } from 'date-fns';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function OneTimeExpenses() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -17,10 +18,12 @@ export default function OneTimeExpenses() {
   const [category, setCategory] = useState('all');
   const [monthOffset, setMonthOffset] = useState(0);
   const qc = useQueryClient();
+  const user = useCurrentUser();
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: () => base44.entities.Expense.list('-date', 200),
+    queryKey: ['expenses', user?.id],
+    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 200),
+    enabled: !!user?.id,
   });
 
   const targetDate = addMonths(new Date(), monthOffset);
@@ -54,24 +57,24 @@ export default function OneTimeExpenses() {
       return { prev };
     },
     onError: (_e, _v, ctx) => { qc.setQueryData(['expenses'], ctx.prev); },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['expenses'] }); setModalOpen(false); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['expenses', user?.id] }); setModalOpen(false); setEditing(null); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Expense.delete(id),
     onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['expenses'] });
-      const prev = qc.getQueryData(['expenses']);
-      qc.setQueryData(['expenses'], old => old.filter(e => e.id !== id));
+      await qc.cancelQueries({ queryKey: ['expenses', user?.id] });
+      const prev = qc.getQueryData(['expenses', user?.id]);
+      qc.setQueryData(['expenses', user?.id], old => old.filter(e => e.id !== id));
       return { prev };
     },
-    onError: (_e, _v, ctx) => { qc.setQueryData(['expenses'], ctx.prev); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses'] }),
+    onError: (_e, _v, ctx) => { qc.setQueryData(['expenses', user?.id], ctx.prev); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses', user?.id] }),
   });
 
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
-  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['expenses'] });
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['expenses', user?.id] });
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>

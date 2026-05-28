@@ -11,6 +11,7 @@ import InsightsCard from '@/components/InsightsCard';
 import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
 import { FileBarChart, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 function StatCard({ label, value, sub, emoji, color }) {
   return (
@@ -30,26 +31,30 @@ export default function Dashboard() {
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [allExpensesOpen, setAllExpensesOpen] = useState(false);
   const qc = useQueryClient();
+  const user = useCurrentUser();
   const handleRefresh = () => Promise.all([
-    qc.invalidateQueries({ queryKey: ['expenses'] }),
-    qc.invalidateQueries({ queryKey: ['recurring'] }),
-    qc.invalidateQueries({ queryKey: ['budget'] }),
+    qc.invalidateQueries({ queryKey: ['expenses', user?.id] }),
+    qc.invalidateQueries({ queryKey: ['recurring', user?.id] }),
+    qc.invalidateQueries({ queryKey: ['budget', user?.id] }),
   ]);
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: () => base44.entities.Expense.list('-date', 100),
+    queryKey: ['expenses', user?.id],
+    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 100),
+    enabled: !!user?.id,
   });
 
   const { data: recurring = [] } = useQuery({
-    queryKey: ['recurring'],
-    queryFn: () => base44.entities.RecurringExpense.list('-created_date', 100),
+    queryKey: ['recurring', user?.id],
+    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 100),
+    enabled: !!user?.id,
   });
 
   const currentMonth = format(new Date(), 'yyyy-MM');
   const { data: budgets = [] } = useQuery({
-    queryKey: ['budget'],
-    queryFn: () => base44.entities.Budget.filter({ month: currentMonth }),
+    queryKey: ['budget', user?.id],
+    queryFn: () => base44.entities.Budget.filter({ month: currentMonth, created_by_id: user.id }),
+    enabled: !!user?.id,
   });
   const budget = budgets[0] || null;
 

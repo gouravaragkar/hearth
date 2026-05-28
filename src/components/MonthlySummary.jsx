@@ -29,7 +29,7 @@ export default function MonthlySummary({ totalSpent, budget }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget'] });
+      queryClient.invalidateQueries({ queryKey: ['budget'] }); // invalidates all budget keys
       setEditing(false);
     },
   });
