@@ -90,12 +90,8 @@ export default function Dashboard() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-6 animate-fade-up px-4 py-6 pb-28">
-      {/* Greeting */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Good day! 👋</h1>
-          <p className="text-muted-foreground text-sm mt-1">Here's your household spending overview</p>
-        </div>
+        <div />
         <div className="flex gap-2 mt-1">
           <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setInsightsOpen(true)}>
             <BarChart2 size={14} /> Insights
