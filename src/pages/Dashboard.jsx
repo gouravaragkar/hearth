@@ -6,6 +6,7 @@ import { formatAUD, getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from
 import UpcomingPayments from '@/components/UpcomingPayments';
 import MonthlySummary from '@/components/MonthlySummary';
 import MonthlyReportCard from '@/components/MonthlyReportCard';
+import AllExpensesCard from '@/components/AllExpensesCard';
 import InsightsCard from '@/components/InsightsCard';
 import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
 import { FileBarChart, BarChart2 } from 'lucide-react';
@@ -27,6 +28,7 @@ function StatCard({ label, value, sub, emoji, color }) {
 export default function Dashboard() {
   const [reportOpen, setReportOpen] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
+  const [allExpensesOpen, setAllExpensesOpen] = useState(false);
   const qc = useQueryClient();
   const handleRefresh = () => Promise.all([
     qc.invalidateQueries({ queryKey: ['expenses'] }),
@@ -93,6 +95,9 @@ export default function Dashboard() {
       <div className="flex items-start justify-between">
         <div />
         <div className="flex gap-2 mt-1">
+          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setAllExpensesOpen(true)}>
+            <FileBarChart size={14} /> Expenses
+          </Button>
           <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setInsightsOpen(true)}>
             <BarChart2 size={14} /> Insights
           </Button>
@@ -142,6 +147,13 @@ export default function Dashboard() {
           color={unpaidRecurring > 0 ? 'hsl(0 72% 55%)' : 'hsl(130 20% 45%)'}
         />
       </div>
+
+      <AllExpensesCard
+        open={allExpensesOpen}
+        onClose={() => setAllExpensesOpen(false)}
+        expenses={expenses}
+        recurring={enrichedRecurring}
+      />
 
       <InsightsCard
         open={insightsOpen}
