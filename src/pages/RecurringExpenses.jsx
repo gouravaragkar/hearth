@@ -8,7 +8,9 @@ import ExpenseCard from '@/components/ExpenseCard';
 import ExpenseFormModal from '@/components/ExpenseFormModal';
 import ExpenseFilters from '@/components/ExpenseFilters';
 import PullToRefresh from '@/components/PullToRefresh';
-import { formatAUD, getMonthlyEquivalent, getNextDueDate } from '@/lib/utils';
+import { getMonthlyEquivalent, getNextDueDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
+import { useHome } from '@/context/HomeContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function RecurringExpenses() {
@@ -17,10 +19,16 @@ export default function RecurringExpenses() {
   const [category, setCategory] = useState('all');
   const qc = useQueryClient();
   const user = useCurrentUser();
+  const { activeHome } = useHome();
+  const currency = activeHome?.currency || 'AUD';
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['recurring', user?.id],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 100),
+    queryKey: ['recurring', user?.id, activeHome?.id],
+    queryFn: () => {
+      const filter = { created_by_id: user.id };
+      if (activeHome?.id) filter.home_id = activeHome.id;
+      return base44.entities.RecurringExpense.filter(filter, '-created_date', 100);
+    },
     enabled: !!user?.id,
   });
 
@@ -53,7 +61,7 @@ export default function RecurringExpenses() {
       return { prev };
     },
     onError: (_e, _v, ctx) => { qc.setQueryData(['recurring'], ctx.prev); },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['recurring', user?.id] }); setModalOpen(false); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['recurring'] }); setModalOpen(false); setEditing(null); },
   });
 
   const deleteMutation = useMutation({
@@ -95,7 +103,7 @@ export default function RecurringExpenses() {
               <RefreshCw size={20} className="text-primary" /> Recurring Expenses
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {filtered.length} active · <span className="font-medium text-foreground">{formatAUD(monthlyTotal)}/mo estimated</span>
+              {filtered.length} active · <span className="font-medium text-foreground">{formatCurrency(monthlyTotal, currency)}/mo estimated</span>
             </p>
           </div>
           <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2 } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2, Home } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
   DropdownMenu,
@@ -24,12 +24,15 @@ import Dashboard from '@/pages/Dashboard';
 import RecurringExpenses from '@/pages/RecurringExpenses';
 import OneTimeExpenses from '@/pages/OneTimeExpenses';
 import CalendarPage from '@/pages/CalendarPage';
+import HomesPage from '@/pages/HomesPage';
+import HomeSwitcher from '@/components/HomeSwitcher';
 
 const TABS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, component: Dashboard },
   { label: 'Recurring', path: '/recurring', icon: RefreshCw, component: RecurringExpenses },
   { label: 'One-Time', path: '/one-time', icon: Receipt, component: OneTimeExpenses },
   { label: 'Calendar', path: '/calendar', icon: CalendarDays, component: CalendarPage },
+  { label: 'Homes', path: '/homes', icon: Home, component: HomesPage },
 ];
 
 function UserMenu() {
@@ -158,7 +161,10 @@ export default function Layout() {
               <span className="text-xl">🏡</span>
               <span className="font-semibold text-foreground text-lg tracking-tight">HomeSpend</span>
             </div>
-            <UserMenu />
+            <div className="flex items-center gap-2">
+              <HomeSwitcher />
+              <UserMenu />
+            </div>
           </div>
         </div>
       </header>

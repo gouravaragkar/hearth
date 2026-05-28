@@ -8,7 +8,16 @@
     },
     "amount": {
       "type": "number",
-      "description": "Amount in AUD"
+      "description": "Amount in the chosen currency"
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 currency code (e.g. AUD, INR, USD)",
+      "default": "AUD"
+    },
+    "home_id": {
+      "type": "string",
+      "description": "Reference to the Home this expense belongs to"
     },
     "category": {
       "type": "string",

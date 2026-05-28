@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import PullToRefresh from '@/components/PullToRefresh';
-import { formatAUD, getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
+import { getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
+import { useHome } from '@/context/HomeContext';
 import UpcomingPayments from '@/components/UpcomingPayments';
 import MonthlySummary from '@/components/MonthlySummary';
 import MonthlyReportCard from '@/components/MonthlyReportCard';
@@ -32,6 +34,8 @@ export default function Dashboard() {
   const [allExpensesOpen, setAllExpensesOpen] = useState(false);
   const qc = useQueryClient();
   const user = useCurrentUser();
+  const { activeHome } = useHome();
+  const currency = activeHome?.currency || 'AUD';
   const handleRefresh = () => Promise.all([
     qc.invalidateQueries({ queryKey: ['expenses', user?.id] }),
     qc.invalidateQueries({ queryKey: ['recurring', user?.id] }),
@@ -125,21 +129,21 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-3">
         <StatCard
           label="Monthly Estimate"
-          value={formatAUD(totalMonthly)}
+          value={formatCurrency(totalMonthly, currency)}
           sub="One-time + recurring"
           emoji="💰"
           color="hsl(16 76% 60%)"
         />
         <StatCard
           label="Recurring/mo"
-          value={formatAUD(recurringMonthly)}
+          value={formatCurrency(recurringMonthly, currency)}
           sub={`${enrichedRecurring.length} active`}
           emoji="🔄"
           color="hsl(130 20% 45%)"
         />
         <StatCard
           label="This Month Spent"
-          value={formatAUD(oneTimeTotal)}
+          value={formatCurrency(oneTimeTotal, currency)}
           sub={`${thisMonthExpenses.length} transactions`}
           emoji="🛒"
           color="hsl(42 58% 45%)"

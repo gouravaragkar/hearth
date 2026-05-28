@@ -6,34 +6,45 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { CATEGORIES } from '@/lib/utils';
+import { CURRENCIES, getCurrency } from '@/lib/currencies';
+import { useHome } from '@/context/HomeContext';
 
 const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c }));
 const FREQUENCY_OPTIONS = [
-  { value: 'weekly', label: 'Weekly' },
+  { value: 'weekly',      label: 'Weekly' },
   { value: 'fortnightly', label: 'Fortnightly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'monthly',     label: 'Monthly' },
+  { value: 'quarterly',   label: 'Quarterly' },
 ];
+const CURRENCY_OPTIONS = CURRENCIES.map(c => ({ value: c.code, label: `${c.code} – ${c.name}` }));
 
 export default function ExpenseFormModal({ open, onClose, onSave, initialData, type }) {
   const isRecurring = type === 'recurring';
+  const { activeHome } = useHome();
+  const defaultCurrency = activeHome?.currency || 'AUD';
 
   const empty = isRecurring
-    ? { name: '', amount: '', category: '', frequency: 'monthly', start_date: '', notes: '' }
-    : { name: '', amount: '', category: '', date: '', notes: '' };
+    ? { name: '', amount: '', currency: defaultCurrency, category: '', frequency: 'monthly', start_date: '', notes: '' }
+    : { name: '', amount: '', currency: defaultCurrency, category: '', date: '', notes: '' };
 
   const [form, setForm] = useState(empty);
 
   useEffect(() => {
-    setForm(initialData ? { ...initialData, amount: initialData.amount?.toString() } : empty);
-  }, [initialData, open]);
+    if (initialData) {
+      setForm({ ...initialData, amount: initialData.amount?.toString(), currency: initialData.currency || defaultCurrency });
+    } else {
+      setForm({ ...empty, currency: defaultCurrency });
+    }
+  }, [initialData, open, defaultCurrency]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSave = () => {
     if (!form.name || !form.amount || !form.category) return;
-    onSave({ ...form, amount: parseFloat(form.amount) });
+    onSave({ ...form, amount: parseFloat(form.amount), home_id: activeHome?.id || null });
   };
+
+  const currencySymbol = getCurrency(form.currency)?.symbol || '$';
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -50,11 +61,30 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
             <Input placeholder="e.g. Rent, Netflix" value={form.name} onChange={e => set('name', e.target.value)} className="mt-1" />
           </div>
 
+          {/* Amount + Currency on same row */}
           <div>
-            <Label>Amount (AUD)</Label>
-            <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
-              <Input type="number" min="0" step="0.01" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} className="pl-7" />
+            <Label>Amount & Currency</Label>
+            <div className="flex gap-2 mt-1">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">{currencySymbol}</span>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={form.amount}
+                  onChange={e => set('amount', e.target.value)}
+                  className="pl-7"
+                />
+              </div>
+              <div className="w-36">
+                <BottomSheetSelect
+                  value={form.currency}
+                  onValueChange={v => set('currency', v)}
+                  options={CURRENCY_OPTIONS}
+                  placeholder="Currency"
+                />
+              </div>
             </div>
           </div>
 

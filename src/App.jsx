@@ -4,6 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { HomeProvider } from '@/context/HomeContext';
 import ThemeProvider from '@/lib/ThemeProvider';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from '@/components/Layout';
@@ -34,6 +35,7 @@ const AuthenticatedApp = () => {
       <Route path="/recurring" element={<Layout />} />
       <Route path="/one-time" element={<Layout />} />
       <Route path="/calendar" element={<Layout />} />
+      <Route path="/homes" element={<Layout />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -45,7 +47,9 @@ function App() {
       <AuthProvider>
         <QueryClientProvider client={queryClientInstance}>
           <Router>
-            <AuthenticatedApp />
+            <HomeProvider>
+              <AuthenticatedApp />
+            </HomeProvider>
           </Router>
           <Toaster />
         </QueryClientProvider>

@@ -9,9 +9,13 @@ export function formatAUD(amount) {
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
     currency: 'AUD',
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(amount || 0);
 }
+
+// Re-export formatCurrency for convenience
+export { formatCurrency } from '@/lib/currencies';
 
 export const CATEGORY_COLORS = {
   Housing:       '#E8724A',

@@ -8,7 +8,8 @@ import ExpenseCard from '@/components/ExpenseCard';
 import ExpenseFormModal from '@/components/ExpenseFormModal';
 import ExpenseFilters from '@/components/ExpenseFilters';
 import PullToRefresh from '@/components/PullToRefresh';
-import { formatAUD } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
+import { useHome } from '@/context/HomeContext';
 import { startOfMonth, endOfMonth, isWithinInterval, addMonths } from 'date-fns';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
@@ -19,10 +20,16 @@ export default function OneTimeExpenses() {
   const [monthOffset, setMonthOffset] = useState(0);
   const qc = useQueryClient();
   const user = useCurrentUser();
+  const { activeHome } = useHome();
+  const currency = activeHome?.currency || 'AUD';
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['expenses', user?.id],
-    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 200),
+    queryKey: ['expenses', user?.id, activeHome?.id],
+    queryFn: () => {
+      const filter = { created_by_id: user.id };
+      if (activeHome?.id) filter.home_id = activeHome.id;
+      return base44.entities.Expense.filter(filter, '-date', 200);
+    },
     enabled: !!user?.id,
   });
 
@@ -57,7 +64,7 @@ export default function OneTimeExpenses() {
       return { prev };
     },
     onError: (_e, _v, ctx) => { qc.setQueryData(['expenses'], ctx.prev); },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['expenses', user?.id] }); setModalOpen(false); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['expenses'] }); setModalOpen(false); setEditing(null); },
   });
 
   const deleteMutation = useMutation({
@@ -85,7 +92,7 @@ export default function OneTimeExpenses() {
               <Receipt size={20} className="text-primary" /> One-Time Expenses
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              <span className="font-medium text-foreground">{formatAUD(total)}</span>
+              <span className="font-medium text-foreground">{formatCurrency(total, currency)}</span>
               {' · '}{filtered.length} transactions
             </p>
           </div>

@@ -1,7 +1,8 @@
 import { Pencil, Trash2, CheckCircle2, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { formatAUD, CATEGORY_COLORS, CATEGORY_ICONS } from '@/lib/utils';
+import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
@@ -56,7 +57,7 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
 
       {/* Amount */}
       <div className="text-right shrink-0">
-        <p className="font-bold text-foreground">{formatAUD(expense.amount)}</p>
+        <p className="font-bold text-foreground">{formatCurrency(expense.amount, expense.currency || 'AUD')}</p>
         {isRecurring && (
           <p className="text-xs text-muted-foreground">
             {expense.frequency === 'weekly' ? '/wk' : expense.frequency === 'fortnightly' ? '/fortnight' : expense.frequency === 'quarterly' ? '/qtr' : '/mo'}

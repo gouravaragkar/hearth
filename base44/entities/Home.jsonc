@@ -1,0 +1,26 @@
+{
+  "name": "Home",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of this home (e.g. Home Australia, Home India)"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country where this home is located"
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 currency code (e.g. AUD, INR, USD)"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Emoji flag or icon for this home"
+    }
+  },
+  "required": [
+    "name",
+    "currency"
+  ]
+}
