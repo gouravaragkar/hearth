@@ -3,13 +3,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import PullToRefresh from '@/components/PullToRefresh';
 import { formatAUD, getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
-import SpendingDonut from '@/components/SpendingDonut';
 import UpcomingPayments from '@/components/UpcomingPayments';
 import MonthlySummary from '@/components/MonthlySummary';
 import MonthlyReportCard from '@/components/MonthlyReportCard';
-import SpendingTrend from '@/components/SpendingTrend';
+import InsightsCard from '@/components/InsightsCard';
 import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
-import { FileBarChart } from 'lucide-react';
+import { FileBarChart, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function StatCard({ label, value, sub, emoji, color }) {
@@ -27,6 +26,7 @@ function StatCard({ label, value, sub, emoji, color }) {
 
 export default function Dashboard() {
   const [reportOpen, setReportOpen] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
   const qc = useQueryClient();
   const handleRefresh = () => Promise.all([
     qc.invalidateQueries({ queryKey: ['expenses'] }),
@@ -96,14 +96,14 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-foreground">Good day! 👋</h1>
           <p className="text-muted-foreground text-sm mt-1">Here's your household spending overview</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-xl gap-1.5 mt-1"
-          onClick={() => setReportOpen(true)}
-        >
-          <FileBarChart size={14} /> Report
-        </Button>
+        <div className="flex gap-2 mt-1">
+          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setInsightsOpen(true)}>
+            <BarChart2 size={14} /> Insights
+          </Button>
+          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setReportOpen(true)}>
+            <FileBarChart size={14} /> Report
+          </Button>
+        </div>
       </div>
 
       {/* Upcoming Payments — topmost */}
@@ -147,23 +147,15 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Spending Trend */}
-      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
-        <SpendingTrend expenses={expenses} recurring={enrichedRecurring} />
-      </div>
-
-      {/* Donut Chart */}
-      <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="font-semibold text-foreground">Spending Breakdown</h2>
-          {topCategory && (
-            <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-1">
-              Top: {topCategory.name}
-            </span>
-          )}
-        </div>
-        <SpendingDonut data={donutData} totalMonthly={totalMonthly} />
-      </div>
+      <InsightsCard
+        open={insightsOpen}
+        onClose={() => setInsightsOpen(false)}
+        expenses={expenses}
+        recurring={enrichedRecurring}
+        donutData={donutData}
+        totalMonthly={totalMonthly}
+        topCategory={topCategory}
+      />
 
       <MonthlyReportCard
         open={reportOpen}
