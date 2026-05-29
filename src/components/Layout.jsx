@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2, Home } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2, Home, ChevronLeft } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import {
   DropdownMenu,
@@ -145,8 +146,37 @@ function UserMenu() {
 
 export default function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentIdx = TABS.findIndex(t => t.path === location.pathname);
   const activeIdx = currentIdx === -1 ? 0 : currentIdx;
+  const prevIdxRef = useRef(activeIdx);
+  const [direction, setDirection] = useState(0);
+  const scrollRefs = useRef(TABS.map(() => null));
+
+  useEffect(() => {
+    setDirection(activeIdx > prevIdxRef.current ? 1 : -1);
+    prevIdxRef.current = activeIdx;
+  }, [activeIdx]);
+
+  const setScrollRef = useCallback((el, i) => {
+    scrollRefs.current[i] = el;
+  }, []);
+
+  const handleTabClick = (path, i) => {
+    if (i === activeIdx) {
+      // Already on this tab — scroll to top
+      const el = scrollRefs.current[i];
+      if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const isRoot = location.pathname === '/';
+
+  const slideVariants = {
+    enter: (dir) => ({ x: dir > 0 ? '30%' : '-30%', opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir) => ({ x: dir > 0 ? '-30%' : '30%', opacity: 0 }),
+  };
 
   return (
     <div className="min-h-screen bg-background font-inter flex flex-col overflow-hidden">
@@ -158,6 +188,15 @@ export default function Layout() {
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-2 select-none">
+              {!isRoot && (
+                <button
+                  onClick={() => navigate(-1)}
+                  className="mr-1 -ml-1 h-9 w-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors select-none"
+                  aria-label="Go back"
+                >
+                  <ChevronLeft size={22} className="text-foreground" />
+                </button>
+              )}
               <span className="text-xl">🏡</span>
               <span className="font-semibold text-foreground text-lg tracking-tight">HomeSpend</span>
               <HomeSwitcher />
@@ -168,12 +207,43 @@ export default function Layout() {
       </header>
 
       {/* Tab content — all tabs stay mounted, only active one is visible */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto w-full">
+      <div className="flex-1 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={activeIdx}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'tween', duration: 0.22, ease: 'easeInOut' }}
+              className="absolute inset-0"
+            >
+              <div
+                ref={(el) => setScrollRef(el, activeIdx)}
+                className="h-full overflow-y-auto"
+                style={{ overscrollBehavior: 'none' }}
+              >
+                <div className="max-w-3xl mx-auto w-full">
+                  {(() => {
+                    const Component = TABS[activeIdx].component;
+                    return <Component />;
+                  })()}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+          {/* Keep all other tabs mounted but hidden for state preservation */}
           {TABS.map((tab, i) => {
+            if (i === activeIdx) return null;
             const Component = tab.component;
             return (
-              <div key={tab.path} style={{ display: i === activeIdx ? 'block' : 'none' }}>
+              <div
+                key={tab.path}
+                ref={(el) => setScrollRef(el, i)}
+                style={{ display: 'none', overscrollBehavior: 'none' }}
+              >
                 <Component />
               </div>
             );
@@ -193,6 +263,7 @@ export default function Layout() {
               <Link
                 key={path}
                 to={path}
+                onClick={() => handleTabClick(path, i)}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] select-none transition-colors ${
                   active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}

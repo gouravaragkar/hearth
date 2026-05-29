@@ -68,4 +68,9 @@
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
   }
+
+  button, a, nav, [role="tab"], [role="link"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
