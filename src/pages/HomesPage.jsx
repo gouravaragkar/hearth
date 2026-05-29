@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Pencil, Trash2, Plus, Home, Check } from 'lucide-react';
 import { CURRENCIES } from '@/lib/currencies';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const CURRENCY_OPTIONS = CURRENCIES.map(c => ({ value: c.code, label: `${c.code} – ${c.name}` }));
 
 const COUNTRY_FLAG_EMOJIS = [
   '🏠','🇦🇺','🇮🇳','🇺🇸','🇬🇧','🇨🇦','🇳🇿','🇸🇬','🇯🇵','🇨🇳','🇩🇪','🇫🇷','🇮🇹','🇪🇸','🇧🇷','🇲🇽','🇦🇪','🇸🇦','🇿🇦','🇰🇷','🇹🇭','🇲🇾','🇮🇩','🇵🇭','🇻🇳','🇵🇰','🇧🇩','🇱🇰','🇳🇵','🇨🇭','🇸🇪','🇳🇴','🇩🇰','🇵🇱','🇨🇿','🇭🇺',
@@ -135,12 +135,18 @@ export default function HomesPage() {
             <div>
               <Label>Currency</Label>
               <div className="mt-1">
-                <BottomSheetSelect
-                  value={form.currency}
-                  onValueChange={v => set('currency', v)}
-                  options={CURRENCY_OPTIONS}
-                  placeholder="Select currency"
-                />
+                <Select value={form.currency} onValueChange={v => set('currency', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {CURRENCIES.map(c => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.code} – {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div>
