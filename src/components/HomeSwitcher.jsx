@@ -7,10 +7,16 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function HomeSwitcher() {
   const { homes, activeHome, switchHome } = useHome();
+  const navigate = useNavigate();
+
+  const handleSwitch = (id) => {
+    switchHome(id);
+    navigate('/');
+  };
 
   if (homes.length === 0) {
     return (
@@ -34,7 +40,7 @@ export default function HomeSwitcher() {
         {homes.map(home => (
           <DropdownMenuItem
             key={home.id}
-            onClick={() => switchHome(home.id)}
+            onClick={() => handleSwitch(home.id)}
             className={`flex items-center gap-2 cursor-pointer min-h-[44px] ${home.id === activeHome?.id ? 'text-primary font-semibold' : ''}`}
           >
             <span>{home.emoji || '🏠'}</span>

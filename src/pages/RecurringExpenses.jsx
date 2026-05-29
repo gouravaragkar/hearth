@@ -22,15 +22,13 @@ export default function RecurringExpenses() {
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
 
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: ['recurring', user?.id, activeHome?.id],
-    queryFn: () => {
-      const filter = { created_by_id: user.id };
-      if (activeHome?.id) filter.home_id = activeHome.id;
-      return base44.entities.RecurringExpense.filter(filter, '-created_date', 100);
-    },
+  const { data: allItems = [], isLoading } = useQuery({
+    queryKey: ['recurring', user?.id],
+    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 200),
     enabled: !!user?.id,
   });
+
+  const items = allItems.filter(e => !e.home_id || e.home_id === activeHome?.id);
 
   const enriched = items.map(e => ({
     ...e,

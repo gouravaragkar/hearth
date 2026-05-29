@@ -23,15 +23,13 @@ export default function OneTimeExpenses() {
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
 
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: ['expenses', user?.id, activeHome?.id],
-    queryFn: () => {
-      const filter = { created_by_id: user.id };
-      if (activeHome?.id) filter.home_id = activeHome.id;
-      return base44.entities.Expense.filter(filter, '-date', 200);
-    },
+  const { data: allItems = [], isLoading } = useQuery({
+    queryKey: ['expenses', user?.id],
+    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 200),
     enabled: !!user?.id,
   });
+
+  const items = allItems.filter(e => !e.home_id || e.home_id === activeHome?.id);
 
   const targetDate = addMonths(new Date(), monthOffset);
   const monthStart = startOfMonth(targetDate);
