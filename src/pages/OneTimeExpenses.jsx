@@ -29,7 +29,7 @@ export default function OneTimeExpenses() {
     enabled: !!user?.id,
   });
 
-  const items = allItems.filter(e => !e.home_id || e.home_id === activeHome?.id);
+  const items = allItems.filter(e => e.home_id === activeHome?.id);
 
   const targetDate = addMonths(new Date(), monthOffset);
   const monthStart = startOfMonth(targetDate);

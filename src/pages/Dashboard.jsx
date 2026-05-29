@@ -54,8 +54,8 @@ export default function Dashboard() {
     enabled: !!user?.id,
   });
 
-  const expenses = allExpenses.filter(e => !e.home_id || e.home_id === activeHome?.id);
-  const recurring = allRecurring.filter(e => !e.home_id || e.home_id === activeHome?.id);
+  const expenses = allExpenses.filter(e => e.home_id === activeHome?.id);
+  const recurring = allRecurring.filter(e => e.home_id === activeHome?.id);
 
   const currentMonth = format(new Date(), 'yyyy-MM');
   const { data: budgets = [] } = useQuery({

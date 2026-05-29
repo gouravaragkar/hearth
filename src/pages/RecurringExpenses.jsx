@@ -28,7 +28,7 @@ export default function RecurringExpenses() {
     enabled: !!user?.id,
   });
 
-  const items = allItems.filter(e => !e.home_id || e.home_id === activeHome?.id);
+  const items = allItems.filter(e => e.home_id === activeHome?.id);
 
   const enriched = items.map(e => ({
     ...e,
