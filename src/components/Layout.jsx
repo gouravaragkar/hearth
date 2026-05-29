@@ -160,11 +160,9 @@ export default function Layout() {
             <div className="flex items-center gap-2 select-none">
               <span className="text-xl">🏡</span>
               <span className="font-semibold text-foreground text-lg tracking-tight">HomeSpend</span>
-            </div>
-            <div className="flex items-center gap-2">
               <HomeSwitcher />
-              <UserMenu />
             </div>
+            <UserMenu />
           </div>
         </div>
       </header>

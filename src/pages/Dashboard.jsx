@@ -37,20 +37,28 @@ export default function Dashboard() {
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
   const handleRefresh = () => Promise.all([
-    qc.invalidateQueries({ queryKey: ['expenses', user?.id] }),
-    qc.invalidateQueries({ queryKey: ['recurring', user?.id] }),
-    qc.invalidateQueries({ queryKey: ['budget', user?.id] }),
+    qc.invalidateQueries({ queryKey: ['expenses'] }),
+    qc.invalidateQueries({ queryKey: ['recurring'] }),
+    qc.invalidateQueries({ queryKey: ['budget'] }),
   ]);
 
   const { data: expenses = [] } = useQuery({
-    queryKey: ['expenses', user?.id],
-    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 100),
+    queryKey: ['expenses', user?.id, activeHome?.id],
+    queryFn: () => {
+      const filter = { created_by_id: user.id };
+      if (activeHome?.id) filter.home_id = activeHome.id;
+      return base44.entities.Expense.filter(filter, '-date', 100);
+    },
     enabled: !!user?.id,
   });
 
   const { data: recurring = [] } = useQuery({
-    queryKey: ['recurring', user?.id],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 100),
+    queryKey: ['recurring', user?.id, activeHome?.id],
+    queryFn: () => {
+      const filter = { created_by_id: user.id };
+      if (activeHome?.id) filter.home_id = activeHome.id;
+      return base44.entities.RecurringExpense.filter(filter, '-created_date', 100);
+    },
     enabled: !!user?.id,
   });
 

@@ -8,6 +8,7 @@ import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { CATEGORIES } from '@/lib/utils';
 import { CURRENCIES, getCurrency } from '@/lib/currencies';
 import { useHome } from '@/context/HomeContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c }));
 const FREQUENCY_OPTIONS = [
@@ -16,7 +17,6 @@ const FREQUENCY_OPTIONS = [
   { value: 'monthly',     label: 'Monthly' },
   { value: 'quarterly',   label: 'Quarterly' },
 ];
-const CURRENCY_OPTIONS = CURRENCIES.map(c => ({ value: c.code, label: `${c.code} – ${c.name}` }));
 
 export default function ExpenseFormModal({ open, onClose, onSave, initialData, type }) {
   const isRecurring = type === 'recurring';
@@ -78,12 +78,18 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
                 />
               </div>
               <div className="w-36">
-                <BottomSheetSelect
-                  value={form.currency}
-                  onValueChange={v => set('currency', v)}
-                  options={CURRENCY_OPTIONS}
-                  placeholder="Currency"
-                />
+                <Select value={form.currency} onValueChange={v => set('currency', v)}>
+                  <SelectTrigger className="h-[44px]">
+                    <SelectValue placeholder="Currency" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {CURRENCIES.map(c => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.code} – {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
