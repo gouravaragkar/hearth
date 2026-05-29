@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { formatAUD } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
 import { Pencil, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -53,13 +53,13 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency })
       <div className="flex items-end justify-between">
         <div>
           <p className="text-xs text-muted-foreground">Total Spent</p>
-          <p className="text-2xl font-bold text-foreground">{formatAUD(totalSpent)}</p>
+          <p className="text-2xl font-bold text-foreground">{formatCurrency(totalSpent, currency)}</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Budget</p>
           {editing ? (
             <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-sm text-muted-foreground">$</span>
+              <span className="text-sm text-muted-foreground">{formatCurrency(0, currency).replace(/[\d.,]/g, '').trim()}</span>
               <Input
                 autoFocus
                 type="number"
@@ -81,7 +81,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency })
               onClick={() => { setInputVal(budgetAmount ? budgetAmount.toString() : ''); setEditing(true); }}
               className="flex items-center gap-1 text-xl font-bold text-foreground hover:text-primary transition-colors"
             >
-              {budgetAmount > 0 ? formatAUD(budgetAmount) : <span className="text-sm text-muted-foreground">Set budget</span>}
+              {budgetAmount > 0 ? formatCurrency(budgetAmount, currency) : <span className="text-sm text-muted-foreground">Set budget</span>}
               <Pencil size={12} className="text-muted-foreground" />
             </button>
           )}
@@ -100,7 +100,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency })
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">{pct.toFixed(0)}% used</span>
             <span className={over ? 'text-destructive font-semibold' : 'text-muted-foreground'}>
-              {over ? `Over by ${formatAUD(Math.abs(remaining))}` : `${formatAUD(remaining)} remaining`}
+              {over ? `Over by ${formatCurrency(Math.abs(remaining), currency)}` : `${formatCurrency(remaining, currency)} remaining`}
             </span>
           </div>
         </>

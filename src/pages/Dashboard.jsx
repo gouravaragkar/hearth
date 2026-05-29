@@ -36,6 +36,7 @@ export default function Dashboard() {
   const user = useCurrentUser();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
+
   const handleRefresh = () => Promise.all([
     qc.invalidateQueries({ queryKey: ['expenses'] }),
     qc.invalidateQueries({ queryKey: ['recurring'] }),
