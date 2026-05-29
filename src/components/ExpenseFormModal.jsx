@@ -20,28 +20,29 @@ const FREQUENCY_OPTIONS = [
 
 export default function ExpenseFormModal({ open, onClose, onSave, initialData, type }) {
   const isRecurring = type === 'recurring';
-  const { activeHome } = useHome();
+  const { activeHome, homes } = useHome();
   const defaultCurrency = activeHome?.currency || 'AUD';
+  const defaultHomeId = activeHome?.id || null;
 
   const empty = isRecurring
-    ? { name: '', amount: '', currency: defaultCurrency, category: '', frequency: 'monthly', start_date: '', notes: '' }
-    : { name: '', amount: '', currency: defaultCurrency, category: '', date: '', notes: '' };
+    ? { name: '', amount: '', currency: defaultCurrency, category: '', frequency: 'monthly', start_date: '', notes: '', home_id: defaultHomeId }
+    : { name: '', amount: '', currency: defaultCurrency, category: '', date: '', notes: '', home_id: defaultHomeId };
 
   const [form, setForm] = useState(empty);
 
   useEffect(() => {
     if (initialData) {
-      setForm({ ...initialData, amount: initialData.amount?.toString(), currency: initialData.currency || defaultCurrency });
+      setForm({ ...initialData, amount: initialData.amount?.toString(), currency: initialData.currency || defaultCurrency, home_id: initialData.home_id || defaultHomeId });
     } else {
-      setForm({ ...empty, currency: defaultCurrency });
+      setForm({ ...empty, currency: defaultCurrency, home_id: defaultHomeId });
     }
-  }, [initialData, open, defaultCurrency]);
+  }, [initialData, open, defaultCurrency, defaultHomeId]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSave = () => {
     if (!form.name || !form.amount || !form.category) return;
-    onSave({ ...form, amount: parseFloat(form.amount), home_id: activeHome?.id || null });
+    onSave({ ...form, amount: parseFloat(form.amount) });
   };
 
   const currencySymbol = getCurrency(form.currency)?.symbol || '$';
@@ -128,6 +129,26 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
             <div>
               <Label>Date Paid</Label>
               <Input type="date" value={form.date} onChange={e => set('date', e.target.value)} className="mt-1" />
+            </div>
+          )}
+
+          {homes.length > 1 && (
+            <div>
+              <Label>Home</Label>
+              <div className="mt-1">
+                <Select value={form.home_id || ''} onValueChange={v => set('home_id', v || null)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select home" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {homes.map(h => (
+                      <SelectItem key={h.id} value={h.id}>
+                        {h.emoji || '🏠'} {h.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 
