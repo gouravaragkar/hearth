@@ -42,21 +42,17 @@ export default function Dashboard() {
     qc.invalidateQueries({ queryKey: ['budget'] }),
   ]);
 
-  const { data: allExpenses = [] } = useQuery({
-    queryKey: ['expenses', user?.id],
-    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 200),
-    enabled: !!user?.id,
+  const { data: expenses = [] } = useQuery({
+    queryKey: ['expenses', user?.id, activeHome?.id],
+    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id, home_id: activeHome?.id }, '-date', 200),
+    enabled: !!user?.id && !!activeHome?.id,
   });
 
-  const { data: allRecurring = [] } = useQuery({
-    queryKey: ['recurring', user?.id],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 200),
-    enabled: !!user?.id,
+  const { data: recurring = [] } = useQuery({
+    queryKey: ['recurring', user?.id, activeHome?.id],
+    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id, home_id: activeHome?.id }, '-created_date', 200),
+    enabled: !!user?.id && !!activeHome?.id,
   });
-
-  // Filter client-side: show expenses for active home, or unassigned (null home_id) ones
-  const expenses = allExpenses.filter(e => !e.home_id || e.home_id === activeHome?.id);
-  const recurring = allRecurring.filter(e => !e.home_id || e.home_id === activeHome?.id);
 
   const currentMonth = format(new Date(), 'yyyy-MM');
   const { data: budgets = [] } = useQuery({

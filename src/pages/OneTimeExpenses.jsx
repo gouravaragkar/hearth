@@ -23,13 +23,11 @@ export default function OneTimeExpenses() {
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
 
-  const { data: allItems = [], isLoading } = useQuery({
-    queryKey: ['expenses', user?.id],
-    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 200),
-    enabled: !!user?.id,
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ['expenses', user?.id, activeHome?.id],
+    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id, home_id: activeHome?.id }, '-date', 200),
+    enabled: !!user?.id && !!activeHome?.id,
   });
-
-  const items = allItems.filter(e => !e.home_id || e.home_id === activeHome?.id);
 
   const targetDate = addMonths(new Date(), monthOffset);
   const monthStart = startOfMonth(targetDate);
@@ -48,20 +46,6 @@ export default function OneTimeExpenses() {
       if (editing) return base44.entities.Expense.update(editing.id, data);
       return base44.entities.Expense.create(data);
     },
-    onMutate: async (data) => {
-      await qc.cancelQueries({ queryKey: ['expenses'] });
-      const prev = qc.getQueryData(['expenses']);
-      if (editing) {
-        qc.setQueryData(['expenses'], old =>
-          old.map(e => e.id === editing.id ? { ...e, ...data } : e)
-        );
-      } else {
-        const optimistic = { ...data, id: `tmp-${Date.now()}`, created_date: new Date().toISOString() };
-        qc.setQueryData(['expenses'], old => [optimistic, ...old]);
-      }
-      return { prev };
-    },
-    onError: (_e, _v, ctx) => { qc.setQueryData(['expenses'], ctx.prev); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['expenses'] }); setModalOpen(false); setEditing(null); },
   });
 

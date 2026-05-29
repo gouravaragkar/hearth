@@ -22,13 +22,11 @@ export default function RecurringExpenses() {
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
 
-  const { data: allItems = [], isLoading } = useQuery({
-    queryKey: ['recurring', user?.id],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 200),
-    enabled: !!user?.id,
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ['recurring', user?.id, activeHome?.id],
+    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id, home_id: activeHome?.id }, '-created_date', 200),
+    enabled: !!user?.id && !!activeHome?.id,
   });
-
-  const items = allItems.filter(e => !e.home_id || e.home_id === activeHome?.id);
 
   const enriched = items.map(e => ({
     ...e,
@@ -45,20 +43,6 @@ export default function RecurringExpenses() {
       if (editing) return base44.entities.RecurringExpense.update(editing.id, payload);
       return base44.entities.RecurringExpense.create(payload);
     },
-    onMutate: async (data) => {
-      await qc.cancelQueries({ queryKey: ['recurring'] });
-      const prev = qc.getQueryData(['recurring']);
-      if (editing) {
-        qc.setQueryData(['recurring'], old =>
-          old.map(e => e.id === editing.id ? { ...e, ...data } : e)
-        );
-      } else {
-        const optimistic = { ...data, id: `tmp-${Date.now()}`, created_date: new Date().toISOString() };
-        qc.setQueryData(['recurring'], old => [optimistic, ...old]);
-      }
-      return { prev };
-    },
-    onError: (_e, _v, ctx) => { qc.setQueryData(['recurring'], ctx.prev); },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['recurring'] }); setModalOpen(false); setEditing(null); },
   });
 
