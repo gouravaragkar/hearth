@@ -8,7 +8,10 @@ export default function UpcomingPayments({ recurringExpenses }) {
 
   const upcoming = recurringExpenses
     .filter(e => e.next_due_date)
-    .map(e => ({ ...e, dueDate: new Date(e.next_due_date) }))
+    .map(e => {
+      const [y, m, d] = e.next_due_date.split('-').map(Number);
+      return { ...e, dueDate: new Date(y, m - 1, d) };
+    })
     .filter(e => {
       const diff = differenceInDays(e.dueDate, today);
       return diff >= 0 && diff <= 7;

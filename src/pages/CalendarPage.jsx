@@ -4,16 +4,20 @@ import { getNextDueDate } from '@/lib/utils';
 import CalendarView from '@/components/CalendarView';
 import PullToRefresh from '@/components/PullToRefresh';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useHome } from '@/context/HomeContext';
 
 export default function CalendarPage() {
   const qc = useQueryClient();
   const user = useCurrentUser();
+  const { activeHome } = useHome();
 
-  const { data: recurring = [] } = useQuery({
+  const { data: allRecurring = [] } = useQuery({
     queryKey: ['recurring', user?.id],
     queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 100),
     enabled: !!user?.id,
   });
+
+  const recurring = allRecurring.filter(e => e.home_id === activeHome?.id);
 
   const enriched = recurring.map(e => ({
     ...e,
