@@ -31,7 +31,8 @@ export function HomeProvider({ children }) {
 
   const switchHome = (id) => {
     setActiveHomeId(id);
-    localStorage.setItem('activeHomeId', id);
+    if (id) localStorage.setItem('activeHomeId', id);
+    else localStorage.removeItem('activeHomeId');
   };
 
   const activeHome = homes.find(h => h.id === activeHomeId) || null;
