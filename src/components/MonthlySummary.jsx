@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
-export default function MonthlySummary({ totalSpent, budget }) {
+export default function MonthlySummary({ totalSpent, budget, homeId, currency }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [inputVal, setInputVal] = useState('');
@@ -25,7 +25,7 @@ export default function MonthlySummary({ totalSpent, budget }) {
       if (budget?.id) {
         return base44.entities.Budget.update(budget.id, { amount });
       } else {
-        return base44.entities.Budget.create({ month: currentMonth, amount });
+        return base44.entities.Budget.create({ month: currentMonth, amount, home_id: homeId });
       }
     },
     onSuccess: () => {

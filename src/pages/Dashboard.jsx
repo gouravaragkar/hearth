@@ -59,9 +59,9 @@ export default function Dashboard() {
 
   const currentMonth = format(new Date(), 'yyyy-MM');
   const { data: budgets = [] } = useQuery({
-    queryKey: ['budget', user?.id],
-    queryFn: () => base44.entities.Budget.filter({ month: currentMonth, created_by_id: user.id }),
-    enabled: !!user?.id,
+    queryKey: ['budget', user?.id, activeHome?.id],
+    queryFn: () => base44.entities.Budget.filter({ month: currentMonth, created_by_id: user.id, home_id: activeHome?.id }),
+    enabled: !!user?.id && !!activeHome?.id,
   });
   const budget = budgets[0] || null;
 
@@ -126,7 +126,7 @@ export default function Dashboard() {
       </div>
 
       {/* Monthly Summary */}
-      <MonthlySummary totalSpent={totalMonthly} budget={budget} />
+      <MonthlySummary totalSpent={totalMonthly} budget={budget} homeId={activeHome?.id} currency={currency} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">

@@ -8,7 +8,11 @@
     },
     "amount": {
       "type": "number",
-      "description": "Monthly budget in AUD"
+      "description": "Monthly budget amount"
+    },
+    "home_id": {
+      "type": "string",
+      "description": "Reference to the Home this budget belongs to"
     }
   },
   "required": [

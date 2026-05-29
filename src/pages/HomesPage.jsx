@@ -20,6 +20,18 @@ const EMOJI_OPTIONS = COUNTRY_FLAG_EMOJIS.map(e => ({ value: e, label: e }));
 
 const emptyForm = { name: '', country: '', currency: 'AUD', emoji: '🏠' };
 
+const COUNTRY_CURRENCY_MAP = {
+  'australia': 'AUD', 'india': 'INR', 'united states': 'USD', 'usa': 'USD', 'us': 'USD',
+  'united kingdom': 'GBP', 'uk': 'GBP', 'canada': 'CAD', 'new zealand': 'NZD',
+  'singapore': 'SGD', 'japan': 'JPY', 'china': 'CNY', 'germany': 'EUR', 'france': 'EUR',
+  'italy': 'EUR', 'spain': 'EUR', 'brazil': 'BRL', 'mexico': 'MXN', 'uae': 'AED',
+  'dubai': 'AED', 'south africa': 'ZAR', 'south korea': 'KRW', 'thailand': 'THB',
+  'malaysia': 'MYR', 'indonesia': 'IDR', 'philippines': 'PHP', 'vietnam': 'VND',
+  'pakistan': 'PKR', 'bangladesh': 'BDT', 'sri lanka': 'LKR', 'nepal': 'NPR',
+  'switzerland': 'CHF', 'sweden': 'SEK', 'norway': 'NOK', 'denmark': 'DKK',
+  'poland': 'PLN', 'czech republic': 'CZK', 'hungary': 'HUF',
+};
+
 export default function HomesPage() {
   const { homes, activeHomeId, switchHome, fetchHomes } = useHome();
   const navigate = useNavigate();
@@ -28,7 +40,17 @@ export default function HomesPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    setForm(f => {
+      const updated = { ...f, [k]: v };
+      // Auto-set currency when country changes
+      if (k === 'country') {
+        const mapped = COUNTRY_CURRENCY_MAP[v.trim().toLowerCase()];
+        if (mapped) updated.currency = mapped;
+      }
+      return updated;
+    });
+  };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit = (h) => { setEditing(h); setForm({ name: h.name, country: h.country || '', currency: h.currency, emoji: h.emoji || '🏠' }); setModalOpen(true); };
@@ -39,7 +61,10 @@ export default function HomesPage() {
     if (editing) {
       await base44.entities.Home.update(editing.id, form);
     } else {
-      await base44.entities.Home.create(form);
+      const newHome = await base44.entities.Home.create(form);
+      // Create a default $0 budget for the new home
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      await base44.entities.Budget.create({ month: currentMonth, amount: 0, home_id: newHome.id });
     }
     await fetchHomes();
     setSaving(false);
