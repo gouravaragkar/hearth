@@ -72,16 +72,13 @@ export default function HomesPage() {
   };
 
   const handleDelete = async (id) => {
-    // If deleting the active home, clear the stored selection first
-    if (id === activeHomeId) {
-      const next = homes.find(h => h.id !== id);
-      if (next) switchHome(next.id);
-      else {
-        localStorage.removeItem('activeHomeId');
-        switchHome(null);
-      }
-    }
     await base44.entities.Home.delete(id);
+    // After deletion, update homes list and switch active home if needed
+    const remaining = homes.filter(h => h.id !== id);
+    if (id === activeHomeId) {
+      const next = remaining[0] || null;
+      switchHome(next ? next.id : null);
+    }
     await fetchHomes();
   };
 

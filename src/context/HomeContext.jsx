@@ -8,7 +8,7 @@ export function HomeProvider({ children }) {
   const [activeHomeId, setActiveHomeId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchHomes = async () => {
+  const fetchHomes = async ({ migrate = false } = {}) => {
     try {
       const user = await base44.auth.me();
       const data = await base44.entities.Home.filter({ created_by_id: user.id });
@@ -21,8 +21,8 @@ export function HomeProvider({ children }) {
         setActiveHomeId(data[0].id);
       }
 
-      // Migrate legacy expenses/recurring — assign unowned ones to the oldest home (first created)
-      if (data.length > 0) {
+      // Only migrate on initial load, not on every refresh
+      if (migrate && data.length > 0) {
         const oldestHome = [...data].sort((a, b) => new Date(a.created_date) - new Date(b.created_date))[0];
         const [expenses, recurring] = await Promise.all([
           base44.entities.Expense.filter({ created_by_id: user.id }),
@@ -30,8 +30,6 @@ export function HomeProvider({ children }) {
         ]);
         const unownedExpenses = expenses.filter(e => !e.home_id);
         const unownedRecurring = recurring.filter(e => !e.home_id);
-        // Also fix any wrongly assigned expenses (ones assigned to a non-oldest home that have no business being there)
-        // Re-assign expenses currently assigned to any non-oldest home back to oldest if they were created before any homes existed
         if (unownedExpenses.length > 0 || unownedRecurring.length > 0) {
           await Promise.all([
             ...unownedExpenses.map(e => base44.entities.Expense.update(e.id, { home_id: oldestHome.id })),
@@ -46,7 +44,7 @@ export function HomeProvider({ children }) {
     }
   };
 
-  useEffect(() => { fetchHomes(); }, []);
+  useEffect(() => { fetchHomes({ migrate: true }); }, []);
 
   const switchHome = (id) => {
     setActiveHomeId(id);
