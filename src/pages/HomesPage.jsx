@@ -152,12 +152,18 @@ export default function HomesPage() {
             <div>
               <Label>Icon / Flag</Label>
               <div className="mt-1">
-                <BottomSheetSelect
-                  value={form.emoji}
-                  onValueChange={v => set('emoji', v)}
-                  options={EMOJI_OPTIONS}
-                  placeholder="Pick an emoji"
-                />
+                <Select value={form.emoji} onValueChange={v => set('emoji', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pick an emoji" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {EMOJI_OPTIONS.map(e => (
+                      <SelectItem key={e.value} value={e.value}>
+                        {e.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex gap-3 pt-2">
