@@ -1,22 +1,23 @@
 import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { subMonths, startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
-import { formatAUD, getMonthlyEquivalent } from '@/lib/utils';
+import { getMonthlyEquivalent } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
 
-const CustomTooltip = ({ active, payload, label }) => {
+const makeTooltip = (currency) => ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   const total = payload[0]?.value + payload[1]?.value;
   return (
     <div className="bg-card border border-border rounded-xl p-3 shadow-warm-md text-xs">
       <p className="font-semibold text-foreground mb-1">{label}</p>
-      <p className="text-muted-foreground">One-time: <span className="text-foreground font-medium">{formatAUD(payload[0]?.value || 0)}</span></p>
-      <p className="text-muted-foreground">Recurring: <span className="text-foreground font-medium">{formatAUD(payload[1]?.value || 0)}</span></p>
-      <p className="text-primary font-semibold mt-1">Total: {formatAUD(total)}</p>
+      <p className="text-muted-foreground">One-time: <span className="text-foreground font-medium">{formatCurrency(payload[0]?.value || 0, currency)}</span></p>
+      <p className="text-muted-foreground">Recurring: <span className="text-foreground font-medium">{formatCurrency(payload[1]?.value || 0, currency)}</span></p>
+      <p className="text-primary font-semibold mt-1">Total: {formatCurrency(total, currency)}</p>
     </div>
   );
 };
 
-export default function SpendingTrend({ expenses, recurring }) {
+export default function SpendingTrend({ expenses, recurring, currency = 'AUD' }) {
   const data = useMemo(() => {
     const now = new Date();
     return Array.from({ length: 6 }, (_, i) => {
@@ -42,9 +43,9 @@ export default function SpendingTrend({ expenses, recurring }) {
   const maxVal = Math.max(...data.map(d => d.total), 1);
   const trend = data[5].total - data[0].total;
   const trendLabel = trend < 0
-    ? `↓ ${formatAUD(Math.abs(trend))} less than 6 months ago`
+    ? `↓ ${formatCurrency(Math.abs(trend), currency)} less than 6 months ago`
     : trend > 0
-    ? `↑ ${formatAUD(trend)} more than 6 months ago`
+    ? `↑ ${formatCurrency(trend, currency)} more than 6 months ago`
     : 'Stable over 6 months';
   const trendColor = trend < 0 ? 'text-green-500' : trend > 0 ? 'text-destructive' : 'text-muted-foreground';
 
@@ -68,8 +69,8 @@ export default function SpendingTrend({ expenses, recurring }) {
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v >= 1000 ? (v/1000).toFixed(1)+'k' : v}`} />
-          <Tooltip content={<CustomTooltip />} />
+          <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} tickFormatter={v => formatCurrency(v, currency)} />
+          <Tooltip content={makeTooltip(currency)} />
           <Area type="monotone" dataKey="oneTime" stackId="1" stroke="hsl(42 58% 58%)" strokeWidth={2} fill="url(#gradOneTime)" name="One-time" />
           <Area type="monotone" dataKey="recurring" stackId="1" stroke="hsl(16 76% 60%)" strokeWidth={2} fill="url(#gradRecurring)" name="Recurring" />
         </AreaChart>

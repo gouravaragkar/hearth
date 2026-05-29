@@ -123,7 +123,7 @@ export default function Dashboard() {
       {/* Upcoming Payments — topmost */}
       <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
         <h2 className="font-semibold text-foreground mb-3">Due in the Next 7 Days</h2>
-        <UpcomingPayments recurringExpenses={enrichedRecurring} />
+        <UpcomingPayments recurringExpenses={enrichedRecurring} currency={currency} />
       </div>
 
       {/* Monthly Summary */}
@@ -166,6 +166,7 @@ export default function Dashboard() {
         onClose={() => setAllExpensesOpen(false)}
         expenses={expenses}
         recurring={enrichedRecurring}
+        currency={currency}
       />
 
       <InsightsCard
@@ -176,6 +177,7 @@ export default function Dashboard() {
         donutData={donutData}
         totalMonthly={totalMonthly}
         topCategory={topCategory}
+        currency={currency}
       />
 
       <MonthlyReportCard
@@ -184,6 +186,7 @@ export default function Dashboard() {
         expenses={expenses}
         recurring={enrichedRecurring}
         budget={budget}
+        currency={currency}
       />
     </div>
     </PullToRefresh>

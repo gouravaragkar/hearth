@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import SpendingTrend from '@/components/SpendingTrend';
 import SpendingDonut from '@/components/SpendingDonut';
 
-export default function InsightsCard({ open, onClose, expenses, recurring, donutData, totalMonthly, topCategory }) {
+export default function InsightsCard({ open, onClose, expenses, recurring, donutData, totalMonthly, topCategory, currency = 'AUD' }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="rounded-2xl max-w-md mx-auto max-h-[85vh] overflow-y-auto">
@@ -12,7 +12,7 @@ export default function InsightsCard({ open, onClose, expenses, recurring, donut
         <div className="space-y-6 pb-2">
           <div>
             <h3 className="font-semibold text-foreground mb-3">6 Month Trend</h3>
-            <SpendingTrend expenses={expenses} recurring={recurring} />
+            <SpendingTrend expenses={expenses} recurring={recurring} currency={currency} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -23,7 +23,7 @@ export default function InsightsCard({ open, onClose, expenses, recurring, donut
                 </span>
               )}
             </div>
-            <SpendingDonut data={donutData} totalMonthly={totalMonthly} />
+            <SpendingDonut data={donutData} totalMonthly={totalMonthly} currency={currency} />
           </div>
         </div>
       </DialogContent>

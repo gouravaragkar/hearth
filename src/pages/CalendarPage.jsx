@@ -10,6 +10,7 @@ export default function CalendarPage() {
   const qc = useQueryClient();
   const user = useCurrentUser();
   const { activeHome } = useHome();
+  const currency = activeHome?.currency || 'AUD';
 
   const { data: allRecurring = [] } = useQuery({
     queryKey: ['recurring', user?.id],
@@ -34,7 +35,7 @@ export default function CalendarPage() {
           <p className="text-muted-foreground text-sm mt-1">Upcoming recurring expenses by month</p>
         </div>
         <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5">
-          <CalendarView recurring={enriched} />
+          <CalendarView recurring={enriched} currency={currency} />
         </div>
       </div>
     </PullToRefresh>

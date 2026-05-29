@@ -1,8 +1,9 @@
 import { format, isThisWeek, differenceInDays } from 'date-fns';
-import { formatAUD, CATEGORY_ICONS, CATEGORY_COLORS } from '@/lib/utils';
+import { CATEGORY_ICONS, CATEGORY_COLORS } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
 import { CalendarClock } from 'lucide-react';
 
-export default function UpcomingPayments({ recurringExpenses }) {
+export default function UpcomingPayments({ recurringExpenses, currency = 'AUD' }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -41,7 +42,7 @@ export default function UpcomingPayments({ recurringExpenses }) {
               <p className="text-xs text-muted-foreground">{format(e.dueDate, 'EEEE, dd MMM')}</p>
             </div>
             <div className="text-right shrink-0">
-              <p className="font-semibold text-sm text-foreground">{formatAUD(e.amount)}</p>
+              <p className="font-semibold text-sm text-foreground">{formatCurrency(e.amount, currency)}</p>
               <p className="text-xs font-medium" style={{ color: diff === 0 ? '#E8724A' : diff <= 2 ? '#D4A853' : '#7BAE7F' }}>
                 {label}
               </p>

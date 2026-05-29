@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { formatAUD, CATEGORY_COLORS, getMonthlyEquivalent } from '@/lib/utils';
+import { CATEGORY_COLORS, getMonthlyEquivalent } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-function CategoryRow({ name, spent, budget }) {
+function CategoryRow({ name, spent, budget, currency = 'AUD' }) {
   const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : null;
   const over = budget > 0 && spent > budget;
   const color = CATEGORY_COLORS[name] || '#ADB5BD';
@@ -17,8 +18,8 @@ function CategoryRow({ name, spent, budget }) {
           <span className="text-foreground font-medium">{name}</span>
         </div>
         <div className="text-right">
-          <span className={over ? 'text-destructive font-semibold' : 'text-foreground'}>{formatAUD(spent)}</span>
-          {budget > 0 && <span className="text-muted-foreground text-xs ml-1">/ {formatAUD(budget)}</span>}
+          <span className={over ? 'text-destructive font-semibold' : 'text-foreground'}>{formatCurrency(spent, currency)}</span>
+          {budget > 0 && <span className="text-muted-foreground text-xs ml-1">/ {formatCurrency(budget, currency)}</span>}
         </div>
       </div>
       {pct !== null && (
@@ -33,7 +34,7 @@ function CategoryRow({ name, spent, budget }) {
   );
 }
 
-export default function MonthlyReportCard({ open, onClose, expenses, recurring, budget }) {
+export default function MonthlyReportCard({ open, onClose, expenses, recurring, budget, currency = 'AUD' }) {
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
@@ -73,9 +74,9 @@ export default function MonthlyReportCard({ open, onClose, expenses, recurring, 
   const StatusIcon = over ? TrendingUp : pct > 80 ? Minus : TrendingDown;
   const statusColor = over ? 'text-destructive' : pct > 80 ? 'text-gold' : 'text-sage';
   const statusLabel = over
-    ? `Over budget by ${formatAUD(Math.abs(remaining))}`
+    ? `Over budget by ${formatCurrency(Math.abs(remaining), currency)}`
     : budgetAmount > 0
-      ? `${formatAUD(remaining)} remaining`
+      ? `${formatCurrency(remaining, currency)} remaining`
       : 'No budget set';
 
   return (
@@ -88,12 +89,12 @@ export default function MonthlyReportCard({ open, onClose, expenses, recurring, 
           <div className="mt-3 flex items-center gap-3">
             <div>
               <p className="text-primary-foreground/70 text-xs">Total Spent</p>
-              <p className="text-primary-foreground text-2xl font-bold">{formatAUD(totalSpent)}</p>
+              <p className="text-primary-foreground text-2xl font-bold">{formatCurrency(totalSpent, currency)}</p>
             </div>
             {budgetAmount > 0 && (
               <div className="ml-auto text-right">
                 <p className="text-primary-foreground/70 text-xs">Budget</p>
-                <p className="text-primary-foreground text-2xl font-bold">{formatAUD(budgetAmount)}</p>
+                <p className="text-primary-foreground text-2xl font-bold">{formatCurrency(budgetAmount, currency)}</p>
               </div>
             )}
           </div>
@@ -118,11 +119,11 @@ export default function MonthlyReportCard({ open, onClose, expenses, recurring, 
           <div>
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">One-time</p>
-              <p className="text-sm font-semibold text-foreground">{formatAUD(oneTimeTotal)}</p>
+              <p className="text-sm font-semibold text-foreground">{formatCurrency(oneTimeTotal, currency)}</p>
             </div>
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recurring (est.)</p>
-              <p className="text-sm font-semibold text-foreground">{formatAUD(recurringTotal)}</p>
+              <p className="text-sm font-semibold text-foreground">{formatCurrency(recurringTotal, currency)}</p>
             </div>
           </div>
 
@@ -135,7 +136,7 @@ export default function MonthlyReportCard({ open, onClose, expenses, recurring, 
               <p className="text-sm text-muted-foreground">No spending data this month.</p>
             )}
             {categories.map(([cat, amt]) => (
-              <CategoryRow key={cat} name={cat} spent={amt} budget={0} />
+              <CategoryRow key={cat} name={cat} spent={amt} budget={0} currency={currency} />
             ))}
           </div>
 

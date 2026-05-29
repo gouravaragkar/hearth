@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { formatAUD, getMonthlyEquivalent } from '@/lib/utils';
+import { getMonthlyEquivalent } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
-export default function AllExpensesCard({ open, onClose, expenses, recurring }) {
+export default function AllExpensesCard({ open, onClose, expenses, recurring, currency = 'AUD' }) {
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
@@ -36,7 +37,7 @@ export default function AllExpensesCard({ open, onClose, expenses, recurring }) 
           <DialogTitle className="text-primary-foreground text-xl font-bold mt-0.5">{monthLabel}</DialogTitle>
           <div className="mt-3">
             <p className="text-primary-foreground/70 text-xs">Total</p>
-            <p className="text-primary-foreground text-2xl font-bold">{formatAUD(total)}</p>
+            <p className="text-primary-foreground text-2xl font-bold">{formatCurrency(total, currency)}</p>
           </div>
         </div>
 
@@ -48,7 +49,7 @@ export default function AllExpensesCard({ open, onClose, expenses, recurring }) 
               {allItems.map((item, i) => (
                 <div key={i} className="flex items-center justify-between py-2.5">
                   <span className="text-sm text-foreground">{item.name}</span>
-                  <span className="text-sm font-semibold text-foreground">{formatAUD(item.amount)}</span>
+                  <span className="text-sm font-semibold text-foreground">{formatCurrency(item.amount, currency)}</span>
                 </div>
               ))}
             </div>

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, isSameMonth, isToday, addMonths, subMonths, isSameDay } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { CATEGORY_COLORS, CATEGORY_ICONS, formatAUD, getNextDueDate } from '@/lib/utils';
+import { CATEGORY_COLORS, CATEGORY_ICONS, getNextDueDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currencies';
 
 function getDueDatesForMonth(recurring, monthStart, monthEnd) {
   const result = {};
@@ -33,7 +34,7 @@ function getDueDatesForMonth(recurring, monthStart, monthEnd) {
   return result;
 }
 
-export default function CalendarView({ recurring = [] }) {
+export default function CalendarView({ recurring = [], currency = 'AUD' }) {
   const [viewMonth, setViewMonth] = useState(new Date());
 
   const monthStart = startOfMonth(viewMonth);
@@ -120,7 +121,7 @@ export default function CalendarView({ recurring = [] }) {
                       <span className="text-base">{CATEGORY_ICONS[item.category] || '📦'}</span>
                       <div className="min-w-0">
                         <p className="text-xs font-medium text-foreground truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatAUD(item.amount)}</p>
+                        <p className="text-xs text-muted-foreground">{formatCurrency(item.amount, currency)}</p>
                       </div>
                     </div>
                   ))}
