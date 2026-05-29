@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useHome } from '@/context/HomeContext';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ const emptyForm = { name: '', country: '', currency: 'AUD', emoji: '🏠' };
 
 export default function HomesPage() {
   const { homes, activeHomeId, switchHome, fetchHomes } = useHome();
+  const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -89,7 +91,7 @@ export default function HomesPage() {
           return (
             <div
               key={home.id}
-              onClick={() => switchHome(home.id)}
+              onClick={() => { switchHome(home.id); navigate('/'); }}
               className={`bg-card rounded-2xl border p-4 flex items-center gap-4 cursor-pointer transition-all ${isActive ? 'border-primary shadow-warm-md' : 'border-border shadow-warm-sm hover:shadow-warm-md'}`}
             >
               <div className="text-3xl">{home.emoji || '🏠'}</div>
