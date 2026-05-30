@@ -1,0 +1,51 @@
+{
+  "name": "HomeInvite",
+  "type": "object",
+  "properties": {
+    "home_id": {
+      "type": "string",
+      "description": "ID of the home being shared"
+    },
+    "home_name": {
+      "type": "string",
+      "description": "Name of the home (denormalised for display)"
+    },
+    "home_emoji": {
+      "type": "string",
+      "description": "Emoji of the home (denormalised)"
+    },
+    "inviter_id": {
+      "type": "string",
+      "description": "User ID of the person sending the invite"
+    },
+    "inviter_name": {
+      "type": "string",
+      "description": "Full name of the inviter"
+    },
+    "invitee_email": {
+      "type": "string",
+      "description": "Email of the user being invited"
+    },
+    "invitee_id": {
+      "type": "string",
+      "description": "User ID of the invited user (set when found)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "declined"
+      ],
+      "default": "pending",
+      "description": "Current status of the invite"
+    }
+  },
+  "required": [
+    "home_id",
+    "home_name",
+    "inviter_id",
+    "invitee_email",
+    "status"
+  ]
+}

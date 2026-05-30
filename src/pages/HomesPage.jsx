@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Pencil, Trash2, Plus, Home, Check } from 'lucide-react';
+import { Pencil, Trash2, Plus, Home, Check, UserPlus } from 'lucide-react';
 import { CURRENCIES } from '@/lib/currencies';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import InviteUserModal from '@/components/InviteUserModal';
+import PendingInvites from '@/components/PendingInvites';
+import SentInvites from '@/components/SentInvites';
 
 
 const COUNTRY_FLAG_EMOJIS = [
@@ -39,6 +42,8 @@ export default function HomesPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteRefreshKey, setInviteRefreshKey] = useState(0);
 
   const set = (k, v) => {
     setForm(f => {
@@ -91,10 +96,18 @@ export default function HomesPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage homes & currencies. Tap a home to switch.</p>
         </div>
-        <Button onClick={openAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
-          <Plus size={16} /> Add Home
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setInviteOpen(true)} className="rounded-xl gap-1.5 select-none">
+            <UserPlus size={16} /> Invite
+          </Button>
+          <Button onClick={openAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
+            <Plus size={16} /> Add
+          </Button>
+        </div>
       </div>
+
+      <PendingInvites onInviteActioned={() => setInviteRefreshKey(k => k + 1)} />
+      <SentInvites refreshKey={inviteRefreshKey} />
 
       {homes.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
@@ -141,6 +154,12 @@ export default function HomesPage() {
           );
         })}
       </div>
+
+      <InviteUserModal
+        open={inviteOpen}
+        onClose={() => { setInviteOpen(false); setInviteRefreshKey(k => k + 1); }}
+        homes={homes}
+      />
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="rounded-2xl max-w-md mx-auto">
