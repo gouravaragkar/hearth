@@ -5,10 +5,8 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 /**
  * Returns expenses, recurring, and budgets for the active home.
- * If shared: fetches via service-role backend function (polls every 10s for freshness).
- * If owned: fetches directly from entities (RLS handles filtering).
- *
- * For shared homes, use mutateShared(entity, action, data, id) to create/update/delete.
+ * Always fetches via service-role backend function so all members see all data.
+ * Uses mutateShared(entity, action, data, id) for create/update/delete on shared homes.
  */
 export function useHomeData() {
   const { activeHome } = useHome();
@@ -17,71 +15,41 @@ export function useHomeData() {
   const isShared = !!activeHome?._shared;
   const homeId = activeHome?.id;
 
-  // Shared home: fetch all data via backend function, poll every 10s
-  const sharedQuery = useQuery({
-    queryKey: ['sharedHomeData', homeId],
+  // Always fetch via backend (service role) so cross-user data is visible
+  const homeDataQuery = useQuery({
+    queryKey: ['homeData', homeId],
     queryFn: async () => {
       const res = await base44.functions.invoke('getSharedHomeData', { home_id: homeId });
       return res.data;
     },
-    enabled: isShared && !!homeId,
+    enabled: !!homeId && !!user?.id,
     staleTime: 0,
     refetchInterval: 10_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
 
-  // Owned home: fetch directly
-  const ownedExpensesQuery = useQuery({
-    queryKey: ['expenses', user?.id, homeId],
-    queryFn: () => base44.entities.Expense.filter({ home_id: homeId }, '-date', 500),
-    enabled: !isShared && !!user?.id && !!homeId,
-    staleTime: 0,
-    refetchInterval: 10_000,
-    refetchOnWindowFocus: true,
-  });
-
-  const ownedRecurringQuery = useQuery({
-    queryKey: ['recurring', user?.id, homeId],
-    queryFn: () => base44.entities.RecurringExpense.filter({ home_id: homeId }, '-created_date', 500),
-    enabled: !isShared && !!user?.id && !!homeId,
-    staleTime: 0,
-    refetchInterval: 10_000,
-    refetchOnWindowFocus: true,
-  });
-
-  const ownedBudgetQuery = useQuery({
-    queryKey: ['budget', user?.id, homeId],
-    queryFn: () => base44.entities.Budget.filter({ home_id: homeId }, '-created_date', 100),
-    enabled: !isShared && !!user?.id && !!homeId,
-    staleTime: 0,
-    refetchInterval: 10_000,
-    refetchOnWindowFocus: true,
-  });
-
-  // Helper for invitees to mutate shared home data
+  // For owned homes, mutations go directly to entities (faster, no auth overhead)
+  // For shared homes, mutations go via mutateSharedExpense backend (service role)
   const mutateShared = async (entity, action, data, id) => {
     await base44.functions.invoke('mutateSharedExpense', { home_id: homeId, entity, action, data, id });
-    qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
+    qc.invalidateQueries({ queryKey: ['homeData', homeId] });
   };
 
-  if (isShared) {
-    return {
-      expenses: sharedQuery.data?.expenses || [],
-      recurring: sharedQuery.data?.recurring || [],
-      budgets: sharedQuery.data?.budgets || [],
-      isLoading: sharedQuery.isLoading,
-      isShared: true,
-      mutateShared,
-    };
-  }
+  const mutateOwned = async (entity, action, data, id) => {
+    const repo = base44.entities[entity];
+    if (action === 'create') await repo.create({ ...data, home_id: homeId });
+    else if (action === 'update') await repo.update(id, data);
+    else if (action === 'delete') await repo.delete(id);
+    qc.invalidateQueries({ queryKey: ['homeData', homeId] });
+  };
 
   return {
-    expenses: ownedExpensesQuery.data || [],
-    recurring: ownedRecurringQuery.data || [],
-    budgets: ownedBudgetQuery.data || [],
-    isLoading: ownedExpensesQuery.isLoading || ownedRecurringQuery.isLoading,
-    isShared: false,
-    mutateShared: null,
+    expenses: homeDataQuery.data?.expenses || [],
+    recurring: homeDataQuery.data?.recurring || [],
+    budgets: homeDataQuery.data?.budgets || [],
+    isLoading: homeDataQuery.isLoading,
+    isShared,
+    mutateShared: isShared ? mutateShared : mutateOwned,
   };
 }

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
@@ -20,7 +19,7 @@ export default function RecurringExpenses() {
   const qc = useQueryClient();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
-  const { recurring: items, isLoading, isShared, mutateShared } = useHomeData();
+  const { recurring: items, isLoading, mutateShared } = useHomeData();
 
   const enriched = items.map(e => ({
     ...e,
@@ -34,42 +33,22 @@ export default function RecurringExpenses() {
     mutationFn: async (data) => {
       const nextDue = getNextDueDate(data.start_date, data.frequency).toISOString().split('T')[0];
       const payload = { ...data, next_due_date: nextDue };
-      if (isShared) {
-        return mutateShared('RecurringExpense', editing ? 'update' : 'create', payload, editing?.id);
-      }
-      if (editing) return base44.entities.RecurringExpense.update(editing.id, payload);
-      return base44.entities.RecurringExpense.create(payload);
+      return mutateShared('RecurringExpense', editing ? 'update' : 'create', payload, editing?.id);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['recurring'] });
-      setModalOpen(false);
-      setEditing(null);
-    },
+    onSuccess: () => { setModalOpen(false); setEditing(null); },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => {
-      if (isShared) return mutateShared('RecurringExpense', 'delete', null, id);
-      return base44.entities.RecurringExpense.delete(id);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recurring'] }),
+    mutationFn: (id) => mutateShared('RecurringExpense', 'delete', null, id),
   });
 
   const togglePaidMutation = useMutation({
-    mutationFn: (e) => {
-      const newVal = !e.paid_this_cycle;
-      if (isShared) return mutateShared('RecurringExpense', 'update', { paid_this_cycle: newVal }, e.id);
-      return base44.entities.RecurringExpense.update(e.id, { paid_this_cycle: newVal });
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recurring'] }),
+    mutationFn: (e) => mutateShared('RecurringExpense', 'update', { paid_this_cycle: !e.paid_this_cycle }, e.id),
   });
 
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
-  const handleRefresh = () => {
-    qc.invalidateQueries({ queryKey: ['recurring'] });
-    qc.invalidateQueries({ queryKey: ['sharedHomeData'] });
-  };
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['homeData'] });
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>

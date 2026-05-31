@@ -16,10 +16,7 @@ export default function CalendarPage() {
     next_due_date: e.next_due_date || getNextDueDate(e.start_date, e.frequency).toISOString().split('T')[0],
   }));
 
-  const handleRefresh = () => {
-    qc.invalidateQueries({ queryKey: ['recurring'] });
-    qc.invalidateQueries({ queryKey: ['sharedHomeData'] });
-  };
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['homeData'] });
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>

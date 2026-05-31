@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Plus, Receipt } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
@@ -21,7 +20,7 @@ export default function OneTimeExpenses() {
   const qc = useQueryClient();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
-  const { expenses: items, isLoading, isShared, mutateShared } = useHomeData();
+  const { expenses: items, isLoading, mutateShared } = useHomeData();
 
   const targetDate = addMonths(new Date(), monthOffset);
   const monthStart = startOfMonth(targetDate);
@@ -36,34 +35,17 @@ export default function OneTimeExpenses() {
   const total = filtered.reduce((s, e) => s + (e.amount || 0), 0);
 
   const saveMutation = useMutation({
-    mutationFn: async (data) => {
-      if (isShared) {
-        return mutateShared('Expense', editing ? 'update' : 'create', data, editing?.id);
-      }
-      if (editing) return base44.entities.Expense.update(editing.id, data);
-      return base44.entities.Expense.create(data);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['expenses'] });
-      setModalOpen(false);
-      setEditing(null);
-    },
+    mutationFn: (data) => mutateShared('Expense', editing ? 'update' : 'create', data, editing?.id),
+    onSuccess: () => { setModalOpen(false); setEditing(null); },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => {
-      if (isShared) return mutateShared('Expense', 'delete', null, id);
-      return base44.entities.Expense.delete(id);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses'] }),
+    mutationFn: (id) => mutateShared('Expense', 'delete', null, id),
   });
 
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
-  const handleRefresh = () => {
-    qc.invalidateQueries({ queryKey: ['expenses'] });
-    qc.invalidateQueries({ queryKey: ['sharedHomeData'] });
-  };
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['homeData'] });
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>

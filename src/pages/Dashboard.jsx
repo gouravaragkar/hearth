@@ -38,12 +38,7 @@ export default function Dashboard() {
   const currency = activeHome?.currency || 'AUD';
   const { expenses, recurring, budgets, isShared, mutateShared } = useHomeData();
 
-  const handleRefresh = () => Promise.all([
-    qc.invalidateQueries({ queryKey: ['expenses'] }),
-    qc.invalidateQueries({ queryKey: ['recurring'] }),
-    qc.invalidateQueries({ queryKey: ['budget'] }),
-    qc.invalidateQueries({ queryKey: ['sharedHomeData'] }),
-  ]);
+  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['homeData'] });
 
   const currentMonth = format(new Date(), 'yyyy-MM');
   const budget = budgets.find(b => b.month === currentMonth) || null;

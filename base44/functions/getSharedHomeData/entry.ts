@@ -13,17 +13,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'home_id required' }, { status: 400 });
     }
 
-    // Verify the user has an approved invite for this home
-    const allInvites = await base44.asServiceRole.entities.HomeInvite.list('-created_date', 500);
-    const hasAccess = allInvites.some(
-      inv =>
-        inv.home_id === home_id &&
-        inv.status === 'approved' &&
-        (inv.invitee_id === user.id || inv.invitee_email?.toLowerCase() === user.email?.toLowerCase())
-    );
+    // Check if user is the owner of this home
+    const home = await base44.asServiceRole.entities.Home.filter({ id: home_id }, '-created_date', 1);
+    const isOwner = home.length > 0 && home[0].created_by_id === user.id;
 
-    if (!hasAccess) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (!isOwner) {
+      // Check if user has an approved invite for this home
+      const allInvites = await base44.asServiceRole.entities.HomeInvite.list('-created_date', 500);
+      const hasAccess = allInvites.some(
+        inv =>
+          inv.home_id === home_id &&
+          inv.status === 'approved' &&
+          (inv.invitee_id === user.id || inv.invitee_email?.toLowerCase() === user.email?.toLowerCase())
+      );
+
+      if (!hasAccess) {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
 
     // Fetch all data for this home using service role (bypasses RLS)

@@ -32,8 +32,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, i
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget'] });
-      queryClient.invalidateQueries({ queryKey: ['sharedHomeData'] });
+      queryClient.invalidateQueries({ queryKey: ['homeData'] });
       setEditing(false);
     },
   });
