@@ -123,6 +123,7 @@ export default function HomesPage() {
       <div className="space-y-3">
         {homes.map(home => {
           const isActive = home.id === activeHomeId;
+          const isShared = !!home._shared;
           return (
             <div
               key={home.id}
@@ -131,25 +132,30 @@ export default function HomesPage() {
             >
               <div className="text-3xl">{home.emoji || '🏠'}</div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-foreground">{home.name}</p>
                   {isActive && (
                     <span className="flex items-center gap-0.5 text-xs text-primary font-medium">
                       <Check size={12} /> Active
                     </span>
                   )}
+                  {isShared && (
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Shared with you</span>
+                  )}
                 </div>
                 {home.country && <p className="text-xs text-muted-foreground">{home.country}</p>}
                 <p className="text-xs text-muted-foreground font-medium mt-0.5">{home.currency}</p>
               </div>
-              <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => openEdit(home)}>
-                  <Pencil size={15} className="text-muted-foreground" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => handleDelete(home.id)}>
-                  <Trash2 size={15} className="text-destructive" />
-                </Button>
-              </div>
+              {!isShared && (
+                <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => openEdit(home)}>
+                    <Pencil size={15} className="text-muted-foreground" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => handleDelete(home.id)}>
+                    <Trash2 size={15} className="text-destructive" />
+                  </Button>
+                </div>
+              )}
             </div>
           );
         })}
