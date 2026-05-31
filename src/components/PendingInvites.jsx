@@ -34,10 +34,11 @@ export default function PendingInvites({ onInviteActioned }) {
       const res = await base44.functions.invoke('respondToInvite', { inviteId: invite.id, action });
       if (res?.data?.error) {
         setErrorMsg(res.data.error);
-      } else if (action === 'approved' && onInviteActioned) {
-        // Small delay to ensure DB has committed before re-fetching homes
-        await new Promise(r => setTimeout(r, 500));
-        await onInviteActioned();
+      } else if (action === 'approved') {
+        // Reload the page so HomeContext fully re-initialises with the new shared home
+        await new Promise(r => setTimeout(r, 400));
+        window.location.reload();
+        return;
       }
     } catch (e) {
       setErrorMsg('Something went wrong. Please try again.');
