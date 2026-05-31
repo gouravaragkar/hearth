@@ -11,7 +11,8 @@ import MonthlyReportCard from '@/components/MonthlyReportCard';
 import AllExpensesCard from '@/components/AllExpensesCard';
 import InsightsCard from '@/components/InsightsCard';
 import { startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
-import { FileBarChart, BarChart2 } from 'lucide-react';
+import { FileBarChart, BarChart2, History } from 'lucide-react';
+import MonthHistoryModal from '@/components/MonthHistoryModal';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const [reportOpen, setReportOpen] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [allExpensesOpen, setAllExpensesOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const qc = useQueryClient();
   const user = useCurrentUser();
   const { activeHome } = useHome();
@@ -93,6 +95,9 @@ export default function Dashboard() {
           </Button>
           <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setReportOpen(true)}>
             <FileBarChart size={14} /> Report
+          </Button>
+          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setHistoryOpen(true)}>
+            <History size={14} /> History
           </Button>
         </div>
       </div>
@@ -163,6 +168,15 @@ export default function Dashboard() {
         expenses={expenses}
         recurring={enrichedRecurring}
         budget={budget}
+        currency={currency}
+      />
+
+      <MonthHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        expenses={expenses}
+        recurring={enrichedRecurring}
+        budgets={budgets}
         currency={currency}
       />
     </div>
