@@ -35,7 +35,9 @@ export default function PendingInvites({ onInviteActioned }) {
       if (res?.data?.error) {
         setErrorMsg(res.data.error);
       } else if (action === 'approved' && onInviteActioned) {
-        onInviteActioned();
+        // Small delay to ensure DB has committed before re-fetching homes
+        await new Promise(r => setTimeout(r, 500));
+        await onInviteActioned();
       }
     } catch (e) {
       setErrorMsg('Something went wrong. Please try again.');

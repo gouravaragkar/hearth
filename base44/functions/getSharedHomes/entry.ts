@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     // Use service role to read ALL HomeInvite records — bypasses RLS
     const allInvites = await base44.asServiceRole.entities.HomeInvite.list('-created_date', 500);
 
-    // Approved invites for this user — match by email OR by invitee_id
+    // Approved invites for this user — match by invitee_id OR email
     const approvedInvites = allInvites.filter(
       inv =>
         inv.status === 'approved' &&
@@ -27,11 +27,20 @@ Deno.serve(async (req) => {
       return Response.json({ sharedHomes: [] });
     }
 
-    // Fetch all homes via service role, then filter to the ones we want
-    const allHomes = await base44.asServiceRole.entities.Home.list('-created_date', 500);
-    const sharedHomes = allHomes
-      .filter(h => sharedHomeIds.includes(h.id))
-      .map(h => ({ ...h, _shared: true }));
+    // Fetch each home individually using service role — more reliable than list + filter
+    const homeResults = await Promise.all(
+      sharedHomeIds.map(async (homeId) => {
+        try {
+          // Try direct get first
+          const homes = await base44.asServiceRole.entities.Home.filter({ id: homeId });
+          return homes[0] || null;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    const sharedHomes = homeResults.filter(Boolean).map(h => ({ ...h, _shared: true }));
 
     return Response.json({ sharedHomes });
   } catch (error) {
