@@ -31,7 +31,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
 
   const handleSave = () => {
     const val = parseFloat(inputVal);
-    if (!isNaN(val) && val > 0) saveMutation.mutate(val);
+    if (!isNaN(val) && val >= 0) saveMutation.mutate(val);
   };
 
   return (
