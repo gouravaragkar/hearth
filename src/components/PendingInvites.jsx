@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Check, X, Bell } from 'lucide-react';
+import { Check, X, Bell, AlertCircle } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function PendingInvites({ onInviteActioned }) {
@@ -9,6 +9,7 @@ export default function PendingInvites({ onInviteActioned }) {
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const fetchInvites = async () => {
     if (!currentUser?.email) return;
@@ -27,6 +28,19 @@ export default function PendingInvites({ onInviteActioned }) {
 
   const handleAction = async (invite, action) => {
     setActing(invite.id);
+    setErrorMsg(null);
+
+    // Re-fetch this specific invite to confirm it still exists and is pending
+    const fresh = await base44.entities.HomeInvite.list('-created_date', 200);
+    const stillExists = fresh.find(i => i.id === invite.id && i.status === 'pending');
+
+    if (!stillExists) {
+      setErrorMsg('This invitation is no longer available — the inviter may have cancelled it.');
+      await fetchInvites();
+      setActing(null);
+      return;
+    }
+
     await base44.entities.HomeInvite.update(invite.id, { status: action });
     await fetchInvites();
     setActing(null);
@@ -44,6 +58,13 @@ export default function PendingInvites({ onInviteActioned }) {
           {invites.length}
         </span>
       </div>
+
+      {errorMsg && (
+        <div className="flex items-center gap-2 bg-destructive/10 text-destructive rounded-xl px-3 py-2 text-sm">
+          <AlertCircle size={14} className="shrink-0" />
+          {errorMsg}
+        </div>
+      )}
 
       {invites.map(invite => (
         <div

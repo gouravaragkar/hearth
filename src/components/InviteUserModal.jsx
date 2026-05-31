@@ -52,7 +52,21 @@ export default function InviteUserModal({ open, onClose, homes }) {
       });
     });
 
-    await Promise.all(invitePromises);
+    const createdInvites = await Promise.all(invitePromises);
+
+    // Send notification email to invitee for each home
+    const appUrl = window.location.origin;
+    await Promise.all(
+      createdInvites.map(invite => {
+        const home = homes.find(h => h.id === invite.home_id);
+        return base44.integrations.Core.SendEmail({
+          to: email.trim().toLowerCase(),
+          subject: `${currentUser.full_name || 'Someone'} invited you to a home on HomeSpend`,
+          body: `Hi there,\n\n${currentUser.full_name || 'Someone'} has invited you to share the home "${home?.name || invite.home_name}" on HomeSpend.\n\nLog in to HomeSpend and go to "My Homes" to approve or decline the invitation:\n${appUrl}/homes\n\nIf you don't have an account yet, you'll need to sign up first.\n\nCheers,\nThe HomeSpend Team`,
+        });
+      })
+    );
+
     setSending(false);
     setResult('sent');
     setEmail('');
@@ -82,7 +96,7 @@ export default function InviteUserModal({ open, onClose, homes }) {
             </div>
             <p className="font-semibold text-foreground text-center">Invite sent!</p>
             <p className="text-sm text-muted-foreground text-center">
-              They'll see a notification when they log in and can approve or decline.
+              An email has been sent to them. They can also see the invite on the Homes page when they log in.
             </p>
             <Button onClick={handleClose} className="mt-2 rounded-xl bg-primary text-primary-foreground select-none">
               Done
