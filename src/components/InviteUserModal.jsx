@@ -44,6 +44,7 @@ export default function InviteUserModal({ open, onClose, homes }) {
         home_id: homeId,
         home_name: home?.name || '',
         home_emoji: home?.emoji || '🏠',
+        home_currency: home?.currency || 'AUD',
         inviter_id: currentUser.id,
         inviter_name: currentUser.full_name || 'Someone',
         invitee_email: email.trim().toLowerCase(),
