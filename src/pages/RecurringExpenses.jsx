@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
@@ -11,6 +11,7 @@ import PullToRefresh from '@/components/PullToRefresh';
 import { getMonthlyEquivalent, getNextDueDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 import { useHome } from '@/context/HomeContext';
+import { useHomeData } from '@/hooks/useHomeData';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function RecurringExpenses() {
@@ -21,14 +22,7 @@ export default function RecurringExpenses() {
   const user = useCurrentUser();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
-
-  const { data: allItems = [], isLoading } = useQuery({
-    queryKey: ['recurring', user?.id],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 200),
-    enabled: !!user?.id,
-  });
-
-  const items = allItems.filter(e => e.home_id === activeHome?.id);
+  const { recurring: items, isLoading, isShared } = useHomeData();
 
   const enriched = items.map(e => ({
     ...e,
@@ -76,7 +70,10 @@ export default function RecurringExpenses() {
 
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
-  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['recurring', user?.id] });
+  const handleRefresh = () => {
+    qc.invalidateQueries({ queryKey: ['recurring'] });
+    qc.invalidateQueries({ queryKey: ['sharedHomeData'] });
+  };
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
@@ -90,9 +87,11 @@ export default function RecurringExpenses() {
               {filtered.length} active · <span className="font-medium text-foreground">{formatCurrency(monthlyTotal, currency)}/mo estimated</span>
             </p>
           </div>
-          <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
-            <Plus size={16} /> Add
-          </Button>
+          {!isShared && (
+            <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
+              <Plus size={16} /> Add
+            </Button>
+          )}
         </div>
 
         <ExpenseFilters
@@ -114,7 +113,7 @@ export default function RecurringExpenses() {
             <span className="text-5xl mb-3">🔄</span>
             <p className="font-medium text-foreground">{enriched.length === 0 ? 'No recurring expenses yet' : 'No results for this filter'}</p>
             <p className="text-sm mt-1">{enriched.length === 0 ? 'Add rent, utilities, subscriptions and more' : 'Try a different category'}</p>
-            {enriched.length === 0 && (
+            {enriched.length === 0 && !isShared && (
               <Button onClick={handleAdd} variant="outline" className="mt-4 rounded-xl select-none">
                 <Plus size={16} className="mr-1" /> Add your first
               </Button>
@@ -128,20 +127,22 @@ export default function RecurringExpenses() {
               key={item.id}
               expense={item}
               type="recurring"
-              onEdit={handleEdit}
-              onDelete={deleteMutation.mutate}
-              onTogglePaid={togglePaidMutation.mutate}
+              onEdit={isShared ? undefined : handleEdit}
+              onDelete={isShared ? undefined : deleteMutation.mutate}
+              onTogglePaid={isShared ? undefined : togglePaidMutation.mutate}
             />
           ))}
         </AnimatePresence>
 
-        <ExpenseFormModal
-          open={modalOpen}
-          onClose={() => { setModalOpen(false); setEditing(null); }}
-          onSave={saveMutation.mutate}
-          initialData={editing}
-          type="recurring"
-        />
+        {!isShared && (
+          <ExpenseFormModal
+            open={modalOpen}
+            onClose={() => { setModalOpen(false); setEditing(null); }}
+            onSave={saveMutation.mutate}
+            initialData={editing}
+            type="recurring"
+          />
+        )}
       </div>
     </PullToRefresh>
   );

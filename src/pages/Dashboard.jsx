@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
 import PullToRefresh from '@/components/PullToRefresh';
 import { getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 import { useHome } from '@/context/HomeContext';
+import { useHomeData } from '@/hooks/useHomeData';
 import UpcomingPayments from '@/components/UpcomingPayments';
 import MonthlySummary from '@/components/MonthlySummary';
 import MonthlyReportCard from '@/components/MonthlyReportCard';
@@ -36,35 +36,17 @@ export default function Dashboard() {
   const user = useCurrentUser();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
+  const { expenses, recurring, budgets } = useHomeData();
 
   const handleRefresh = () => Promise.all([
     qc.invalidateQueries({ queryKey: ['expenses'] }),
     qc.invalidateQueries({ queryKey: ['recurring'] }),
     qc.invalidateQueries({ queryKey: ['budget'] }),
+    qc.invalidateQueries({ queryKey: ['sharedHomeData'] }),
   ]);
 
-  const { data: allExpenses = [] } = useQuery({
-    queryKey: ['expenses', user?.id],
-    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id }, '-date', 200),
-    enabled: !!user?.id,
-  });
-
-  const { data: allRecurring = [] } = useQuery({
-    queryKey: ['recurring', user?.id],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 200),
-    enabled: !!user?.id,
-  });
-
-  const expenses = allExpenses.filter(e => e.home_id === activeHome?.id);
-  const recurring = allRecurring.filter(e => e.home_id === activeHome?.id);
-
   const currentMonth = format(new Date(), 'yyyy-MM');
-  const { data: budgets = [] } = useQuery({
-    queryKey: ['budget', user?.id, activeHome?.id],
-    queryFn: () => base44.entities.Budget.filter({ month: currentMonth, created_by_id: user.id, home_id: activeHome?.id }),
-    enabled: !!user?.id && !!activeHome?.id,
-  });
-  const budget = budgets[0] || null;
+  const budget = budgets.find(b => b.month === currentMonth) || null;
 
   // Enrich recurring with computed next_due_date
   const enrichedRecurring = recurring.map(e => ({

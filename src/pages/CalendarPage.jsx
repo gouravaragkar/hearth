@@ -1,31 +1,25 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
 import { getNextDueDate } from '@/lib/utils';
 import CalendarView from '@/components/CalendarView';
 import PullToRefresh from '@/components/PullToRefresh';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useHome } from '@/context/HomeContext';
+import { useHomeData } from '@/hooks/useHomeData';
 
 export default function CalendarPage() {
   const qc = useQueryClient();
-  const user = useCurrentUser();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
-
-  const { data: allRecurring = [] } = useQuery({
-    queryKey: ['recurring', user?.id],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id }, '-created_date', 100),
-    enabled: !!user?.id,
-  });
-
-  const recurring = allRecurring.filter(e => e.home_id === activeHome?.id);
+  const { recurring } = useHomeData();
 
   const enriched = recurring.map(e => ({
     ...e,
     next_due_date: e.next_due_date || getNextDueDate(e.start_date, e.frequency).toISOString().split('T')[0],
   }));
 
-  const handleRefresh = () => qc.invalidateQueries({ queryKey: ['recurring', user?.id] });
+  const handleRefresh = () => {
+    qc.invalidateQueries({ queryKey: ['recurring'] });
+    qc.invalidateQueries({ queryKey: ['sharedHomeData'] });
+  };
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
