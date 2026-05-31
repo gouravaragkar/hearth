@@ -29,7 +29,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'This invitation is no longer available — the inviter may have cancelled it.' }, { status: 409 });
     }
 
-    await base44.asServiceRole.entities.HomeInvite.update(inviteId, { status: action });
+    const updateData = { status: action };
+    if (action === 'approved') {
+      updateData.invitee_id = user.id;
+    }
+    await base44.asServiceRole.entities.HomeInvite.update(inviteId, updateData);
 
     return Response.json({ success: true });
   } catch (error) {
