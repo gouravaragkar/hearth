@@ -27,20 +27,11 @@ Deno.serve(async (req) => {
       return Response.json({ sharedHomes: [] });
     }
 
-    // Fetch each home individually using service role — more reliable than list + filter
-    const homeResults = await Promise.all(
-      sharedHomeIds.map(async (homeId) => {
-        try {
-          // Try direct get first
-          const homes = await base44.asServiceRole.entities.Home.filter({ id: homeId });
-          return homes[0] || null;
-        } catch {
-          return null;
-        }
-      })
-    );
-
-    const sharedHomes = homeResults.filter(Boolean).map(h => ({ ...h, _shared: true }));
+    // Fetch ALL homes via service role (bypasses RLS), then filter by IDs in memory
+    const allHomes = await base44.asServiceRole.entities.Home.list('-created_date', 1000);
+    const sharedHomes = allHomes
+      .filter(h => sharedHomeIds.includes(h.id))
+      .map(h => ({ ...h, _shared: true }));
 
     return Response.json({ sharedHomes });
   } catch (error) {
