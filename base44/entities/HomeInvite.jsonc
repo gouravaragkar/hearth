@@ -14,6 +14,10 @@
       "type": "string",
       "description": "Emoji of the home (denormalised)"
     },
+    "home_currency": {
+      "type": "string",
+      "description": "Currency of the home (denormalised)"
+    },
     "inviter_id": {
       "type": "string",
       "description": "User ID of the person sending the invite"

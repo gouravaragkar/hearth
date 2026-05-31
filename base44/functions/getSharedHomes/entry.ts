@@ -21,17 +21,44 @@ Deno.serve(async (req) => {
         )
     );
 
-    const sharedHomeIds = [...new Set(approvedInvites.map(inv => inv.home_id))];
-
-    if (sharedHomeIds.length === 0) {
+    if (approvedInvites.length === 0) {
       return Response.json({ sharedHomes: [] });
     }
 
-    // Fetch ALL homes via service role (bypasses RLS), then filter by IDs in memory
-    const allHomes = await base44.asServiceRole.entities.Home.list('-created_date', 1000);
-    const sharedHomes = allHomes
-      .filter(h => sharedHomeIds.includes(h.id))
-      .map(h => ({ ...h, _shared: true }));
+    // Deduplicate by home_id and build home objects from denormalised invite data
+    const seen = new Set();
+    const sharedHomes = [];
+    for (const inv of approvedInvites) {
+      if (!seen.has(inv.home_id)) {
+        seen.add(inv.home_id);
+        // Try to fetch the actual home via service role for full data
+        try {
+          const allHomes = await base44.asServiceRole.entities.Home.list('-created_date', 1000);
+          const home = allHomes.find(h => h.id === inv.home_id);
+          if (home) {
+            sharedHomes.push({ ...home, _shared: true });
+          } else {
+            // Fallback: reconstruct from denormalised invite fields
+            sharedHomes.push({
+              id: inv.home_id,
+              name: inv.home_name,
+              emoji: inv.home_emoji || '🏠',
+              currency: inv.home_currency || 'AUD',
+              _shared: true,
+            });
+          }
+        } catch {
+          // Fallback: reconstruct from denormalised invite fields
+          sharedHomes.push({
+            id: inv.home_id,
+            name: inv.home_name,
+            emoji: inv.home_emoji || '🏠',
+            currency: inv.home_currency || 'AUD',
+            _shared: true,
+          });
+        }
+      }
+    }
 
     return Response.json({ sharedHomes });
   } catch (error) {

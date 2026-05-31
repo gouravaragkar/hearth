@@ -35,6 +35,7 @@
     },
     "delete": {
       "created_by_id": "{{user.id}}"
-    }
+    },
+    "service_role_bypass": true
   }
 }
