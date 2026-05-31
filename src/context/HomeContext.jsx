@@ -14,18 +14,16 @@ export function HomeProvider({ children }) {
       // Load homes created by the user
       const ownedHomes = await base44.entities.Home.filter({ created_by_id: user.id });
 
-      // Load homes shared with this user via approved invites
-      const allInvites = await base44.entities.HomeInvite.list('-created_date', 200);
-      const approvedInvites = allInvites.filter(
-        inv => inv.invitee_email?.toLowerCase() === user.email?.toLowerCase() && inv.status === 'approved'
-      );
-      // Fetch shared home details (avoid duplicates with owned homes)
+      // Load homes shared with this user — must use backend function (service role) to bypass RLS
       const ownedIds = new Set(ownedHomes.map(h => h.id));
-      const sharedHomeIds = [...new Set(approvedInvites.map(inv => inv.home_id))].filter(id => !ownedIds.has(id));
-      const sharedHomes = await Promise.all(
-        sharedHomeIds.map(id => base44.entities.Home.filter({ id }).then(r => r[0]).catch(() => null))
-      );
-      const validSharedHomes = sharedHomes.filter(Boolean).map(h => ({ ...h, _shared: true }));
+      let validSharedHomes = [];
+      try {
+        const res = await base44.functions.invoke('getSharedHomes', {});
+        const all = res?.data?.sharedHomes || [];
+        validSharedHomes = all.filter(h => !ownedIds.has(h.id));
+      } catch (e) {
+        // silently ignore — shared homes just won't appear
+      }
 
       const data = [...ownedHomes, ...validSharedHomes];
       setHomes(data);

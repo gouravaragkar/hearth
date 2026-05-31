@@ -14,11 +14,12 @@ export default function PendingInvites({ onInviteActioned }) {
   const fetchInvites = async () => {
     if (!currentUser?.email) return;
     setLoading(true);
-    const all = await base44.entities.HomeInvite.list('-created_date', 100);
-    const mine = all.filter(
-      inv => inv.invitee_email?.toLowerCase() === currentUser.email.toLowerCase() && inv.status === 'pending'
-    );
-    setInvites(mine);
+    try {
+      const res = await base44.functions.invoke('getMyInvites', {});
+      setInvites(res?.data?.invites || []);
+    } catch (e) {
+      setInvites([]);
+    }
     setLoading(false);
   };
 
@@ -29,22 +30,18 @@ export default function PendingInvites({ onInviteActioned }) {
   const handleAction = async (invite, action) => {
     setActing(invite.id);
     setErrorMsg(null);
-
-    // Re-fetch this specific invite to confirm it still exists and is pending
-    const fresh = await base44.entities.HomeInvite.list('-created_date', 200);
-    const stillExists = fresh.find(i => i.id === invite.id && i.status === 'pending');
-
-    if (!stillExists) {
-      setErrorMsg('This invitation is no longer available — the inviter may have cancelled it.');
-      await fetchInvites();
-      setActing(null);
-      return;
+    try {
+      const res = await base44.functions.invoke('respondToInvite', { inviteId: invite.id, action });
+      if (res?.data?.error) {
+        setErrorMsg(res.data.error);
+      } else if (action === 'approved' && onInviteActioned) {
+        onInviteActioned();
+      }
+    } catch (e) {
+      setErrorMsg('Something went wrong. Please try again.');
     }
-
-    await base44.entities.HomeInvite.update(invite.id, { status: action });
     await fetchInvites();
     setActing(null);
-    if (action === 'approved' && onInviteActioned) onInviteActioned();
   };
 
   if (loading || invites.length === 0) return null;
@@ -67,10 +64,7 @@ export default function PendingInvites({ onInviteActioned }) {
       )}
 
       {invites.map(invite => (
-        <div
-          key={invite.id}
-          className="bg-card border border-primary/30 rounded-2xl p-4 shadow-warm-sm"
-        >
+        <div key={invite.id} className="bg-card border border-primary/30 rounded-2xl p-4 shadow-warm-sm">
           <div className="flex items-start gap-3">
             <span className="text-2xl mt-0.5">{invite.home_emoji || '🏠'}</span>
             <div className="flex-1 min-w-0">
