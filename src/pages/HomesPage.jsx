@@ -6,13 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Pencil, Trash2, Plus, Home, Check, UserPlus } from 'lucide-react';
+import { Pencil, Trash2, Plus, Home, Check, UserPlus, History } from 'lucide-react';
 import { CURRENCIES } from '@/lib/currencies';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InviteUserModal from '@/components/InviteUserModal';
 import PendingInvites from '@/components/PendingInvites';
 import HomeInvitesPopover from '@/components/HomeInvitesPopover';
+import HomeActivityLog from '@/components/HomeActivityLog';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 
 const COUNTRY_FLAG_EMOJIS = [
@@ -38,12 +40,14 @@ const COUNTRY_CURRENCY_MAP = {
 export default function HomesPage() {
   const { homes, activeHomeId, switchHome, fetchHomes } = useHome();
   const navigate = useNavigate();
+  const currentUser = useCurrentUser();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteRefreshKey, setInviteRefreshKey] = useState(0);
+  const [activityHome, setActivityHome] = useState(null);
 
   const set = (k, v) => {
     setForm(f => {
@@ -60,16 +64,20 @@ export default function HomesPage() {
   const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit = (h) => { setEditing(h); setForm({ name: h.name, country: h.country || '', currency: h.currency, emoji: h.emoji || '🏠' }); setModalOpen(true); };
 
+  const log = (home_id, entity, action, record_name, details) =>
+    base44.functions.invoke('logHomeActivity', { home_id, entity, action, record_name, details }).catch(() => {});
+
   const handleSave = async () => {
     if (!form.name || !form.currency) return;
     setSaving(true);
     if (editing) {
       await base44.entities.Home.update(editing.id, form);
+      log(editing.id, 'Home', 'update', form.name, `Currency: ${form.currency}`);
     } else {
       const newHome = await base44.entities.Home.create(form);
-      // Create a default $0 budget for the new home
       const currentMonth = new Date().toISOString().slice(0, 7);
       await base44.entities.Budget.create({ month: currentMonth, amount: 0, home_id: newHome.id });
+      log(newHome.id, 'Home', 'create', form.name, `Currency: ${form.currency}`);
     }
     await fetchHomes();
     setSaving(false);
@@ -77,8 +85,9 @@ export default function HomesPage() {
   };
 
   const handleDelete = async (id) => {
+    const home = homes.find(h => h.id === id);
+    log(id, 'Home', 'delete', home?.name || '', '');
     await base44.entities.Home.delete(id);
-    // After deletion, update homes list and switch active home if needed
     const remaining = homes.filter(h => h.id !== id);
     if (id === activeHomeId) {
       const next = remaining[0] || null;
@@ -145,21 +154,32 @@ export default function HomesPage() {
                 {home.country && <p className="text-xs text-muted-foreground">{home.country}</p>}
                 <p className="text-xs text-muted-foreground font-medium mt-0.5">{home.currency}</p>
               </div>
-              {!isShared && (
-                <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                  <HomeInvitesPopover home={home} />
-                  <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => openEdit(home)}>
-                    <Pencil size={15} className="text-muted-foreground" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => handleDelete(home.id)}>
-                    <Trash2 size={15} className="text-destructive" />
-                  </Button>
-                </div>
-              )}
+              <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setActivityHome(home)}>
+                  <History size={15} className="text-muted-foreground" />
+                </Button>
+                {!isShared && (
+                  <>
+                    <HomeInvitesPopover home={home} />
+                    <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => openEdit(home)}>
+                      <Pencil size={15} className="text-muted-foreground" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => handleDelete(home.id)}>
+                      <Trash2 size={15} className="text-destructive" />
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
+
+      <HomeActivityLog
+        home={activityHome}
+        open={!!activityHome}
+        onClose={() => setActivityHome(null)}
+      />
 
       <InviteUserModal
         open={inviteOpen}

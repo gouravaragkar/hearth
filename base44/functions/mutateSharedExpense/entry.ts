@@ -48,6 +48,19 @@ Deno.serve(async (req) => {
       result = await repo.delete(id);
     }
 
+    // Log activity
+    const recordName = data?.name || data?.month || id || '';
+    const details = data?.amount ? `Amount: ${data.amount}` : '';
+    await base44.asServiceRole.entities.HomeActivity.create({
+      home_id,
+      entity,
+      action,
+      actor_id: user.id,
+      actor_name: user.full_name || user.email || 'Unknown',
+      record_name: recordName,
+      details,
+    });
+
     return Response.json({ success: true, result });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
