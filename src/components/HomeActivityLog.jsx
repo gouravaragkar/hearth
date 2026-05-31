@@ -74,7 +74,7 @@ export default function HomeActivityLog({ home, open, onClose }) {
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-xs text-muted-foreground font-medium">{log.actor_name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(log.created_date), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(log.created_date.endsWith('Z') ? log.created_date : log.created_date + 'Z'), { addSuffix: true })}
                   </span>
                 </div>
                 {log.details && <p className="text-xs text-muted-foreground mt-0.5">{log.details}</p>}
