@@ -22,7 +22,9 @@ export function useHomeData() {
       return res.data;
     },
     enabled: isShared && !!homeId,
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Owned home: fetch directly
