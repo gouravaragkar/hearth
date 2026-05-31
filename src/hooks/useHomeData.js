@@ -1,13 +1,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useHome } from '@/context/HomeContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 /**
  * Returns expenses, recurring, and budgets for the active home.
- * If the home is shared (owned by someone else), fetches via service-role backend function.
- * If owned, fetches directly from entities (RLS handles filtering).
+ * If shared: fetches via service-role backend function (polls every 10s for freshness).
+ * If owned: fetches directly from entities (RLS handles filtering).
+ *
+ * For shared homes, use mutateShared(entity, action, data, id) to create/update/delete.
  */
 export function useHomeData() {
   const { activeHome } = useHome();
@@ -16,24 +17,7 @@ export function useHomeData() {
   const isShared = !!activeHome?._shared;
   const homeId = activeHome?.id;
 
-  // Real-time subscription for shared homes: invalidate cache whenever owner adds/updates/deletes
-  useEffect(() => {
-    if (!isShared || !homeId) return;
-
-    const unsub1 = base44.entities.Expense.subscribe(() => {
-      qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
-    });
-    const unsub2 = base44.entities.RecurringExpense.subscribe(() => {
-      qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
-    });
-    const unsub3 = base44.entities.Budget.subscribe(() => {
-      qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
-    });
-
-    return () => { unsub1(); unsub2(); unsub3(); };
-  }, [isShared, homeId, qc]);
-
-  // Shared home: fetch all data via backend function
+  // Shared home: fetch all data via backend function, poll every 10s
   const sharedQuery = useQuery({
     queryKey: ['sharedHomeData', homeId],
     queryFn: async () => {
@@ -42,6 +26,7 @@ export function useHomeData() {
     },
     enabled: isShared && !!homeId,
     staleTime: 0,
+    refetchInterval: 10_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -65,6 +50,12 @@ export function useHomeData() {
     enabled: !isShared && !!user?.id && !!homeId,
   });
 
+  // Helper for invitees to mutate shared home data
+  const mutateShared = async (entity, action, data, id) => {
+    await base44.functions.invoke('mutateSharedExpense', { home_id: homeId, entity, action, data, id });
+    qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
+  };
+
   if (isShared) {
     return {
       expenses: sharedQuery.data?.expenses || [],
@@ -72,6 +63,7 @@ export function useHomeData() {
       budgets: sharedQuery.data?.budgets || [],
       isLoading: sharedQuery.isLoading,
       isShared: true,
+      mutateShared,
     };
   }
 
@@ -81,5 +73,6 @@ export function useHomeData() {
     budgets: ownedBudgetQuery.data || [],
     isLoading: ownedExpensesQuery.isLoading || ownedRecurringQuery.isLoading,
     isShared: false,
+    mutateShared: null,
   };
 }

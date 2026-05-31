@@ -12,7 +12,6 @@ import { formatCurrency } from '@/lib/currencies';
 import { useHome } from '@/context/HomeContext';
 import { useHomeData } from '@/hooks/useHomeData';
 import { startOfMonth, endOfMonth, isWithinInterval, addMonths } from 'date-fns';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 export default function OneTimeExpenses() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -20,10 +19,9 @@ export default function OneTimeExpenses() {
   const [category, setCategory] = useState('all');
   const [monthOffset, setMonthOffset] = useState(0);
   const qc = useQueryClient();
-  const user = useCurrentUser();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
-  const { expenses: items, isLoading, isShared } = useHomeData();
+  const { expenses: items, isLoading, isShared, mutateShared } = useHomeData();
 
   const targetDate = addMonths(new Date(), monthOffset);
   const monthStart = startOfMonth(targetDate);
@@ -39,14 +37,24 @@ export default function OneTimeExpenses() {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
+      if (isShared) {
+        return mutateShared('Expense', editing ? 'update' : 'create', data, editing?.id);
+      }
       if (editing) return base44.entities.Expense.update(editing.id, data);
       return base44.entities.Expense.create(data);
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['expenses'] }); setModalOpen(false); setEditing(null); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['expenses'] });
+      setModalOpen(false);
+      setEditing(null);
+    },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Expense.delete(id),
+    mutationFn: (id) => {
+      if (isShared) return mutateShared('Expense', 'delete', null, id);
+      return base44.entities.Expense.delete(id);
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
@@ -70,11 +78,9 @@ export default function OneTimeExpenses() {
               {' · '}{filtered.length} transactions
             </p>
           </div>
-          {!isShared && (
-            <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
-              <Plus size={16} /> Add
-            </Button>
-          )}
+          <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
+            <Plus size={16} /> Add
+          </Button>
         </div>
 
         <ExpenseFilters
@@ -96,7 +102,7 @@ export default function OneTimeExpenses() {
             <span className="text-5xl mb-3">🧾</span>
             <p className="font-medium text-foreground">{items.length === 0 ? 'No one-time expenses yet' : 'No results for this filter'}</p>
             <p className="text-sm mt-1">{items.length === 0 ? 'Track groceries, repairs, dining out and more' : 'Try a different month or category'}</p>
-            {items.length === 0 && !isShared && (
+            {items.length === 0 && (
               <Button onClick={handleAdd} variant="outline" className="mt-4 rounded-xl select-none">
                 <Plus size={16} className="mr-1" /> Add your first
               </Button>
@@ -111,22 +117,20 @@ export default function OneTimeExpenses() {
                 key={item.id}
                 expense={item}
                 type="one-time"
-                onEdit={isShared ? undefined : handleEdit}
-                onDelete={isShared ? undefined : deleteMutation.mutate}
+                onEdit={handleEdit}
+                onDelete={deleteMutation.mutate}
               />
             ))}
           </div>
         </AnimatePresence>
 
-        {!isShared && (
-          <ExpenseFormModal
-            open={modalOpen}
-            onClose={() => { setModalOpen(false); setEditing(null); }}
-            onSave={saveMutation.mutate}
-            initialData={editing}
-            type="one-time"
-          />
-        )}
+        <ExpenseFormModal
+          open={modalOpen}
+          onClose={() => { setModalOpen(false); setEditing(null); }}
+          onSave={saveMutation.mutate}
+          initialData={editing}
+          type="one-time"
+        />
       </div>
     </PullToRefresh>
   );
