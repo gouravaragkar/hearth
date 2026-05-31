@@ -104,7 +104,7 @@ export default function Dashboard() {
       </div>
 
       {/* Monthly Summary */}
-      <MonthlySummary totalSpent={totalMonthly} budget={budget} homeId={activeHome?.id} currency={currency} isShared={isShared} mutateShared={mutateShared} />
+      <MonthlySummary totalSpent={totalMonthly} budget={budget} homeId={activeHome?.id} currency={currency} mutateShared={mutateShared} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">

@@ -7,8 +7,6 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { home_id, entity, action, data, id } = await req.json();
-    // entity: 'Expense' | 'RecurringExpense'
-    // action: 'create' | 'update' | 'delete'
 
     if (!home_id || !entity || !action) {
       return Response.json({ error: 'home_id, entity and action required' }, { status: 400 });
@@ -20,16 +18,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    // Verify the user has an approved invite for this home
-    const allInvites = await base44.asServiceRole.entities.HomeInvite.list('-created_date', 500);
-    const hasAccess = allInvites.some(
+    // Check access: either owner OR approved invitee
+    const [ownedHomes, allInvites] = await Promise.all([
+      base44.entities.Home.list('-created_date', 100),
+      base44.asServiceRole.entities.HomeInvite.filter({ home_id }, '-created_date', 100),
+    ]);
+
+    const isOwner = ownedHomes.some(h => h.id === home_id);
+    const hasInvite = allInvites.some(
       inv =>
-        inv.home_id === home_id &&
         inv.status === 'approved' &&
         (inv.invitee_id === user.id || inv.invitee_email?.toLowerCase() === user.email?.toLowerCase())
     );
 
-    if (!hasAccess) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (!isOwner && !hasInvite) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const repo = base44.asServiceRole.entities[entity];
     let result;

@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 import { formatCurrency } from '@/lib/currencies';
 import { Pencil, Check, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
-export default function MonthlySummary({ totalSpent, budget, homeId, currency, isShared, mutateShared }) {
+export default function MonthlySummary({ totalSpent, budget, homeId, currency, mutateShared }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [inputVal, setInputVal] = useState('');
@@ -22,14 +21,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, i
 
   const saveMutation = useMutation({
     mutationFn: async (amount) => {
-      if (isShared) {
-        return mutateShared('Budget', budget?.id ? 'update' : 'create', { month: currentMonth, amount }, budget?.id);
-      }
-      if (budget?.id) {
-        return base44.entities.Budget.update(budget.id, { amount });
-      } else {
-        return base44.entities.Budget.create({ month: currentMonth, amount, home_id: homeId });
-      }
+      return mutateShared('Budget', budget?.id ? 'update' : 'create', { month: currentMonth, amount }, budget?.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homeData'] });

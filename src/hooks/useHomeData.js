@@ -24,7 +24,7 @@ export function useHomeData() {
     },
     enabled: !!homeId && !!user?.id,
     staleTime: 0,
-    refetchInterval: 10_000,
+    refetchInterval: 5_000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -50,6 +50,7 @@ export function useHomeData() {
     budgets: homeDataQuery.data?.budgets || [],
     isLoading: homeDataQuery.isLoading,
     isShared,
-    mutateShared: isShared ? mutateShared : mutateOwned,
+    // Always use backend mutation so both owner and invitee work correctly
+    mutateShared,
   };
 }

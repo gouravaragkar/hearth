@@ -13,23 +13,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'home_id required' }, { status: 400 });
     }
 
-    // Check if user is the owner of this home
-    const home = await base44.asServiceRole.entities.Home.filter({ id: home_id }, '-created_date', 1);
-    const isOwner = home.length > 0 && home[0].created_by_id === user.id;
+    // Check access: either owner (home created by this user) OR approved invitee
+    const [ownedHomes, allInvites] = await Promise.all([
+      base44.entities.Home.list('-created_date', 100), // user-scoped, returns only their homes
+      base44.asServiceRole.entities.HomeInvite.filter({ home_id }, '-created_date', 100),
+    ]);
 
-    if (!isOwner) {
-      // Check if user has an approved invite for this home
-      const allInvites = await base44.asServiceRole.entities.HomeInvite.list('-created_date', 500);
-      const hasAccess = allInvites.some(
-        inv =>
-          inv.home_id === home_id &&
-          inv.status === 'approved' &&
-          (inv.invitee_id === user.id || inv.invitee_email?.toLowerCase() === user.email?.toLowerCase())
-      );
+    const isOwner = ownedHomes.some(h => h.id === home_id);
+    const hasInvite = allInvites.some(
+      inv =>
+        inv.status === 'approved' &&
+        (inv.invitee_id === user.id || inv.invitee_email?.toLowerCase() === user.email?.toLowerCase())
+    );
 
-      if (!hasAccess) {
-        return Response.json({ error: 'Forbidden' }, { status: 403 });
-      }
+    if (!isOwner && !hasInvite) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Fetch all data for this home using service role (bypasses RLS)
