@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useHome } from '@/context/HomeContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -11,8 +12,26 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 export function useHomeData() {
   const { activeHome } = useHome();
   const user = useCurrentUser();
+  const qc = useQueryClient();
   const isShared = !!activeHome?._shared;
   const homeId = activeHome?.id;
+
+  // Real-time subscription for shared homes: invalidate cache whenever owner adds/updates/deletes
+  useEffect(() => {
+    if (!isShared || !homeId) return;
+
+    const unsub1 = base44.entities.Expense.subscribe(() => {
+      qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
+    });
+    const unsub2 = base44.entities.RecurringExpense.subscribe(() => {
+      qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
+    });
+    const unsub3 = base44.entities.Budget.subscribe(() => {
+      qc.invalidateQueries({ queryKey: ['sharedHomeData', homeId] });
+    });
+
+    return () => { unsub1(); unsub2(); unsub3(); };
+  }, [isShared, homeId, qc]);
 
   // Shared home: fetch all data via backend function
   const sharedQuery = useQuery({
