@@ -12,7 +12,7 @@ import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InviteUserModal from '@/components/InviteUserModal';
 import PendingInvites from '@/components/PendingInvites';
-import SentInvites from '@/components/SentInvites';
+import HomeInvitesPopover from '@/components/HomeInvitesPopover';
 
 
 const COUNTRY_FLAG_EMOJIS = [
@@ -107,7 +107,6 @@ export default function HomesPage() {
       </div>
 
       <PendingInvites onInviteActioned={() => setInviteRefreshKey(k => k + 1)} />
-      <SentInvites refreshKey={inviteRefreshKey} />
 
       {homes.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
@@ -148,6 +147,7 @@ export default function HomesPage() {
               </div>
               {!isShared && (
                 <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                  <HomeInvitesPopover home={home} />
                   <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => openEdit(home)}>
                     <Pencil size={15} className="text-muted-foreground" />
                   </Button>
