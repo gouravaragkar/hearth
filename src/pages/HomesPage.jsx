@@ -106,7 +106,7 @@ export default function HomesPage() {
         </div>
       </div>
 
-      <PendingInvites onInviteActioned={() => setInviteRefreshKey(k => k + 1)} />
+      <PendingInvites onInviteActioned={async () => { setInviteRefreshKey(k => k + 1); await fetchHomes(); }} />
 
       {homes.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
