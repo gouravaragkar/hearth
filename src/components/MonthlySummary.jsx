@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 
-export default function MonthlySummary({ totalSpent, budget, homeId, currency }) {
+export default function MonthlySummary({ totalSpent, budget, homeId, currency, isShared, mutateShared }) {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [inputVal, setInputVal] = useState('');
@@ -22,6 +22,9 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency })
 
   const saveMutation = useMutation({
     mutationFn: async (amount) => {
+      if (isShared) {
+        return mutateShared('Budget', budget?.id ? 'update' : 'create', { month: currentMonth, amount }, budget?.id);
+      }
       if (budget?.id) {
         return base44.entities.Budget.update(budget.id, { amount });
       } else {
@@ -29,7 +32,8 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency })
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budget'] }); // invalidates all budget keys
+      queryClient.invalidateQueries({ queryKey: ['budget'] });
+      queryClient.invalidateQueries({ queryKey: ['sharedHomeData'] });
       setEditing(false);
     },
   });

@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
     if (!home_id || !entity || !action) {
       return Response.json({ error: 'home_id, entity and action required' }, { status: 400 });
     }
-    if (!['Expense', 'RecurringExpense'].includes(entity)) {
+    if (!['Expense', 'RecurringExpense', 'Budget'].includes(entity)) {
       return Response.json({ error: 'Invalid entity' }, { status: 400 });
     }
     if (!['create', 'update', 'delete'].includes(action)) {

@@ -34,20 +34,29 @@ export function useHomeData() {
   // Owned home: fetch directly
   const ownedExpensesQuery = useQuery({
     queryKey: ['expenses', user?.id, homeId],
-    queryFn: () => base44.entities.Expense.filter({ created_by_id: user.id, home_id: homeId }, '-date', 500),
+    queryFn: () => base44.entities.Expense.filter({ home_id: homeId }, '-date', 500),
     enabled: !isShared && !!user?.id && !!homeId,
+    staleTime: 0,
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   const ownedRecurringQuery = useQuery({
     queryKey: ['recurring', user?.id, homeId],
-    queryFn: () => base44.entities.RecurringExpense.filter({ created_by_id: user.id, home_id: homeId }, '-created_date', 500),
+    queryFn: () => base44.entities.RecurringExpense.filter({ home_id: homeId }, '-created_date', 500),
     enabled: !isShared && !!user?.id && !!homeId,
+    staleTime: 0,
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   const ownedBudgetQuery = useQuery({
     queryKey: ['budget', user?.id, homeId],
-    queryFn: () => base44.entities.Budget.filter({ created_by_id: user.id, home_id: homeId }, '-created_date', 100),
+    queryFn: () => base44.entities.Budget.filter({ home_id: homeId }, '-created_date', 100),
     enabled: !isShared && !!user?.id && !!homeId,
+    staleTime: 0,
+    refetchInterval: 10_000,
+    refetchOnWindowFocus: true,
   });
 
   // Helper for invitees to mutate shared home data

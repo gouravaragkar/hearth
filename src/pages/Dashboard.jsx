@@ -36,7 +36,7 @@ export default function Dashboard() {
   const user = useCurrentUser();
   const { activeHome } = useHome();
   const currency = activeHome?.currency || 'AUD';
-  const { expenses, recurring, budgets } = useHomeData();
+  const { expenses, recurring, budgets, isShared, mutateShared } = useHomeData();
 
   const handleRefresh = () => Promise.all([
     qc.invalidateQueries({ queryKey: ['expenses'] }),
@@ -109,7 +109,7 @@ export default function Dashboard() {
       </div>
 
       {/* Monthly Summary */}
-      <MonthlySummary totalSpent={totalMonthly} budget={budget} homeId={activeHome?.id} currency={currency} />
+      <MonthlySummary totalSpent={totalMonthly} budget={budget} homeId={activeHome?.id} currency={currency} isShared={isShared} mutateShared={mutateShared} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
