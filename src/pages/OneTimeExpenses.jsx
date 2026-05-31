@@ -47,14 +47,7 @@ export default function OneTimeExpenses() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Expense.delete(id),
-    onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['expenses', user?.id] });
-      const prev = qc.getQueryData(['expenses', user?.id]);
-      qc.setQueryData(['expenses', user?.id], old => old.filter(e => e.id !== id));
-      return { prev };
-    },
-    onError: (_e, _v, ctx) => { qc.setQueryData(['expenses', user?.id], ctx.prev); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses', user?.id] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['expenses'] }),
   });
 
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
