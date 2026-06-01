@@ -32,10 +32,9 @@ export default function InviteUserModal({ open, onClose, homes }) {
     setSending(true);
     setResult(null);
 
-    // Look up invitee by email
-    let inviteeUser = null;
-    const allUsers = await base44.entities.User.list();
-    inviteeUser = allUsers.find(u => u.email?.toLowerCase() === email.trim().toLowerCase());
+    // Look up invitee by email — server-side, returns only id + full_name
+    const { data: lookupResult } = await base44.functions.invoke('findUserByEmail', { email: email.trim().toLowerCase() });
+    const inviteeUser = lookupResult?.user || null;
 
     // Create one invite per selected home
     const invitePromises = selectedHomes.map(homeId => {
