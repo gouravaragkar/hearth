@@ -167,7 +167,7 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
     doc.setFontSize(9);
     Object.entries(categoryMap).sort((a, b) => b[1] - a[1]).forEach(([cat, amt]) => {
       if (y > 760) { doc.addPage(); y = 40; }
-      doc.text(`${CATEGORY_ICONS[cat] || ''} ${cat}`, 48, y);
+      doc.text(cat, 48, y);
       doc.text(formatCurrency(amt, currency), pageW - 50, y, { align: 'right' });
       y += 14;
     });
