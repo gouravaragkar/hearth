@@ -113,6 +113,7 @@ export default function RecurringExpenses() {
           onSave={saveMutation.mutate}
           initialData={editing}
           type="recurring"
+          saveMutation={saveMutation}
         />
       </div>
     </PullToRefresh>

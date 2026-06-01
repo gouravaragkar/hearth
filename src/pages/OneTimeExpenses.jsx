@@ -112,6 +112,7 @@ export default function OneTimeExpenses() {
           onSave={saveMutation.mutate}
           initialData={editing}
           type="one-time"
+          saveMutation={saveMutation}
         />
       </div>
     </PullToRefresh>

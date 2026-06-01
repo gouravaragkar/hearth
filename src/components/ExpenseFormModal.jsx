@@ -9,6 +9,7 @@ import { CATEGORIES } from '@/lib/utils';
 import { CURRENCIES, getCurrency } from '@/lib/currencies';
 import { useHome } from '@/context/HomeContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
 
 const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ value: c, label: c }));
 const FREQUENCY_OPTIONS = [
@@ -18,7 +19,7 @@ const FREQUENCY_OPTIONS = [
   { value: 'quarterly',   label: 'Quarterly' },
 ];
 
-export default function ExpenseFormModal({ open, onClose, onSave, initialData, type }) {
+export default function ExpenseFormModal({ open, onClose, onSave, initialData, type, saveMutation }) {
   const isRecurring = type === 'recurring';
   const { activeHome, homes } = useHome();
   const defaultCurrency = activeHome?.currency || 'AUD';
@@ -29,6 +30,7 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
     : { name: '', amount: '', currency: defaultCurrency, category: '', date: '', notes: '', home_id: defaultHomeId };
 
   const [form, setForm] = useState(empty);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (initialData) {
@@ -36,12 +38,25 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
     } else {
       setForm({ ...empty, currency: defaultCurrency, home_id: defaultHomeId });
     }
+    setErrors({});
   }, [initialData, open, defaultCurrency, defaultHomeId]);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (errors[k]) setErrors(e => ({ ...e, [k]: undefined }));
+  };
+
+  const isSaving = saveMutation?.isPending ?? false;
 
   const handleSave = () => {
-    if (!form.name || !form.amount || !form.category) return;
+    const newErrors = {};
+    if (!form.name?.trim()) newErrors.name = 'Name is required';
+    if (!form.amount || parseFloat(form.amount) <= 0) newErrors.amount = 'Amount is required';
+    if (!form.category) newErrors.category = 'Please select a category';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
     onSave({ ...form, amount: parseFloat(form.amount) });
   };
 
@@ -59,7 +74,8 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
         <div className="space-y-4 pt-2">
           <div>
             <Label>Name</Label>
-            <Input placeholder="e.g. Rent, Netflix" value={form.name} onChange={e => set('name', e.target.value)} className="mt-1" />
+            <Input placeholder="e.g. Rent, Netflix" value={form.name} onChange={e => set('name', e.target.value)} className={`mt-1 ${errors.name ? 'border-destructive' : ''}`} />
+            {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
           </div>
 
           {/* Amount + Currency on same row */}
@@ -75,7 +91,7 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
                   placeholder="0.00"
                   value={form.amount}
                   onChange={e => set('amount', e.target.value)}
-                  className="pl-7"
+                  className={`pl-7 ${errors.amount ? 'border-destructive' : ''}`}
                 />
               </div>
               <div className="w-36">
@@ -93,6 +109,7 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
                 </Select>
               </div>
             </div>
+            {errors.amount && <p className="text-xs text-destructive mt-1">{errors.amount}</p>}
           </div>
 
           <div>
@@ -105,6 +122,7 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
                 placeholder="Select category"
               />
             </div>
+            {errors.category && <p className="text-xs text-destructive mt-1">{errors.category}</p>}
           </div>
 
           {isRecurring ? (
@@ -158,9 +176,9 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={onClose} className="flex-1 select-none">Cancel</Button>
-            <Button onClick={handleSave} className="flex-1 bg-primary text-primary-foreground select-none">
-              {initialData ? 'Save Changes' : 'Add Expense'}
+            <Button variant="outline" onClick={onClose} disabled={isSaving} className="flex-1 select-none">Cancel</Button>
+            <Button onClick={handleSave} disabled={isSaving} className="flex-1 bg-primary text-primary-foreground select-none">
+              {isSaving ? <><Loader2 size={15} className="animate-spin mr-1.5" /> Saving…</> : (initialData ? 'Save Changes' : 'Add Expense')}
             </Button>
           </div>
         </div>
