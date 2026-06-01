@@ -83,7 +83,7 @@ export default function CalendarView({ recurring = [], expenses = [], currency =
 
       {/* Day headers */}
       <div className="grid grid-cols-7 text-center">
-        {['M','T','W','T','F','S','S'].map((d, i) => (
+        {['Mo','Tu','We','Th','Fr','Sa','Su'].map((d, i) => (
           <div key={i} className="text-xs font-medium text-muted-foreground pb-1">{d}</div>
         ))}
       </div>
