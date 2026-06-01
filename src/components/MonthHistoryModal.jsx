@@ -104,22 +104,22 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
 
       // Table header
       doc.setFillColor(245, 235, 225);
-      doc.rect(40, y - 12, pageW - 80, 16, 'F');
+      doc.rect(40, y, pageW - 80, 16, 'F');
       doc.setTextColor(100, 70, 40);
-      doc.text('Name', 48, y - 2);
-      doc.text('Category', 260, y - 2);
-      doc.text('Date', 360, y - 2);
-      doc.text('Amount', pageW - 50, y - 2, { align: 'right' });
-      y += 8;
+      doc.text('Name', 48, y + 11);
+      doc.text('Category', 260, y + 11);
+      doc.text('Date', 360, y + 11);
+      doc.text('Amount', pageW - 50, y + 11, { align: 'right' });
+      y += 24;
 
       doc.setTextColor(40, 30, 20);
       monthExpenses.sort((a, b) => (b.date || '').localeCompare(a.date || '')).forEach((e, i) => {
         if (y > 760) { doc.addPage(); y = 40; }
-        if (i % 2 === 0) { doc.setFillColor(252, 248, 244); doc.rect(40, y - 11, pageW - 80, 15, 'F'); }
-        doc.text(e.name?.substring(0, 35) || '-', 48, y - 2);
-        doc.text(e.category || '-', 260, y - 2);
-        doc.text(e.date || '-', 360, y - 2);
-        doc.text(formatCurrency(e.amount, currency), pageW - 50, y - 2, { align: 'right' });
+        if (i % 2 === 0) { doc.setFillColor(252, 248, 244); doc.rect(40, y, pageW - 80, 15, 'F'); }
+        doc.text(e.name?.substring(0, 35) || '-', 48, y + 10);
+        doc.text(e.category || '-', 260, y + 10);
+        doc.text(e.date || '-', 360, y + 10);
+        doc.text(formatCurrency(e.amount, currency), pageW - 50, y + 10, { align: 'right' });
         y += 15;
       });
       y += 10;
@@ -136,22 +136,22 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
       doc.setFontSize(9);
 
       doc.setFillColor(245, 235, 225);
-      doc.rect(40, y - 12, pageW - 80, 16, 'F');
+      doc.rect(40, y, pageW - 80, 16, 'F');
       doc.setTextColor(100, 70, 40);
-      doc.text('Name', 48, y - 2);
-      doc.text('Category', 260, y - 2);
-      doc.text('Frequency', 360, y - 2);
-      doc.text('Monthly Est.', pageW - 50, y - 2, { align: 'right' });
-      y += 8;
+      doc.text('Name', 48, y + 11);
+      doc.text('Category', 260, y + 11);
+      doc.text('Frequency', 360, y + 11);
+      doc.text('Monthly Est.', pageW - 50, y + 11, { align: 'right' });
+      y += 24;
 
       doc.setTextColor(40, 30, 20);
       recurring.forEach((e, i) => {
         if (y > 760) { doc.addPage(); y = 40; }
-        if (i % 2 === 0) { doc.setFillColor(252, 248, 244); doc.rect(40, y - 11, pageW - 80, 15, 'F'); }
-        doc.text(e.name?.substring(0, 35) || '-', 48, y - 2);
-        doc.text(e.category || '-', 260, y - 2);
-        doc.text(e.frequency || '-', 360, y - 2);
-        doc.text(formatCurrency(getMonthlyEquivalent(e.amount, e.frequency), currency), pageW - 50, y - 2, { align: 'right' });
+        if (i % 2 === 0) { doc.setFillColor(252, 248, 244); doc.rect(40, y, pageW - 80, 15, 'F'); }
+        doc.text(e.name?.substring(0, 35) || '-', 48, y + 10);
+        doc.text(e.category || '-', 260, y + 10);
+        doc.text(e.frequency || '-', 360, y + 10);
+        doc.text(formatCurrency(getMonthlyEquivalent(e.amount, e.frequency), currency), pageW - 50, y + 10, { align: 'right' });
         y += 15;
       });
       y += 10;
