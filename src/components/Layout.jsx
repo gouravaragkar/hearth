@@ -222,18 +222,24 @@ export default function Layout() {
               transition={{ type: 'tween', duration: 0.22, ease: 'easeInOut' }}
               className="absolute inset-0"
             >
-              <div
-                ref={(el) => setScrollRef(el, activeIdx)}
-                className="h-full overflow-y-auto"
-                style={{ overscrollBehavior: 'none' }}
-              >
-                <div className="max-w-3xl mx-auto w-full pb-20">
-                  {(() => {
-                    const Component = TABS[activeIdx].component;
-                    return <Component />;
-                  })()}
+              {TABS[activeIdx].path === '/assistant' ? (
+                <div className="h-full flex flex-col max-w-3xl mx-auto w-full pb-16">
+                  <AssistantChat />
                 </div>
-              </div>
+              ) : (
+                <div
+                  ref={(el) => setScrollRef(el, activeIdx)}
+                  className="h-full overflow-y-auto"
+                  style={{ overscrollBehavior: 'none' }}
+                >
+                  <div className="max-w-3xl mx-auto w-full pb-20">
+                    {(() => {
+                      const Component = TABS[activeIdx].component;
+                      return <Component />;
+                    })()}
+                  </div>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
           {/* Keep all other tabs mounted but hidden for state preservation */}
