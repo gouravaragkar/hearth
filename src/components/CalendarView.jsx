@@ -34,7 +34,7 @@ function getDueDatesForMonth(recurring, monthStart, monthEnd) {
   return result;
 }
 
-export default function CalendarView({ recurring = [], currency = 'AUD' }) {
+export default function CalendarView({ recurring = [], expenses = [], currency = 'AUD' }) {
   const [viewMonth, setViewMonth] = useState(new Date());
 
   const monthStart = startOfMonth(viewMonth);
@@ -49,6 +49,21 @@ export default function CalendarView({ recurring = [], currency = 'AUD' }) {
     () => getDueDatesForMonth(recurring, monthStart, monthEnd),
     [recurring, monthStart, monthEnd]
   );
+
+  // Build a map of one-time expenses by date for the current month
+  const expenseMap = useMemo(() => {
+    const result = {};
+    expenses.forEach(e => {
+      if (!e.date) return;
+      const d = new Date(e.date);
+      if (d >= monthStart && d <= monthEnd) {
+        const key = format(d, 'yyyy-MM-dd');
+        if (!result[key]) result[key] = [];
+        result[key].push(e);
+      }
+    });
+    return result;
+  }, [expenses, monthStart, monthEnd]);
 
   const [tooltip, setTooltip] = useState(null); // { key, x, y }
 
@@ -77,17 +92,19 @@ export default function CalendarView({ recurring = [], currency = 'AUD' }) {
         {paddedDays.map((day, i) => {
           if (!day) return <div key={`pad-${i}`} />;
           const key = format(day, 'yyyy-MM-dd');
-          const items = dueMap[key] || [];
+          const recurringItems = dueMap[key] || [];
+          const oneTimeItems = expenseMap[key] || [];
+          const hasAny = recurringItems.length > 0 || oneTimeItems.length > 0;
           const today = isToday(day);
 
           return (
             <div
               key={key}
-              className={`relative flex flex-col items-center py-1 rounded-xl cursor-default
+              className={`relative flex flex-col items-center py-1 rounded-xl
                 ${today ? 'bg-primary/10' : ''}
-                ${items.length > 0 ? 'cursor-pointer hover:bg-muted transition-colors' : ''}
+                ${hasAny ? 'cursor-pointer hover:bg-muted transition-colors' : 'cursor-default'}
               `}
-              onClick={() => items.length > 0 && setTooltip(tooltip?.key === key ? null : { key })}
+              onClick={() => hasAny && setTooltip(tooltip?.key === key ? null : { key })}
             >
               <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full
                 ${today ? 'bg-primary text-primary-foreground' : 'text-foreground'}
@@ -95,17 +112,28 @@ export default function CalendarView({ recurring = [], currency = 'AUD' }) {
                 {format(day, 'd')}
               </span>
 
-              {/* Dots */}
-              {items.length > 0 && (
+              {/* Dots row */}
+              {hasAny && (
                 <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center max-w-[40px]">
-                  {items.slice(0, 3).map((item, idx) => (
+                  {/* Recurring: outlined ring dots */}
+                  {recurringItems.slice(0, 2).map((item, idx) => (
                     <span
-                      key={idx}
+                      key={`r-${idx}`}
+                      className="w-1.5 h-1.5 rounded-full box-border"
+                      style={{
+                        backgroundColor: 'transparent',
+                        border: `1.5px solid ${CATEGORY_COLORS[item.category] || '#ADB5BD'}`,
+                      }}
+                    />
+                  ))}
+                  {/* One-time: filled dots */}
+                  {oneTimeItems.slice(0, 2).map((item, idx) => (
+                    <span
+                      key={`e-${idx}`}
                       className="w-1.5 h-1.5 rounded-full"
                       style={{ backgroundColor: CATEGORY_COLORS[item.category] || '#ADB5BD' }}
                     />
                   ))}
-                  {items.length > 3 && <span className="text-[9px] text-muted-foreground">+{items.length - 3}</span>}
                 </div>
               )}
 
@@ -116,15 +144,34 @@ export default function CalendarView({ recurring = [], currency = 'AUD' }) {
                   onClick={e => e.stopPropagation()}
                 >
                   <p className="text-xs font-semibold text-muted-foreground">{format(day, 'EEE d MMM')}</p>
-                  {items.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-base">{CATEGORY_ICONS[item.category] || '📦'}</span>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatCurrency(item.amount, currency)}</p>
-                      </div>
-                    </div>
-                  ))}
+                  {recurringItems.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Recurring</p>
+                      {recurringItems.map((item, idx) => (
+                        <div key={`r-${idx}`} className="flex items-center gap-2">
+                          <span className="text-base">{CATEGORY_ICONS[item.category] || '📦'}</span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-foreground truncate">{item.name}</p>
+                            <p className="text-xs text-muted-foreground">{formatCurrency(item.amount, currency)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {oneTimeItems.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">One-time</p>
+                      {oneTimeItems.map((item, idx) => (
+                        <div key={`e-${idx}`} className="flex items-center gap-2">
+                          <span className="text-base">{CATEGORY_ICONS[item.category] || '📦'}</span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-foreground truncate">{item.name}</p>
+                            <p className="text-xs text-muted-foreground">{formatCurrency(item.amount, currency)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -133,8 +180,18 @@ export default function CalendarView({ recurring = [], currency = 'AUD' }) {
       </div>
 
       {/* Legend */}
-      {Object.keys(dueMap).length === 0 && (
-        <p className="text-center text-sm text-muted-foreground py-2">No recurring bills this month.</p>
+      <div className="flex items-center gap-4 justify-center pt-1">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="w-2.5 h-2.5 rounded-full border-2 border-primary inline-block" />
+          Recurring
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" />
+          One-time
+        </div>
+      </div>
+      {Object.keys(dueMap).length === 0 && Object.keys(expenseMap).length === 0 && (
+        <p className="text-center text-sm text-muted-foreground py-2">No expenses this month.</p>
       )}
 
       {/* Close tooltip on outside click */}
