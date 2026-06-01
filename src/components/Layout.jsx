@@ -227,7 +227,7 @@ export default function Layout() {
                 className="h-full overflow-y-auto"
                 style={{ overscrollBehavior: 'none' }}
               >
-                <div className="max-w-3xl mx-auto w-full">
+                <div className="max-w-3xl mx-auto w-full pb-20">
                   {(() => {
                     const Component = TABS[activeIdx].component;
                     return <Component />;
