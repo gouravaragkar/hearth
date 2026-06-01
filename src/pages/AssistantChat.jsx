@@ -1,8 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, Sparkles } from 'lucide-react';
+import { Send, Bot, Sparkles, SquarePen } from 'lucide-react';
 import MessageBubble from '@/components/AssistantMessageBubble';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function AssistantChat() {
   const [conversation, setConversation] = useState(null);
@@ -10,6 +20,7 @@ export default function AssistantChat() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [confirmNewChat, setConfirmNewChat] = useState(false);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -63,6 +74,16 @@ export default function AssistantChat() {
     }
   };
 
+  const handleNewChat = async () => {
+    const conv = await base44.agents.createConversation({
+      agent_name: 'homespend_assistant',
+      metadata: { name: 'My HomeSpend Chat' },
+    });
+    setConversation(conv);
+    setMessages([]);
+    setConfirmNewChat(false);
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -82,16 +103,41 @@ export default function AssistantChat() {
   }
 
   return (
+    <>
+    <AlertDialog open={confirmNewChat} onOpenChange={setConfirmNewChat}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Start a new chat?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Your current conversation history will still be saved, but you'll start fresh with a clean slate.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleNewChat}>Confirm</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     <div className="flex flex-col h-full max-h-full bg-background">
       {/* Header */}
       <div className="shrink-0 px-4 py-3 border-b border-border bg-card flex items-center gap-3">
         <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
           <Sparkles size={18} className="text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="font-semibold text-foreground text-sm">HomeSpend Assistant</p>
           <p className="text-xs text-muted-foreground">Your friendly expense helper</p>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground shrink-0"
+          onClick={() => setConfirmNewChat(true)}
+          title="New chat"
+        >
+          <SquarePen size={18} />
+        </Button>
       </div>
 
       {/* Messages */}
@@ -134,5 +180,6 @@ export default function AssistantChat() {
         <p className="text-[10px] text-muted-foreground mt-1.5 text-center">Press Enter to send · Shift+Enter for new line</p>
       </div>
     </div>
+    </>
   );
 }
