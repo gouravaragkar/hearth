@@ -5,6 +5,17 @@ import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export default function ExpenseCard({ expense, type, onEdit, onDelete, onTogglePaid }) {
   const isRecurring = type === 'recurring';
@@ -77,9 +88,30 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
         <Button variant="ghost" size="icon" className="h-11 w-11 select-none" onClick={() => onEdit(expense)}>
           <Pencil size={15} className="text-muted-foreground" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-11 w-11 select-none" onClick={() => onDelete(expense.id)}>
-          <Trash2 size={15} className="text-destructive" />
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-11 w-11 select-none">
+              <Trash2 size={15} className="text-destructive" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete "{expense.name}"?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this expense. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => onDelete(expense.id)}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </motion.div>
   );
