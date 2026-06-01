@@ -6,7 +6,7 @@ import { CATEGORY_COLORS, CATEGORY_ICONS, getMonthlyEquivalent } from '@/lib/uti
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Download, PieChart, List, FileBarChart } from 'lucide-react';
 import SpendingDonut from '@/components/SpendingDonut';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 // Generate last 12 months (most recent first)
 function buildMonthOptions() {
