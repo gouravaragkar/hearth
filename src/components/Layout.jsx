@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2, Home, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2, Home, ChevronLeft, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import {
@@ -27,6 +27,7 @@ import OneTimeExpenses from '@/pages/OneTimeExpenses';
 import CalendarPage from '@/pages/CalendarPage';
 import HomesPage from '@/pages/HomesPage';
 import HomeSwitcher from '@/components/HomeSwitcher';
+import AssistantChat from '@/pages/AssistantChat';
 
 const TABS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, component: Dashboard },
@@ -34,6 +35,7 @@ const TABS = [
   { label: 'One-Time', path: '/one-time', icon: Receipt, component: OneTimeExpenses },
   { label: 'Calendar', path: '/calendar', icon: CalendarDays, component: CalendarPage },
   { label: 'Homes', path: '/homes', icon: Home, component: HomesPage },
+  { label: 'Assistant', path: '/assistant', icon: Sparkles, component: AssistantChat },
 ];
 
 function UserMenu() {
