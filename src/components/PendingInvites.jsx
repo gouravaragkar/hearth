@@ -3,9 +3,11 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Check, X, Bell, AlertCircle } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useHome } from '@/context/HomeContext';
 
 export default function PendingInvites({ onInviteActioned }) {
   const currentUser = useCurrentUser();
+  const { fetchHomes } = useHome();
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(null);
@@ -35,9 +37,10 @@ export default function PendingInvites({ onInviteActioned }) {
       if (res?.data?.error) {
         setErrorMsg(res.data.error);
       } else if (action === 'approved') {
-        // Reload the page so HomeContext fully re-initialises with the new shared home
-        await new Promise(r => setTimeout(r, 400));
-        window.location.reload();
+        await fetchHomes();
+        onInviteActioned?.();
+        await fetchInvites();
+        setActing(null);
         return;
       }
     } catch (e) {
