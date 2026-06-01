@@ -16,6 +16,7 @@ function getDueDatesForMonth(recurring, monthStart, monthEnd) {
     while (cursor < monthStart) {
       if (expense.frequency === 'weekly') cursor.setDate(cursor.getDate() + 7);
       else if (expense.frequency === 'fortnightly') cursor.setDate(cursor.getDate() + 14);
+      else if (expense.frequency === 'quarterly') cursor.setMonth(cursor.getMonth() + 3);
       else cursor.setMonth(cursor.getMonth() + 1);
     }
 
@@ -27,7 +28,7 @@ function getDueDatesForMonth(recurring, monthStart, monthEnd) {
 
       if (expense.frequency === 'weekly') cursor = new Date(cursor.setDate(cursor.getDate() + 7));
       else if (expense.frequency === 'fortnightly') cursor = new Date(cursor.setDate(cursor.getDate() + 14));
-      else break; // monthly only appears once
+      else break; // monthly/quarterly only appear once per month
     }
   });
 
