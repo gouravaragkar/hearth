@@ -8,17 +8,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Service role bypasses RLS so invitee can see invites they didn't create
-    const allInvites = await base44.asServiceRole.entities.HomeInvite.list('-created_date', 500);
+    // RLS already permits invitees to read their own invites — no service role needed
+    const invites = await base44.entities.HomeInvite.filter({ status: 'pending' });
 
-    // Pending invites where current user is the invitee
-    const pendingForMe = allInvites.filter(
-      inv =>
-        inv.invitee_email?.toLowerCase() === user.email?.toLowerCase() &&
-        inv.status === 'pending'
-    );
-
-    return Response.json({ invites: pendingForMe });
+    return Response.json({ invites });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

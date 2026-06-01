@@ -13,9 +13,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid params' }, { status: 400 });
     }
 
-    // Fetch the invite via service role
-    const allInvites = await base44.asServiceRole.entities.HomeInvite.list('-created_date', 500);
-    const invite = allInvites.find(inv => inv.id === inviteId);
+    // RLS already permits invitees to read and update their own invites — no service role needed
+    const invite = await base44.entities.HomeInvite.get(inviteId);
 
     if (!invite) {
       return Response.json({ error: 'Invite not found or already cancelled.' }, { status: 404 });
@@ -33,7 +32,7 @@ Deno.serve(async (req) => {
     if (action === 'approved') {
       updateData.invitee_id = user.id;
     }
-    await base44.asServiceRole.entities.HomeInvite.update(inviteId, updateData);
+    await base44.entities.HomeInvite.update(inviteId, updateData);
 
     return Response.json({ success: true });
   } catch (error) {
