@@ -154,7 +154,7 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
         doc.text(formatCurrency(getMonthlyEquivalent(e.amount, e.frequency), currency), pageW - 50, y + 10, { align: 'right' });
         y += 15;
       });
-      y += 10;
+      y += 24;
     }
 
     // Category breakdown
@@ -187,7 +187,7 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
         <div className="bg-primary px-5 py-4 shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-primary-foreground font-bold text-base">Month History</DialogTitle>
-            <Button size="sm" variant="ghost" className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 gap-1.5 rounded-xl h-8 px-3" onClick={handleDownload}>
+            <Button size="sm" variant="ghost" className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 gap-1.5 rounded-xl h-8 px-3 mr-6" onClick={handleDownload}>
               <Download size={14} /> PDF
             </Button>
           </div>
