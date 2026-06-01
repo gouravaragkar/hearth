@@ -51,7 +51,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
           <p className="text-2xl font-bold text-foreground">{formatCurrency(totalSpent, currency)}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Budget</p>
+          <p className="text-xs text-muted-foreground">Budget · {format(new Date(), 'MMMM yyyy')}</p>
           {editing ? (
             <div className="flex items-center gap-1 mt-0.5">
               <span className="text-sm text-muted-foreground">{formatCurrency(0, currency).replace(/[\d.,]/g, '').trim()}</span>

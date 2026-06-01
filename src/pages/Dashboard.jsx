@@ -183,6 +183,7 @@ export default function Dashboard() {
         recurring={enrichedRecurring}
         budgets={budgets}
         currency={currency}
+        mutateShared={mutateShared}
       />
     </div>
     </PullToRefresh>

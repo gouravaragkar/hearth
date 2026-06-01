@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/currencies';
 import { CATEGORY_COLORS, CATEGORY_ICONS, getMonthlyEquivalent } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Download, PieChart, List, FileBarChart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, PieChart, List, FileBarChart, Pencil, Check, X } from 'lucide-react';
 import SpendingDonut from '@/components/SpendingDonut';
 import { jsPDF } from 'jspdf';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Generate last 12 months (most recent first)
 function buildMonthOptions() {
@@ -29,9 +31,10 @@ const TABS = [
   { id: 'report', label: 'Report', Icon: FileBarChart },
 ];
 
-export default function MonthHistoryModal({ open, onClose, expenses, recurring, budgets, currency }) {
+export default function MonthHistoryModal({ open, onClose, expenses, recurring, budgets, currency, mutateShared }) {
   const [monthIdx, setMonthIdx] = useState(0);
   const [tab, setTab] = useState('expenses');
+  const queryClient = useQueryClient();
 
   const selected = MONTHS[monthIdx];
   const monthStart = startOfMonth(selected.date);
@@ -239,7 +242,7 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
             <InsightsTab donutData={donutData} totalSpent={totalSpent} categoryMap={categoryMap} currency={currency} />
           )}
           {tab === 'report' && (
-            <ReportTab totalSpent={totalSpent} oneTimeTotal={oneTimeTotal} recurringTotal={recurringTotal} budgetAmount={budgetAmount} categoryMap={categoryMap} currency={currency} />
+            <ReportTab totalSpent={totalSpent} oneTimeTotal={oneTimeTotal} recurringTotal={recurringTotal} budget={budget} budgetAmount={budgetAmount} categoryMap={categoryMap} currency={currency} selectedMonth={selected.value} mutateShared={mutateShared} queryClient={queryClient} />
           )}
         </div>
       </DialogContent>
@@ -328,11 +331,23 @@ function InsightsTab({ donutData, totalSpent, categoryMap, currency }) {
   );
 }
 
-function ReportTab({ totalSpent, oneTimeTotal, recurringTotal, budgetAmount, categoryMap, currency }) {
+function ReportTab({ totalSpent, oneTimeTotal, recurringTotal, budget, budgetAmount, categoryMap, currency, selectedMonth, mutateShared, queryClient }) {
+  const [editing, setEditing] = useState(false);
+  const [inputVal, setInputVal] = useState('');
   const remaining = budgetAmount - totalSpent;
   const over = budgetAmount > 0 && totalSpent > budgetAmount;
   const pct = budgetAmount > 0 ? Math.min((totalSpent / budgetAmount) * 100, 100) : 0;
   const barColor = pct < 70 ? 'hsl(130 20% 58%)' : pct < 90 ? 'hsl(42 58% 58%)' : 'hsl(0 72% 60%)';
+
+  const saveBudget = useMutation({
+    mutationFn: (amount) => mutateShared('Budget', budget?.id ? 'update' : 'create', { month: selectedMonth, amount }, budget?.id),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['homeData'] }); setEditing(false); },
+  });
+
+  const handleSave = () => {
+    const val = parseFloat(inputVal);
+    if (!isNaN(val) && val >= 0) saveBudget.mutate(val);
+  };
 
   return (
     <div className="px-5 py-4 space-y-5">
@@ -352,29 +367,51 @@ function ReportTab({ totalSpent, oneTimeTotal, recurringTotal, budgetAmount, cat
         </div>
       </div>
 
-      {/* Budget progress */}
-      {budgetAmount > 0 && (
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Budget</span>
-            <span className="font-semibold">{formatCurrency(budgetAmount, currency)}</span>
-          </div>
-          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
-          </div>
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{pct.toFixed(0)}% used</span>
-            <span className={over ? 'text-destructive font-semibold' : ''}>
-              {over ? `Over by ${formatCurrency(Math.abs(remaining), currency)}` : `${formatCurrency(remaining, currency)} remaining`}
-            </span>
-          </div>
+      {/* Budget section */}
+      <div className="space-y-2">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-muted-foreground">Budget</span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <Input
+                autoFocus
+                type="number"
+                min="0"
+                step="50"
+                value={inputVal}
+                onChange={e => setInputVal(e.target.value)}
+                className="h-7 w-24 text-sm px-2"
+              />
+              <Button size="icon" className="h-7 w-7" onClick={handleSave}><Check size={12} /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(false)}><X size={12} /></Button>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setInputVal(budgetAmount ? budgetAmount.toString() : ''); setEditing(true); }}
+              className="flex items-center gap-1 font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              {budgetAmount > 0 ? formatCurrency(budgetAmount, currency) : <span className="text-muted-foreground text-xs">Set budget</span>}
+              <Pencil size={11} className="text-muted-foreground" />
+            </button>
+          )}
         </div>
-      )}
-      {!budgetAmount && (
-        <p className="text-xs text-muted-foreground bg-muted rounded-xl px-3 py-2">
-          💡 No budget was set for this month.
-        </p>
-      )}
+        {budgetAmount > 0 && (
+          <>
+            <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{pct.toFixed(0)}% used</span>
+              <span className={over ? 'text-destructive font-semibold' : ''}>
+                {over ? `Over by ${formatCurrency(Math.abs(remaining), currency)}` : `${formatCurrency(remaining, currency)} remaining`}
+              </span>
+            </div>
+          </>
+        )}
+        {!budgetAmount && !editing && (
+          <p className="text-xs text-muted-foreground">No budget was set for this month. Tap to add one.</p>
+        )}
+      </div>
 
       <div className="border-t border-border" />
 
