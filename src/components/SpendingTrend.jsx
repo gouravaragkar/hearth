@@ -29,7 +29,9 @@ export default function SpendingTrend({ expenses, recurring, currency = 'AUD' })
         .filter(e => isWithinInterval(new Date(e.date), { start, end }))
         .reduce((s, e) => s + (e.amount || 0), 0);
 
-      const rec = recurring.reduce((s, e) => s + getMonthlyEquivalent(e.amount, e.frequency), 0);
+      const rec = recurring
+        .filter(e => e.start_date && new Date(e.start_date) <= end)
+        .reduce((s, e) => s + getMonthlyEquivalent(e.amount, e.frequency), 0);
 
       return {
         month: format(monthDate, 'MMM'),
