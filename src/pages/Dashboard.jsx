@@ -15,6 +15,7 @@ import { FileBarChart, BarChart2, History } from 'lucide-react';
 import MonthHistoryModal from '@/components/MonthHistoryModal';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import WelcomeScreen from '@/components/WelcomeScreen';
 
 function StatCard({ label, value, sub, emoji, color }) {
   return (
@@ -36,7 +37,7 @@ export default function Dashboard() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const qc = useQueryClient();
   const user = useCurrentUser();
-  const { activeHome } = useHome();
+  const { activeHome, homes, loading: homesLoading } = useHome();
   const currency = activeHome?.currency || 'AUD';
   const { expenses, recurring, budgets, isShared, mutateShared } = useHomeData();
 
@@ -80,6 +81,10 @@ export default function Dashboard() {
 
   const topCategory = donutData[0];
   const unpaidRecurring = enrichedRecurring.filter(e => !e.paid_this_cycle).length;
+
+  if (!homesLoading && homes.length === 0) {
+    return <WelcomeScreen />;
+  }
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
