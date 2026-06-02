@@ -285,10 +285,10 @@ export default function Layout() {
                 <div
                   key={path}
                   title="Coming soon"
-                  className="flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] select-none opacity-40 relative cursor-not-allowed"
+                  className="flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[52px] select-none opacity-40 relative cursor-not-allowed"
                 >
-                  <Icon size={22} strokeWidth={1.7} />
-                  <span className="text-[11px] font-medium">{label}</span>
+                  <Icon size={18} strokeWidth={1.7} />
+                  <span className="text-[10px] font-medium">{label}</span>
                   <span className="absolute -top-0.5 right-3 text-[8px] font-bold text-primary bg-primary/10 px-1 py-0.5 rounded-full">Soon</span>
                 </div>
               );
@@ -298,12 +298,12 @@ export default function Layout() {
                   key={path}
                   to={path}
                   onClick={() => handleTabClick(path, i)}
-                  className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] select-none transition-colors ${
+                  className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[52px] select-none transition-colors ${
                     active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
-                  <span className="text-[11px] font-medium">{tab.shortLabel || label}</span>
+                  <Icon size={18} strokeWidth={active ? 2.2 : 1.7} />
+                  <span className="text-[10px] font-medium">{tab.shortLabel || label}</span>
                 </Link>
             );
           })}

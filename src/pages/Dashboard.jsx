@@ -19,13 +19,11 @@ import WelcomeScreen from '@/components/WelcomeScreen';
 
 function StatCard({ label, value, sub, emoji, color }) {
   return (
-    <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-4 flex items-start gap-3">
-      <div className="text-2xl">{emoji}</div>
-      <div>
-        <p className="text-xs text-muted-foreground font-medium">{label}</p>
-        <p className="text-base font-bold mt-0.5 leading-tight" style={{ color }}>{value}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
-      </div>
+    <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-3 flex flex-col items-center justify-center text-center gap-1 min-h-[90px]">
+      <div className="text-xl">{emoji}</div>
+      <p className="text-[10px] text-muted-foreground font-medium leading-tight">{label}</p>
+      <p className="text-sm font-bold leading-tight" style={{ color }}>{value}</p>
+      {sub && <p className="text-[10px] text-muted-foreground leading-tight">{sub}</p>}
     </div>
   );
 }
