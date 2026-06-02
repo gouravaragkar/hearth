@@ -279,10 +279,11 @@ export default function Layout() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="max-w-3xl mx-auto flex items-center justify-around px-2">
-          {TABS.map(({ label, path, icon: Icon }, i) => {
+          {TABS.map((tab, i) => {
+            const { label, path, icon: Icon } = tab;
             const active = i === activeIdx;
-            return (
-              {tab.comingSoon ? (
+            if (tab.comingSoon) {
+              return (
                 <div
                   key={path}
                   title="Coming soon"
@@ -292,7 +293,9 @@ export default function Layout() {
                   <span className="text-[11px] font-medium">{label}</span>
                   <span className="absolute -top-0.5 right-3 text-[8px] font-bold text-primary bg-primary/10 px-1 py-0.5 rounded-full">Soon</span>
                 </div>
-              ) : (
+              );
+            }
+            return (
                 <Link
                   key={path}
                   to={path}
@@ -304,7 +307,6 @@ export default function Layout() {
                   <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
                   <span className="text-[11px] font-medium">{label}</span>
                 </Link>
-              )}
             );
           })}
         </div>
