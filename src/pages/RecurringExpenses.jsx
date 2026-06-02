@@ -59,7 +59,7 @@ export default function RecurringExpenses() {
               <RefreshCw size={20} className="text-primary" /> Recurring Expenses
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {filtered.length} active · <span className="font-medium text-foreground">{formatCurrency(monthlyTotal, currency)}/mo estimated</span>
+              {filtered.length} active · <span className="font-medium text-foreground">{formatCurrency(monthlyTotal, currency)}/mo est.</span>
             </p>
           </div>
           <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">

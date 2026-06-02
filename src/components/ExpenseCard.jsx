@@ -53,25 +53,21 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-xs text-muted-foreground">{expense.category}</span>
           {expense.next_due_date && (
-            <span className="text-xs text-muted-foreground">
-              · Due {format(new Date(expense.next_due_date), 'dd MMM')}
-            </span>
+            <span className="text-xs text-muted-foreground">· {format(new Date(expense.next_due_date), 'dd MMM')}</span>
           )}
           {!isRecurring && expense.date && (
-            <span className="text-xs text-muted-foreground">
-              · {format(new Date(expense.date), 'dd MMM yyyy')}
-            </span>
+            <span className="text-xs text-muted-foreground">· {format(new Date(expense.date), 'dd MMM')}</span>
           )}
         </div>
         {expense.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{expense.notes}</p>}
       </div>
 
       {/* Amount */}
-      <div className="text-right shrink-0">
-        <p className="font-bold text-foreground">{formatCurrency(expense.amount, expense.currency || 'AUD')}</p>
+      <div className="text-right shrink-0 max-w-[90px]">
+        <p className="font-bold text-foreground text-sm leading-tight">{formatCurrency(expense.amount, expense.currency || 'AUD')}</p>
         {isRecurring && (
           <p className="text-xs text-muted-foreground">
-            {expense.frequency === 'weekly' ? '/wk' : expense.frequency === 'fortnightly' ? '/fortnight' : expense.frequency === 'quarterly' ? '/qtr' : '/mo'}
+            {expense.frequency === 'weekly' ? '/wk' : expense.frequency === 'fortnightly' ? '/2wk' : expense.frequency === 'quarterly' ? '/qtr' : '/mo'}
           </p>
         )}
       </div>
