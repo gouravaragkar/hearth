@@ -32,7 +32,7 @@ import AssistantChat from '@/pages/AssistantChat';
 const TABS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboard, component: Dashboard },
   { label: 'Recurring', path: '/recurring', icon: RefreshCw, component: RecurringExpenses },
-  { label: 'One-Time', path: '/one-time', icon: Receipt, component: OneTimeExpenses },
+  { label: 'One-Time', path: '/one-time', icon: Receipt, component: OneTimeExpenses, shortLabel: 'One-Off' },
   { label: 'Calendar', path: '/calendar', icon: CalendarDays, component: CalendarPage },
   { label: 'Homes', path: '/homes', icon: Home, component: HomesPage },
   { label: 'Assistant', path: '/assistant', icon: Sparkles, component: AssistantChat, comingSoon: true },
@@ -90,7 +90,7 @@ function UserMenu() {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-sm select-none"
+            className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm select-none"
           >
             {initials}
           </Button>
@@ -305,7 +305,7 @@ export default function Layout() {
                   }`}
                 >
                   <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
-                  <span className="text-[11px] font-medium">{label}</span>
+                  <span className="text-[11px] font-medium">{tab.shortLabel || label}</span>
                 </Link>
             );
           })}

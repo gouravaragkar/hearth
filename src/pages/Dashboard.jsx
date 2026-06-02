@@ -23,7 +23,7 @@ function StatCard({ label, value, sub, emoji, color }) {
       <div className="text-2xl">{emoji}</div>
       <div>
         <p className="text-xs text-muted-foreground font-medium">{label}</p>
-        <p className="text-xl font-bold mt-0.5" style={{ color }}>{value}</p>
+        <p className="text-base font-bold mt-0.5 leading-tight" style={{ color }}>{value}</p>
         {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
       </div>
     </div>
