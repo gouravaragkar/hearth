@@ -13,7 +13,8 @@ export default function PendingInvites({ onInviteActioned }) {
   const [errorMsg, setErrorMsg] = useState(null);
 
   const fetchInvites = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const authResult = await supabase.auth.getUser();
+      const user = authResult?.data?.user;
     if (!user?.email) return;
     setLoading(true);
     try {
@@ -41,7 +42,8 @@ export default function PendingInvites({ onInviteActioned }) {
     setErrorMsg(null);
     console.log('USER:', user?.id, 'ERROR:', userError?.message);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const authResult = await supabase.auth.getUser();
+      const user = authResult?.data?.user;
       console.log('USER:', user?.id, 'ERROR:', userError?.message);
       if (!user) throw new Error('Not logged in');
 
