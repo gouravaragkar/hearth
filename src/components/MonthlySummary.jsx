@@ -16,13 +16,11 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
   const pct = budgetAmount > 0 ? Math.min((totalSpent / budgetAmount) * 100, 100) : 0;
   const over = budgetAmount > 0 && totalSpent > budgetAmount;
   const remaining = budgetAmount - totalSpent;
-
   const barColor = pct < 70 ? 'hsl(130 20% 58%)' : pct < 90 ? 'hsl(42 58% 58%)' : 'hsl(0 72% 60%)';
 
   const saveMutation = useMutation({
-    mutationFn: async (amount) => {
-      return mutateShared('Budget', budget?.id ? 'update' : 'create', { month: currentMonth, amount }, budget?.id);
-    },
+    mutationFn: async (amount) =>
+      mutateShared('Budget', budget?.id ? 'update' : 'create', { month: currentMonth, amount }, budget?.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homeData'] });
       setEditing(false);
@@ -35,26 +33,25 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-5 space-y-4">
-      {/* Header */}
+    <div className="bg-card rounded-2xl shadow-warm-sm border border-border p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-foreground">Monthly Summary</h2>
-        <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-1">
-          {format(new Date(), 'MMMM yyyy')}
+        <h2 className="font-semibold text-sm text-foreground">Monthly Summary</h2>
+        <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+          {format(new Date(), 'MMM yyyy')}
         </span>
       </div>
 
-      {/* Spent vs Budget */}
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-xs text-muted-foreground">Total Spent</p>
-          <p className="text-lg font-bold text-foreground">{formatCurrency(totalSpent, currency)}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-muted/50 rounded-xl p-3">
+          <p className="text-[11px] text-muted-foreground mb-1">Total Spent</p>
+          <p className="text-base font-bold text-foreground leading-tight">
+            {formatCurrency(totalSpent, currency)}
+          </p>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">Budget · {format(new Date(), 'MMMM yyyy')}</p>
+        <div className="bg-muted/50 rounded-xl p-3">
+          <p className="text-[11px] text-muted-foreground mb-1">Budget</p>
           {editing ? (
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-sm text-muted-foreground">{formatCurrency(0, currency).replace(/[\d.,]/g, '').trim()}</span>
+            <div className="flex items-center gap-1">
               <Input
                 autoFocus
                 type="number"
@@ -62,31 +59,32 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
                 step="50"
                 value={inputVal}
                 onChange={e => setInputVal(e.target.value)}
-                className="h-7 w-24 text-sm px-2"
+                className="h-6 w-full text-xs px-1.5"
               />
-              <Button size="icon" className="h-7 w-7" onClick={handleSave}>
-                <Check size={12} />
+              <Button size="icon" className="h-6 w-6 shrink-0" onClick={handleSave}>
+                <Check size={10} />
               </Button>
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditing(false)}>
-                <X size={12} />
+              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => setEditing(false)}>
+                <X size={10} />
               </Button>
             </div>
           ) : (
             <button
               onClick={() => { setInputVal(budgetAmount ? budgetAmount.toString() : ''); setEditing(true); }}
-              className="flex items-center gap-1 text-lg font-bold text-foreground hover:text-primary transition-colors"
+              className="flex items-center gap-1 text-base font-bold text-foreground hover:text-primary transition-colors leading-tight"
             >
-              {budgetAmount > 0 ? formatCurrency(budgetAmount, currency) : <span className="text-sm text-muted-foreground">Set budget</span>}
-              <Pencil size={12} className="text-muted-foreground" />
+              {budgetAmount > 0
+                ? formatCurrency(budgetAmount, currency)
+                : <span className="text-xs text-muted-foreground font-normal">Set budget</span>}
+              <Pencil size={10} className="text-muted-foreground shrink-0" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Progress bar */}
       {budgetAmount > 0 && (
         <>
-          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${pct}%`, backgroundColor: barColor }}
@@ -95,14 +93,16 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">{pct.toFixed(0)}% used</span>
             <span className={over ? 'text-destructive font-semibold' : 'text-muted-foreground'}>
-              {over ? `Over by ${formatCurrency(Math.abs(remaining), currency)}` : `${formatCurrency(remaining, currency)} remaining`}
+              {over
+                ? `Over by ${formatCurrency(Math.abs(remaining), currency)}`
+                : `${formatCurrency(remaining, currency)} left`}
             </span>
           </div>
         </>
       )}
 
-      {!budgetAmount && (
-        <p className="text-xs text-muted-foreground">Tap "Set budget" to track against a monthly target.</p>
+      {!budgetAmount && !editing && (
+        <p className="text-xs text-muted-foreground">Tap "Set budget" to track your monthly target.</p>
       )}
     </div>
   );

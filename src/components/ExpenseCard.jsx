@@ -1,6 +1,5 @@
 import { Pencil, Trash2, CheckCircle2, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 import { format } from 'date-fns';
@@ -17,12 +16,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+const FREQ_SHORT = { weekly: 'Weekly', fortnightly: '2-Weekly', monthly: 'Monthly', quarterly: 'Quarterly' };
+const FREQ_SUFFIX = { weekly: '/wk', fortnightly: '/2wk', monthly: '/mo', quarterly: '/qtr' };
+
 export default function ExpenseCard({ expense, type, onEdit, onDelete, onTogglePaid }) {
   const isRecurring = type === 'recurring';
   const color = CATEGORY_COLORS[expense.category] || '#ADB5BD';
   const icon = CATEGORY_ICONS[expense.category] || '📦';
-
-  const freqLabel = { weekly: 'Weekly', fortnightly: 'Fortnightly', monthly: 'Monthly', quarterly: 'Quarterly' };
+  const isPaid = isRecurring && expense.paid_this_cycle;
 
   return (
     <motion.div
@@ -30,84 +31,91 @@ export default function ExpenseCard({ expense, type, onEdit, onDelete, onToggleP
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.2 }}
-      className={`bg-card rounded-2xl shadow-warm-sm border border-border p-4 flex items-center gap-4 hover:shadow-warm-md transition-shadow ${isRecurring && expense.paid_this_cycle ? 'opacity-70' : ''}`}
+      className={`bg-card rounded-2xl shadow-warm-sm border border-border overflow-hidden transition-shadow hover:shadow-warm-md ${isPaid ? 'opacity-60' : ''}`}
     >
-      {/* Category dot + icon */}
-      <div className="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-xl"
-        style={{ backgroundColor: color + '22', border: `1.5px solid ${color}44` }}>
-        {icon}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className={`font-semibold text-foreground truncate ${isRecurring && expense.paid_this_cycle ? 'line-through text-muted-foreground' : ''}`}>
+      <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+        <div
+          className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+          style={{ backgroundColor: color + '20', border: `1.5px solid ${color}40` }}
+        >
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`font-semibold text-sm text-foreground truncate ${isPaid ? 'line-through text-muted-foreground' : ''}`}>
             {expense.name}
           </p>
+          <p className="text-xs text-muted-foreground truncate">{expense.category}</p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="font-bold text-sm text-foreground">
+            {formatCurrency(expense.amount, expense.currency || 'AUD')}
+          </p>
           {isRecurring && (
-            <Badge variant="outline" className="text-xs shrink-0" style={{ borderColor: color, color }}>
-              {freqLabel[expense.frequency]}
-            </Badge>
+            <p className="text-xs text-muted-foreground">{FREQ_SUFFIX[expense.frequency] || '/mo'}</p>
           )}
         </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-xs text-muted-foreground">{expense.category}</span>
-          {expense.next_due_date && (
-            <span className="text-xs text-muted-foreground">· {format(new Date(expense.next_due_date), 'dd MMM')}</span>
+      </div>
+
+      <div className="flex items-center justify-between px-4 pb-3 gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {isRecurring && (
+            <span
+              className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: color + '18', color }}
+            >
+              {FREQ_SHORT[expense.frequency] || 'Recurring'}
+            </span>
+          )}
+          {isRecurring && expense.next_due_date && (
+            <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              Due {format(new Date(expense.next_due_date + 'T12:00:00'), 'dd MMM')}
+            </span>
           )}
           {!isRecurring && expense.date && (
-            <span className="text-xs text-muted-foreground">· {format(new Date(expense.date), 'dd MMM')}</span>
+            <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              {format(new Date(expense.date + 'T12:00:00'), 'dd MMM yyyy')}
+            </span>
+          )}
+          {expense.notes && (
+            <span className="text-[11px] text-muted-foreground truncate max-w-[120px]">{expense.notes}</span>
           )}
         </div>
-        {expense.notes && <p className="text-xs text-muted-foreground mt-0.5 truncate">{expense.notes}</p>}
-      </div>
-
-      {/* Amount */}
-      <div className="text-right shrink-0 max-w-[90px]">
-        <p className="font-bold text-foreground text-sm leading-tight">{formatCurrency(expense.amount, expense.currency || 'AUD')}</p>
-        {isRecurring && (
-          <p className="text-xs text-muted-foreground">
-            {expense.frequency === 'weekly' ? '/wk' : expense.frequency === 'fortnightly' ? '/2wk' : expense.frequency === 'quarterly' ? '/qtr' : '/mo'}
-          </p>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-1 shrink-0">
-        {isRecurring && (
-          <Button variant="ghost" size="icon" className="h-11 w-11 select-none" onClick={() => onTogglePaid(expense)}>
-            {expense.paid_this_cycle
-              ? <CheckCircle2 size={18} className="text-sage" />
-              : <Circle size={18} className="text-muted-foreground" />}
-          </Button>
-        )}
-        <Button variant="ghost" size="icon" className="h-11 w-11 select-none" onClick={() => onEdit(expense)}>
-          <Pencil size={15} className="text-muted-foreground" />
-        </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-11 w-11 select-none">
-              <Trash2 size={15} className="text-destructive" />
+        <div className="flex items-center gap-0.5 shrink-0">
+          {isRecurring && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 select-none" onClick={() => onTogglePaid(expense)}>
+              {isPaid
+                ? <CheckCircle2 size={16} className="text-green-500" />
+                : <Circle size={16} className="text-muted-foreground" />}
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete "{expense.name}"?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete this expense. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={() => onDelete(expense.id)}
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          )}
+          <Button variant="ghost" size="icon" className="h-8 w-8 select-none" onClick={() => onEdit(expense)}>
+            <Pencil size={13} className="text-muted-foreground" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 select-none">
+                <Trash2 size={13} className="text-destructive" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete "{expense.name}"?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete this expense. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => onDelete(expense.id)}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </motion.div>
   );

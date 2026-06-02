@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Check } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function HomeSwitcher() {
@@ -20,8 +20,11 @@ export default function HomeSwitcher() {
 
   if (homes.length === 0) {
     return (
-      <Link to="/homes" className="flex items-center gap-1 text-xs text-muted-foreground bg-muted rounded-xl px-3 py-1.5 select-none hover:bg-muted/80 transition-colors">
-        <Plus size={12} /> Add Home
+      <Link
+        to="/homes"
+        className="flex items-center gap-1 text-xs text-primary font-medium bg-primary/10 rounded-full px-3 py-1 select-none hover:bg-primary/20 transition-colors"
+      >
+        <Plus size={11} /> Add Home
       </Link>
     );
   }
@@ -29,30 +32,34 @@ export default function HomeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-1.5 bg-muted hover:bg-muted/80 rounded-xl px-3 py-1.5 text-sm font-medium text-foreground transition-colors select-none">
-          <span>{activeHome?.emoji || '🏠'}</span>
-          <span className="max-w-[80px] truncate">{activeHome?.name || 'Select Home'}</span>
-          <span className="text-xs text-muted-foreground hidden sm:inline">{activeHome?.currency}</span>
-          <ChevronDown size={13} className="text-muted-foreground" />
+        <button className="flex items-center gap-1 bg-muted hover:bg-muted/70 rounded-full px-2.5 py-1 transition-colors select-none max-w-[140px]">
+          <span className="text-sm leading-none">{activeHome?.emoji || '🏠'}</span>
+          <span className="text-xs font-medium text-foreground truncate max-w-[70px]">
+            {activeHome?.name || 'Home'}
+          </span>
+          <ChevronDown size={11} className="text-muted-foreground shrink-0" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" className="w-52 rounded-xl">
+      <DropdownMenuContent align="start" className="w-52 rounded-xl">
         {homes.map(home => (
           <DropdownMenuItem
             key={home.id}
             onClick={() => handleSwitch(home.id)}
-            className={`flex items-center gap-2 cursor-pointer min-h-[44px] ${home.id === activeHome?.id ? 'text-primary font-semibold' : ''}`}
+            className="flex items-center gap-2 cursor-pointer min-h-[44px]"
           >
-            <span>{home.emoji || '🏠'}</span>
+            <span className="text-lg">{home.emoji || '🏠'}</span>
             <div className="flex-1 min-w-0">
-              <p className="truncate">{home.name}</p>
+              <p className="truncate text-sm font-medium">{home.name}</p>
               <p className="text-xs text-muted-foreground">{home.currency}</p>
             </div>
+            {home.id === activeHome?.id && (
+              <Check size={14} className="text-primary shrink-0" />
+            )}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/homes" className="flex items-center gap-2 cursor-pointer min-h-[44px] text-primary">
+          <Link to="/homes" className="flex items-center gap-2 cursor-pointer min-h-[44px] text-primary text-sm">
             <Plus size={14} /> Manage Homes
           </Link>
         </DropdownMenuItem>
