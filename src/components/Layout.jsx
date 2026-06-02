@@ -35,7 +35,7 @@ const TABS = [
   { label: 'One-Time', path: '/one-time', icon: Receipt, component: OneTimeExpenses },
   { label: 'Calendar', path: '/calendar', icon: CalendarDays, component: CalendarPage },
   { label: 'Homes', path: '/homes', icon: Home, component: HomesPage },
-  { label: 'Assistant', path: '/assistant', icon: Sparkles, component: AssistantChat },
+  { label: 'Assistant', path: '/assistant', icon: Sparkles, component: AssistantChat, comingSoon: true },
 ];
 
 function UserMenu() {
@@ -282,17 +282,29 @@ export default function Layout() {
           {TABS.map(({ label, path, icon: Icon }, i) => {
             const active = i === activeIdx;
             return (
-              <Link
-                key={path}
-                to={path}
-                onClick={() => handleTabClick(path, i)}
-                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] select-none transition-colors ${
-                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
-                <span className="text-[11px] font-medium">{label}</span>
-              </Link>
+              {tab.comingSoon ? (
+                <div
+                  key={path}
+                  title="Coming soon"
+                  className="flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] select-none opacity-40 relative cursor-not-allowed"
+                >
+                  <Icon size={22} strokeWidth={1.7} />
+                  <span className="text-[11px] font-medium">{label}</span>
+                  <span className="absolute -top-0.5 right-3 text-[8px] font-bold text-primary bg-primary/10 px-1 py-0.5 rounded-full">Soon</span>
+                </div>
+              ) : (
+                <Link
+                  key={path}
+                  to={path}
+                  onClick={() => handleTabClick(path, i)}
+                  className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-h-[56px] select-none transition-colors ${
+                    active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Icon size={22} strokeWidth={active ? 2.2 : 1.7} />
+                  <span className="text-[11px] font-medium">{label}</span>
+                </Link>
+              )}
             );
           })}
         </div>
