@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Check, X, Bell, AlertCircle } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useHome } from '@/context/HomeContext';
 
 export default function PendingInvites({ onInviteActioned }) {
-  const currentUser = useCurrentUser();
   const { fetchHomes } = useHome();
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,15 +12,15 @@ export default function PendingInvites({ onInviteActioned }) {
   const [errorMsg, setErrorMsg] = useState(null);
 
   const fetchInvites = async () => {
-    if (!currentUser?.email) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('home_invites')
         .select('*')
-        .eq('invitee_email', currentUser.email.toLowerCase())
+        .eq('invitee_email', user.email.toLowerCase())
         .eq('status', 'pending');
-
       if (error) throw error;
       setInvites(data || []);
     } catch (e) {
@@ -33,53 +31,56 @@ export default function PendingInvites({ onInviteActioned }) {
   };
 
   useEffect(() => {
-    if (currentUser?.email) fetchInvites();
-  }, [currentUser?.email]);
+    fetchInvites();
+  }, []);
 
   const handleAction = async (invite, action) => {
     setActing(invite.id);
     setErrorMsg(null);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in');
+
       if (action === 'approved') {
-        // Update invite status
-        await supabase
+        const { error: inviteError } = await supabase
           .from('home_invites')
           .update({ status: 'approved' })
           .eq('id', invite.id);
+        if (inviteError) throw inviteError;
 
-        // Add user to home members array
-        const { data: home } = await supabase
+        const { data: home, error: homeError } = await supabase
           .from('homes')
           .select('members')
           .eq('id', invite.home_id)
           .single();
+        if (homeError) throw homeError;
 
         const currentMembers = home?.members || [];
-        if (!currentMembers.includes(currentUser.id)) {
-          await supabase
+        if (!currentMembers.includes(user.id)) {
+          const { error: updateError } = await supabase
             .from('homes')
-            .update({ members: [...currentMembers, currentUser.id] })
+            .update({ members: [...currentMembers, user.id] })
             .eq('id', invite.home_id);
+          if (updateError) throw updateError;
         }
 
-        // Refresh homes without page reload (Bug Fix #9)
         await fetchHomes();
         onInviteActioned?.();
 
       } else {
-        // Decline
-        await supabase
+        const { error: declineError } = await supabase
           .from('home_invites')
           .update({ status: 'declined' })
           .eq('id', invite.id);
+        if (declineError) throw declineError;
       }
 
-      // Remove from local state immediately for instant UI feedback
       setInvites(prev => prev.filter(i => i.id !== invite.id));
       await fetchInvites();
+
     } catch (e) {
-      console.error('Error responding to invite:', e);
-      setErrorMsg('Something went wrong. Please try again.');
+      console.error('Error responding to invite:', e.message || e);
+      setErrorMsg(`Error: ${e.message || 'Something went wrong. Please try again.'}`);
     }
     setActing(null);
   };
