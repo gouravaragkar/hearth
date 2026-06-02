@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Check, X, Bell, AlertCircle } from 'lucide-react';
 import { useHome } from '@/context/HomeContext';
 
-
 export default function PendingInvites({ onInviteActioned }) {
   const { fetchHomes } = useHome();
   const [invites, setInvites] = useState([]);
@@ -14,7 +13,7 @@ export default function PendingInvites({ onInviteActioned }) {
 
   const fetchInvites = async () => {
     const authResult = await supabase.auth.getUser();
-      const user = authResult?.data?.user;
+    const user = authResult?.data?.user;
     if (!user?.email) return;
     setLoading(true);
     try {
@@ -37,14 +36,11 @@ export default function PendingInvites({ onInviteActioned }) {
   }, []);
 
   const handleAction = async (invite, action) => {
-    console.log('APPROVE TAPPED', invite.id, action);
     setActing(invite.id);
     setErrorMsg(null);
-    console.log('USER:', user?.id, 'ERROR:', userError?.message);
     try {
       const authResult = await supabase.auth.getUser();
       const user = authResult?.data?.user;
-      console.log('USER:', user?.id, 'ERROR:', userError?.message);
       if (!user) throw new Error('Not logged in');
 
       if (action === 'approved') {
@@ -80,7 +76,7 @@ export default function PendingInvites({ onInviteActioned }) {
           .eq('id', invite.id);
         if (declineError) throw declineError;
       }
-      console.log('REACHED FILTER - about to remove invite');
+
       setInvites(prev => prev.filter(i => i.id !== invite.id));
       await fetchInvites();
 
