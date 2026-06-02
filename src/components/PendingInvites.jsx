@@ -74,6 +74,8 @@ export default function PendingInvites({ onInviteActioned }) {
           .eq('id', invite.id);
       }
 
+      // Remove from local state immediately for instant UI feedback
+      setInvites(prev => prev.filter(i => i.id !== invite.id));
       await fetchInvites();
     } catch (e) {
       console.error('Error responding to invite:', e);
