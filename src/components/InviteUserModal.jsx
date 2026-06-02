@@ -55,6 +55,32 @@ export default function InviteUserModal({ open, onClose, homes }) {
       });
 
       await Promise.all(invitePromises);
+
+      // Send notification email for each selected home
+      const appUrl = window.location.origin;
+      await Promise.all(
+        selectedHomes.map(homeId => {
+          const home = homes.find(h => h.id === homeId);
+          return fetch(
+            `https://befarpxfhfwnemogyftg.supabase.co/functions/v1/send-invite-email`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              },
+              body: JSON.stringify({
+                to: email.trim().toLowerCase(),
+                inviter_name: currentUser.user_metadata?.full_name || 'Someone',
+                home_name: home?.name || '',
+                home_emoji: home?.emoji || '🏠',
+                app_url: appUrl,
+              }),
+            }
+          ).catch(e => console.error('Email send failed:', e));
+        })
+      );
+
       setResult('sent');
       setEmail('');
       setSelectedHomes([]);
