@@ -276,7 +276,7 @@ export default function Layout() {
         className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-t border-border"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="max-w-3xl mx-auto flex items-center justify-around px-2">
+        <div className="max-w-3xl mx-auto flex items-center justify-around px-0">
           {TABS.map((tab, i) => {
             const { label, path, icon: Icon } = tab;
             const active = i === activeIdx;
