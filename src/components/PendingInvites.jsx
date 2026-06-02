@@ -39,8 +39,10 @@ export default function PendingInvites({ onInviteActioned }) {
     console.log('APPROVE TAPPED', invite.id, action);
     setActing(invite.id);
     setErrorMsg(null);
+    console.log('USER:', user?.id, 'ERROR:', userError?.message);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('USER:', user?.id, 'ERROR:', userError?.message);
       if (!user) throw new Error('Not logged in');
 
       if (action === 'approved') {
@@ -76,7 +78,7 @@ export default function PendingInvites({ onInviteActioned }) {
           .eq('id', invite.id);
         if (declineError) throw declineError;
       }
-
+      console.log('REACHED FILTER - about to remove invite');
       setInvites(prev => prev.filter(i => i.id !== invite.id));
       await fetchInvites();
 
