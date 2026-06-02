@@ -54,7 +54,7 @@ export default function PendingInvites({ onInviteActioned }) {
           .from('homes')
           .select('members')
           .eq('id', invite.home_id)
-          .single();
+          .maybeSingle();
         if (homeError) throw homeError;
 
         const currentMembers = home?.members || [];
