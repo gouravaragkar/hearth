@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Check, X, Bell, AlertCircle } from 'lucide-react';
 import { useHome } from '@/context/HomeContext';
 
+
 export default function PendingInvites({ onInviteActioned }) {
   const { fetchHomes } = useHome();
   const [invites, setInvites] = useState([]);
@@ -35,6 +36,7 @@ export default function PendingInvites({ onInviteActioned }) {
   }, []);
 
   const handleAction = async (invite, action) => {
+    console.log('APPROVE TAPPED', invite.id, action);
     setActing(invite.id);
     setErrorMsg(null);
     try {
