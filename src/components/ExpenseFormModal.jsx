@@ -53,6 +53,8 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
     if (!form.name?.trim()) newErrors.name = 'Name is required';
     if (!form.amount || parseFloat(form.amount) <= 0) newErrors.amount = 'Amount is required';
     if (!form.category) newErrors.category = 'Please select a category';
+    if (!isRecurring && !form.date) newErrors.date = 'Date is required';
+    if (isRecurring && !form.start_date) newErrors.start_date = 'Start date is required';
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -140,13 +142,15 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
               </div>
               <div>
                 <Label>Start / Next Due Date</Label>
-                <Input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)} className="mt-1" />
+                <Input type="date" value={form.start_date} onChange={e => set('start_date', e.target.value)} className={`mt-1 ${errors.start_date ? 'border-destructive' : ''}`} />
+                {errors.start_date && <p className="text-xs text-destructive mt-1">{errors.start_date}</p>}
               </div>
             </>
           ) : (
             <div>
               <Label>Date Paid</Label>
-              <Input type="date" value={form.date} onChange={e => set('date', e.target.value)} className="mt-1" />
+              <Input type="date" value={form.date} onChange={e => set('date', e.target.value)} className={`mt-1 ${errors.date ? 'border-destructive' : ''}`} />
+              {errors.date && <p className="text-xs text-destructive mt-1">{errors.date}</p>}
             </div>
           )}
 

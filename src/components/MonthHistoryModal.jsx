@@ -43,26 +43,34 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
   const budget = budgets?.find(b => b.month === selected.value) || null;
   const budgetAmount = budget?.amount || 0;
 
-  const { monthExpenses, oneTimeTotal, recurringTotal, totalSpent, categoryMap, donutData } = useMemo(() => {
+  const { monthExpenses, monthRecurring, oneTimeTotal, recurringTotal, totalSpent, categoryMap, donutData } = useMemo(() => {
+    const endStr = format(monthEnd, 'yyyy-MM-dd');
+
     const monthExpenses = expenses.filter(e => {
       if (!e.date) return false;
       return isWithinInterval(new Date(e.date), { start: monthStart, end: monthEnd });
+    });
+
+    // Only include recurring expenses that existed in this month
+    const monthRecurring = recurring.filter(e => {
+      if (!e.start_date) return false;
+      return e.start_date.slice(0, 10) <= endStr;
     });
 
     const catMap = {};
     monthExpenses.forEach(e => {
       catMap[e.category] = (catMap[e.category] || 0) + (e.amount || 0);
     });
-    recurring.forEach(e => {
+    monthRecurring.forEach(e => {
       const m = getMonthlyEquivalent(e.amount, e.frequency);
       catMap[e.category] = (catMap[e.category] || 0) + m;
     });
 
     const oneTimeTotal = monthExpenses.reduce((s, e) => s + (e.amount || 0), 0);
-    const recurringTotal = recurring.reduce((s, e) => s + getMonthlyEquivalent(e.amount, e.frequency), 0);
+    const recurringTotal = monthRecurring.reduce((s, e) => s + getMonthlyEquivalent(e.amount, e.frequency), 0);
     const donutData = Object.entries(catMap).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 
-    return { monthExpenses, oneTimeTotal, recurringTotal, totalSpent: oneTimeTotal + recurringTotal, categoryMap: catMap, donutData };
+    return { monthExpenses, monthRecurring, oneTimeTotal, recurringTotal, totalSpent: oneTimeTotal + recurringTotal, categoryMap: catMap, donutData };
   }, [expenses, recurring, monthStart, monthEnd, selected.value]);
 
   const handleDownload = () => {
@@ -236,7 +244,7 @@ export default function MonthHistoryModal({ open, onClose, expenses, recurring, 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           {tab === 'expenses' && (
-            <ExpensesTab monthExpenses={monthExpenses} recurring={recurring} oneTimeTotal={oneTimeTotal} recurringTotal={recurringTotal} currency={currency} />
+            <ExpensesTab monthExpenses={monthExpenses} recurring={monthRecurring} oneTimeTotal={oneTimeTotal} recurringTotal={recurringTotal} currency={currency} />
           )}
           {tab === 'insights' && (
             <InsightsTab donutData={donutData} totalSpent={totalSpent} categoryMap={categoryMap} currency={currency} />

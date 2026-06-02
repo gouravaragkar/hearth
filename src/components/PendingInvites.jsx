@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Check, X, Bell, AlertCircle } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -17,9 +17,16 @@ export default function PendingInvites({ onInviteActioned }) {
     if (!currentUser?.email) return;
     setLoading(true);
     try {
-      const res = await base44.functions.invoke('getMyInvites', {});
-      setInvites(res?.data?.invites || []);
+      const { data, error } = await supabase
+        .from('home_invites')
+        .select('*')
+        .eq('invitee_email', currentUser.email.toLowerCase())
+        .eq('status', 'pending');
+
+      if (error) throw error;
+      setInvites(data || []);
     } catch (e) {
+      console.error('Error fetching invites:', e);
       setInvites([]);
     }
     setLoading(false);
@@ -33,20 +40,45 @@ export default function PendingInvites({ onInviteActioned }) {
     setActing(invite.id);
     setErrorMsg(null);
     try {
-      const res = await base44.functions.invoke('respondToInvite', { inviteId: invite.id, action });
-      if (res?.data?.error) {
-        setErrorMsg(res.data.error);
-      } else if (action === 'approved') {
+      if (action === 'approved') {
+        // Update invite status
+        await supabase
+          .from('home_invites')
+          .update({ status: 'approved' })
+          .eq('id', invite.id);
+
+        // Add user to home members array
+        const { data: home } = await supabase
+          .from('homes')
+          .select('members')
+          .eq('id', invite.home_id)
+          .single();
+
+        const currentMembers = home?.members || [];
+        if (!currentMembers.includes(currentUser.id)) {
+          await supabase
+            .from('homes')
+            .update({ members: [...currentMembers, currentUser.id] })
+            .eq('id', invite.home_id);
+        }
+
+        // Refresh homes without page reload (Bug Fix #9)
         await fetchHomes();
         onInviteActioned?.();
-        await fetchInvites();
-        setActing(null);
-        return;
+
+      } else {
+        // Decline
+        await supabase
+          .from('home_invites')
+          .update({ status: 'declined' })
+          .eq('id', invite.id);
       }
+
+      await fetchInvites();
     } catch (e) {
+      console.error('Error responding to invite:', e);
       setErrorMsg('Something went wrong. Please try again.');
     }
-    await fetchInvites();
     setActing(null);
   };
 
@@ -76,7 +108,7 @@ export default function PendingInvites({ onInviteActioned }) {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground text-sm">{invite.home_name}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                <span className="font-medium text-foreground">{invite.inviter_name}</span> wants to share this home profile with you.
+                <span className="font-medium text-foreground">{invite.inviter_name}</span> wants to share this home with you.
               </p>
             </div>
           </div>

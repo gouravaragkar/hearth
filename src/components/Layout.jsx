@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2, Home, ChevronLeft, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +44,9 @@ function UserMenu() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    supabase.auth.getUser()
+      .then(({ data: { user } }) => setUser(user))
+      .catch(() => {});
   }, []);
 
   const referralLink = `${window.location.origin}?ref=${user?.id || 'homespend'}`;
@@ -55,15 +57,30 @@ function UserMenu() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSignOut = () => base44.auth.logout('/');
-
-  const handleDeleteAccount = async () => {
-    if (user?.id) await base44.entities.User.delete(user.id).catch(() => {});
-    base44.auth.logout('/');
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
   };
 
-  const initials = user?.full_name
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const handleDeleteAccount = async () => {
+    try {
+      // Delete all user's homes first (cascades to expenses, budgets etc)
+      if (user?.id) {
+        await supabase.from('homes').delete().eq('created_by', user.id);
+      }
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } catch (e) {
+      console.error('Error deleting account:', e);
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    }
+  };
+
+  // Get initials from user metadata
+  const fullName = user?.user_metadata?.full_name || user?.email || '';
+  const initials = fullName
+    ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
   return (
@@ -84,7 +101,9 @@ function UserMenu() {
               {initials}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-sm text-foreground truncate">{user?.full_name || 'User'}</p>
+              <p className="font-semibold text-sm text-foreground truncate">
+                {user?.user_metadata?.full_name || 'User'}
+              </p>
               <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
             </div>
           </div>
@@ -166,7 +185,6 @@ export default function Layout() {
 
   const handleTabClick = (path, i) => {
     if (i === activeIdx) {
-      // Already on this tab — scroll to top
       const el = scrollRefs.current[i];
       if (el) el.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -182,7 +200,6 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-background font-inter flex flex-col overflow-hidden">
-      {/* Top Header */}
       <header
         className="sticky top-0 z-30 bg-background/90 backdrop-blur-sm border-b border-border shrink-0"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
@@ -208,7 +225,6 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Tab content — all tabs stay mounted, only active one is visible */}
       <div className="flex-1 relative overflow-hidden">
         <div className="absolute inset-0">
           <AnimatePresence initial={false} custom={direction} mode="popLayout">
@@ -242,7 +258,6 @@ export default function Layout() {
               )}
             </motion.div>
           </AnimatePresence>
-          {/* Keep all other tabs mounted but hidden for state preservation */}
           {TABS.map((tab, i) => {
             if (i === activeIdx) return null;
             const Component = tab.component;
@@ -259,7 +274,6 @@ export default function Layout() {
         </div>
       </div>
 
-      {/* Bottom Tab Bar */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-sm border-t border-border"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}

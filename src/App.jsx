@@ -6,14 +6,14 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { HomeProvider } from '@/context/HomeContext';
 import ThemeProvider from '@/lib/ThemeProvider';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from '@/components/Layout';
-
+import Login from '@/pages/Login';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isAuthenticated } = useAuth();
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  // Show loading spinner while checking auth
+  if (isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -24,37 +24,38 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError) {
-    if (authError.type === 'user_not_registered') return <UserNotRegisteredError />;
-    else if (authError.type === 'auth_required') { navigateToLogin(); return null; }
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <Login />;
   }
 
+  // Show the app if authenticated
   return (
-    <Routes>
-      <Route path="/" element={<Layout />} />
-      <Route path="/recurring" element={<Layout />} />
-      <Route path="/one-time" element={<Layout />} />
-      <Route path="/calendar" element={<Layout />} />
-      <Route path="/homes" element={<Layout />} />
-      <Route path="/assistant" element={<Layout />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <HomeProvider>
+      <Routes>
+        <Route path="/" element={<Layout />} />
+        <Route path="/recurring" element={<Layout />} />
+        <Route path="/one-time" element={<Layout />} />
+        <Route path="/calendar" element={<Layout />} />
+        <Route path="/homes" element={<Layout />} />
+        <Route path="/assistant" element={<Layout />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </HomeProvider>
   );
 };
 
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <HomeProvider>
-              <AuthenticatedApp />
-            </HomeProvider>
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <Router>
+          <AuthProvider>
+            <AuthenticatedApp />
+          </AuthProvider>
+        </Router>
+        <Toaster />
+      </QueryClientProvider>
     </ThemeProvider>
   )
 }

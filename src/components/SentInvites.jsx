@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { Clock, Check, X, Trash2, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 const STATUS_CONFIG = {
-  pending:  { label: 'Pending',  icon: Clock,  color: 'text-gold bg-gold/10' },
-  approved: { label: 'Approved', icon: Check,  color: 'text-sage bg-sage/10' },
+  pending:  { label: 'Pending',  icon: Clock,  color: 'text-yellow-600 bg-yellow-50' },
+  approved: { label: 'Approved', icon: Check,  color: 'text-green-600 bg-green-50' },
   declined: { label: 'Declined', icon: X,      color: 'text-destructive bg-destructive/10' },
-  revoked:  { label: 'Revoked',  icon: ShieldOff, color: 'text-muted-foreground bg-muted' },
 };
 
 export default function SentInvites({ refreshKey }) {
@@ -18,8 +17,12 @@ export default function SentInvites({ refreshKey }) {
 
   const fetchInvites = async () => {
     if (!currentUser?.id) return;
-    const all = await base44.entities.HomeInvite.list('-created_date', 100);
-    setInvites(all.filter(inv => inv.inviter_id === currentUser.id));
+    const { data, error } = await supabase
+      .from('home_invites')
+      .select('*')
+      .eq('inviter_id', currentUser.id)
+      .order('created_at', { ascending: false });
+    if (!error) setInvites(data || []);
   };
 
   useEffect(() => {
@@ -28,22 +31,22 @@ export default function SentInvites({ refreshKey }) {
 
   const handleDelete = async (inviteId) => {
     setActing(inviteId);
-    await base44.entities.HomeInvite.delete(inviteId);
+    await supabase.from('home_invites').delete().eq('id', inviteId);
     await fetchInvites();
     setActing(null);
   };
 
   const handleRevoke = async (invite) => {
     setActing(invite.id);
-    // Mark as revoked (we use 'declined' status so the invitee's context drops the home)
-    await base44.entities.HomeInvite.update(invite.id, { status: 'declined' });
-    // Send revoke email
-    const appUrl = window.location.origin;
-    await base44.integrations.Core.SendEmail({
-      to: invite.invitee_email,
-      subject: `Your access to "${invite.home_name}" has been revoked`,
-      body: `Hi,\n\n${currentUser.full_name || 'The home owner'} has revoked your access to the home "${invite.home_name}" on HomeSpend.\n\nYou will no longer be able to see this home profile when you log in.\n\nIf you think this is a mistake, please reach out to ${currentUser.full_name || 'the home owner'} directly.\n\nCheers,\nThe HomeSpend Team`,
-    });
+    await supabase.from('home_invites').update({ status: 'declined' }).eq('id', invite.id);
+    if (invite.invitee_id) {
+      const { data: homeData } = await supabase
+        .from('homes').select('members').eq('id', invite.home_id).single();
+      if (homeData?.members) {
+        const updatedMembers = homeData.members.filter(m => m !== invite.invitee_id);
+        await supabase.from('homes').update({ members: updatedMembers }).eq('id', invite.home_id);
+      }
+    }
     await fetchInvites();
     setActing(null);
   };
@@ -69,26 +72,14 @@ export default function SentInvites({ refreshKey }) {
               <Icon size={11} /> {cfg.label}
             </span>
             {isPending && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                disabled={acting === invite.id}
-                onClick={() => handleDelete(invite.id)}
-                title="Cancel invite"
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={acting === invite.id} onClick={() => handleDelete(invite.id)}>
                 <Trash2 size={14} />
               </Button>
             )}
             {isApproved && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                disabled={acting === invite.id}
-                onClick={() => handleRevoke(invite)}
-                title="Revoke access"
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                disabled={acting === invite.id} onClick={() => handleRevoke(invite)}>
                 <ShieldOff size={14} />
               </Button>
             )}

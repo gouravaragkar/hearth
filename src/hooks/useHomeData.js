@@ -1,41 +1,57 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { useHome } from '@/context/HomeContext';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 /**
  * Returns expenses, recurring, and budgets for the active home.
- * - Owned homes: direct parallel entity queries (fast) — invitee writes visible via service role on mutate
- * - Shared homes: backend function with service role (bypasses RLS)
- * Both paths keep a long staleTime so cached data renders instantly on revisit.
+ * Supabase RLS automatically handles both owned and shared homes
+ * in a single query — no separate code paths needed.
  */
 export function useHomeData() {
   const { activeHome } = useHome();
-  const user = useCurrentUser();
   const qc = useQueryClient();
-  const isShared = !!activeHome?._shared;
   const homeId = activeHome?.id;
 
   const activeQuery = useQuery({
     queryKey: ['homeData', homeId],
     queryFn: async () => {
-      if (isShared) {
-        // Shared home: must use service role to see all members' records
-        const res = await base44.functions.invoke('getSharedHomeData', { home_id: homeId });
-        return res.data;
-      } else {
-        // Owned home: fast parallel direct queries
-        const [expenses, recurring, budgets] = await Promise.all([
-          base44.entities.Expense.filter({ home_id: homeId }, '-date', 500),
-          base44.entities.RecurringExpense.filter({ home_id: homeId }, '-created_date', 500),
-          base44.entities.Budget.filter({ home_id: homeId }, '-created_date', 100),
-        ]);
-        return { expenses, recurring, budgets };
-      }
+      if (!homeId) return { expenses: [], recurring: [], budgets: [] };
+
+      // Supabase RLS handles owned + shared homes automatically
+      const [expensesRes, recurringRes, budgetsRes] = await Promise.all([
+        supabase
+          .from('expenses')
+          .select('*')
+          .eq('home_id', homeId)
+          .order('date', { ascending: false })
+          .limit(500),
+        supabase
+          .from('recurring_expenses')
+          .select('*')
+          .eq('home_id', homeId)
+          .order('created_at', { ascending: false })
+          .limit(500),
+        supabase
+          .from('budgets')
+          .select('*')
+          .eq('home_id', homeId)
+          .order('created_at', { ascending: false })
+          .limit(100),
+      ]);
+
+      if (expensesRes.error) throw expensesRes.error;
+      if (recurringRes.error) throw recurringRes.error;
+      if (budgetsRes.error) throw budgetsRes.error;
+
+      return {
+        expenses: expensesRes.data || [],
+        recurring: recurringRes.data || [],
+        budgets: budgetsRes.data || [],
+      };
     },
-    enabled: !!homeId && !!user?.id,
-    staleTime: 60_000,       // cache for 1 min — renders instantly on revisit
-    gcTime: 5 * 60_000,     // keep in memory for 5 min
+    enabled: !!homeId,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
@@ -51,18 +67,63 @@ export function useHomeData() {
     });
   };
 
+  // Log activity helper
+  const logActivity = async (entity, action, record_name, details) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('home_activities').insert({
+        home_id: homeId,
+        entity,
+        action,
+        record_name,
+        details,
+        actor_id: user.id,
+        actor_name: user.user_metadata?.full_name || user.email,
+      });
+    } catch (e) {
+      console.error('Error logging activity:', e);
+    }
+  };
+
+  // Map entity name to Supabase table name
+  const getTableName = (entity) => {
+    switch (entity) {
+      case 'RecurringExpense': return 'recurring_expenses';
+      case 'Expense': return 'expenses';
+      case 'Budget': return 'budgets';
+      default: return entity.toLowerCase() + 's';
+    }
+  };
+
+  // Map entity name to query data key
+  const getEntityKey = (entity) => {
+    switch (entity) {
+      case 'RecurringExpense': return 'recurring';
+      case 'Expense': return 'expenses';
+      case 'Budget': return 'budgets';
+      default: return entity.toLowerCase() + 's';
+    }
+  };
+
   const mutateShared = async (entity, action, data, id) => {
+    const entityKey = getEntityKey(entity);
+    const tableName = getTableName(entity);
+
     // Optimistic update for instant UI feedback
-    const entityKey = entity === 'RecurringExpense' ? 'recurring' : entity.toLowerCase() + 's';
     if (action === 'create') {
       applyOptimistic(old => ({
         ...old,
-        [entityKey]: [...(old[entityKey] || []), { ...data, id: `temp-${Date.now()}`, home_id: homeId }],
+        [entityKey]: [
+          ...(old[entityKey] || []),
+          { ...data, id: `temp-${Date.now()}`, home_id: homeId }
+        ],
       }));
     } else if (action === 'update') {
       applyOptimistic(old => ({
         ...old,
-        [entityKey]: (old[entityKey] || []).map(item => item.id === id ? { ...item, ...data } : item),
+        [entityKey]: (old[entityKey] || []).map(
+          item => item.id === id ? { ...item, ...data } : item
+        ),
       }));
     } else if (action === 'delete') {
       applyOptimistic(old => ({
@@ -71,8 +132,45 @@ export function useHomeData() {
       }));
     }
 
-    // All writes go through service role so invitee changes are visible to owner
-    await base44.functions.invoke('mutateSharedExpense', { home_id: homeId, entity, action, data, id });
+    // Perform the actual database operation
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (action === 'create') {
+        const { error } = await supabase
+          .from(tableName)
+          .insert({ ...data, home_id: homeId, created_by: user.id });
+        if (error) throw error;
+        await logActivity(entity, 'create', data.name || '', `Amount: ${data.amount || ''}`);
+
+      } else if (action === 'update') {
+        const { error } = await supabase
+          .from(tableName)
+          .update(data)
+          .eq('id', id);
+        if (error) throw error;
+        // Only log meaningful updates, not paid_this_cycle toggles
+        if (!('paid_this_cycle' in data)) {
+          await logActivity(entity, 'update', data.name || '', `Amount: ${data.amount || ''}`);
+        }
+
+      } else if (action === 'delete') {
+        // Get record name before deleting for the activity log
+        const existing = activeQuery.data?.[entityKey]?.find(i => i.id === id);
+        const { error } = await supabase
+          .from(tableName)
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+        await logActivity(entity, 'delete', existing?.name || '', '');
+      }
+
+    } catch (e) {
+      console.error(`Error ${action} ${entity}:`, e);
+      // Revert optimistic update on error
+      invalidate();
+      throw e;
+    }
 
     // Sync real data in background
     invalidate();
@@ -83,7 +181,7 @@ export function useHomeData() {
     recurring: activeQuery.data?.recurring || [],
     budgets: activeQuery.data?.budgets || [],
     isLoading: activeQuery.isLoading,
-    isShared,
+    isShared: false, // Supabase RLS handles this transparently
     mutateShared,
   };
 }

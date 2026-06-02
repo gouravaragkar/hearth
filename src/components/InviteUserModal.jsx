@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { UserPlus, Search, Check, X } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 
@@ -12,7 +12,7 @@ export default function InviteUserModal({ open, onClose, homes }) {
   const [email, setEmail] = useState('');
   const [selectedHomes, setSelectedHomes] = useState([]);
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState(null); // 'sent' | 'error' | null
+  const [result, setResult] = useState(null);
 
   const toggleHome = (homeId) => {
     setSelectedHomes(prev =>
@@ -23,7 +23,6 @@ export default function InviteUserModal({ open, onClose, homes }) {
   const handleSend = async () => {
     if (!email.trim() || selectedHomes.length === 0 || !currentUser) return;
 
-    // Prevent inviting yourself
     if (email.trim().toLowerCase() === currentUser.email?.toLowerCase()) {
       setResult('self');
       return;
@@ -32,45 +31,39 @@ export default function InviteUserModal({ open, onClose, homes }) {
     setSending(true);
     setResult(null);
 
-    // Look up invitee by email — server-side, returns only id + full_name
-    const { data: lookupResult } = await base44.functions.invoke('findUserByEmail', { email: email.trim().toLowerCase() });
-    const inviteeUser = lookupResult?.user || null;
+    try {
+      // Bug Fix #6 — use secure server-side function instead of listing all users
+      const { data: lookupResult } = await supabase
+        .rpc('find_user_by_email', { lookup_email: email.trim().toLowerCase() });
 
-    // Create one invite per selected home
-    const invitePromises = selectedHomes.map(homeId => {
-      const home = homes.find(h => h.id === homeId);
-      return base44.entities.HomeInvite.create({
-        home_id: homeId,
-        home_name: home?.name || '',
-        home_emoji: home?.emoji || '🏠',
-        home_currency: home?.currency || 'AUD',
-        inviter_id: currentUser.id,
-        inviter_name: currentUser.full_name || 'Someone',
-        invitee_email: email.trim().toLowerCase(),
-        invitee_id: inviteeUser?.id || '',
-        status: 'pending',
-      });
-    });
+      const inviteeUser = lookupResult?.[0] || null;
 
-    const createdInvites = await Promise.all(invitePromises);
-
-    // Send notification email to invitee for each home
-    const appUrl = window.location.origin;
-    await Promise.all(
-      createdInvites.map(invite => {
-        const home = homes.find(h => h.id === invite.home_id);
-        return base44.integrations.Core.SendEmail({
-          to: email.trim().toLowerCase(),
-          subject: `${currentUser.full_name || 'Someone'} invited you to a home on HomeSpend`,
-          body: `Hi there,\n\n${currentUser.full_name || 'Someone'} has invited you to share the home "${home?.name || invite.home_name}" on HomeSpend.\n\nLog in to HomeSpend and go to "My Homes" to approve or decline the invitation:\n${appUrl}/homes\n\nIf you don't have an account yet, you'll need to sign up first.\n\nCheers,\nThe HomeSpend Team`,
+      // Create one invite per selected home
+      const invitePromises = selectedHomes.map(homeId => {
+        const home = homes.find(h => h.id === homeId);
+        return supabase.from('home_invites').insert({
+          home_id: homeId,
+          home_name: home?.name || '',
+          home_emoji: home?.emoji || '🏠',
+          home_currency: home?.currency || 'AUD',
+          inviter_id: currentUser.id,
+          inviter_name: currentUser.user_metadata?.full_name || 'Someone',
+          invitee_email: email.trim().toLowerCase(),
+          invitee_id: inviteeUser?.id || null,
+          status: 'pending',
         });
-      })
-    );
+      });
 
-    setSending(false);
-    setResult('sent');
-    setEmail('');
-    setSelectedHomes([]);
+      await Promise.all(invitePromises);
+      setResult('sent');
+      setEmail('');
+      setSelectedHomes([]);
+    } catch (e) {
+      console.error('Error sending invite:', e);
+      setResult('error');
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleClose = () => {
@@ -91,12 +84,12 @@ export default function InviteUserModal({ open, onClose, homes }) {
 
         {result === 'sent' ? (
           <div className="flex flex-col items-center py-6 gap-3">
-            <div className="h-14 w-14 rounded-full bg-sage/20 flex items-center justify-center">
-              <Check size={28} className="text-sage" />
+            <div className="h-14 w-14 rounded-full bg-green-100 flex items-center justify-center">
+              <Check size={28} className="text-green-600" />
             </div>
             <p className="font-semibold text-foreground text-center">Invite sent!</p>
             <p className="text-sm text-muted-foreground text-center">
-              An email has been sent to them. They can also see the invite on the Homes page when they log in.
+              They can see the invite on the Homes page when they log in.
             </p>
             <Button onClick={handleClose} className="mt-2 rounded-xl bg-primary text-primary-foreground select-none">
               Done
@@ -109,7 +102,7 @@ export default function InviteUserModal({ open, onClose, homes }) {
               <div className="relative mt-1">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="e.g. son@email.com"
+                  placeholder="e.g. friend@email.com"
                   value={email}
                   onChange={e => { setEmail(e.target.value); setResult(null); }}
                   className="pl-9"
@@ -118,6 +111,9 @@ export default function InviteUserModal({ open, onClose, homes }) {
               </div>
               {result === 'self' && (
                 <p className="text-xs text-destructive mt-1">You can't invite yourself.</p>
+              )}
+              {result === 'error' && (
+                <p className="text-xs text-destructive mt-1">Something went wrong. Please try again.</p>
               )}
             </div>
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { subMonths, startOfMonth, endOfMonth, isWithinInterval, format } from 'date-fns';
+import { subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
 import { getMonthlyEquivalent } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 
@@ -19,18 +19,29 @@ const makeTooltip = (currency) => ({ active, payload, label }) => {
 
 export default function SpendingTrend({ expenses, recurring, currency = 'AUD' }) {
   const data = useMemo(() => {
+    console.log('RECURRING DATA:', JSON.stringify(recurring.map(e => ({ name: e.name, start_date: e.start_date }))));
     const now = new Date();
     return Array.from({ length: 6 }, (_, i) => {
       const monthDate = subMonths(now, 5 - i);
       const start = startOfMonth(monthDate);
       const end = endOfMonth(monthDate);
+      const endStr = format(end, 'yyyy-MM-dd');
 
       const oneTime = expenses
-        .filter(e => isWithinInterval(new Date(e.date), { start, end }))
+        .filter(e => {
+          if (!e.date) return false;
+          const d = e.date.slice(0, 10);
+          const startStr = format(start, 'yyyy-MM-dd');
+          return d >= startStr && d <= endStr;
+        })
         .reduce((s, e) => s + (e.amount || 0), 0);
 
       const rec = recurring
-        .filter(e => e.start_date && new Date(e.start_date) <= end)
+        .filter(e => {
+          if (!e.start_date) return false;
+          const startDate = e.start_date.slice(0, 10);
+          return startDate <= endStr;
+        })
         .reduce((s, e) => s + getMonthlyEquivalent(e.amount, e.frequency), 0);
 
       return {
@@ -42,7 +53,6 @@ export default function SpendingTrend({ expenses, recurring, currency = 'AUD' })
     });
   }, [expenses, recurring]);
 
-  const maxVal = Math.max(...data.map(d => d.total), 1);
   const trend = data[5].total - data[0].total;
   const trendLabel = trend < 0
     ? `↓ ${formatCurrency(Math.abs(trend), currency)} less than 6 months ago`
@@ -79,12 +89,10 @@ export default function SpendingTrend({ expenses, recurring, currency = 'AUD' })
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-2 justify-center">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="w-3 h-0.5 rounded-full bg-gold inline-block" />
-          One-time
+          <span className="w-3 h-0.5 rounded-full bg-gold inline-block" /> One-time
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="w-3 h-0.5 rounded-full bg-primary inline-block" />
-          Recurring
+          <span className="w-3 h-0.5 rounded-full bg-primary inline-block" /> Recurring
         </div>
       </div>
     </div>

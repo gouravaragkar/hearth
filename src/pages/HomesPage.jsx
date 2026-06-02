@@ -1,28 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHome } from '@/context/HomeContext';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil, Trash2, Plus, Home, Check, UserPlus, History } from 'lucide-react';
 import { CURRENCIES } from '@/lib/currencies';
-import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InviteUserModal from '@/components/InviteUserModal';
 import PendingInvites from '@/components/PendingInvites';
 import HomeInvitesPopover from '@/components/HomeInvitesPopover';
 import HomeActivityLog from '@/components/HomeActivityLog';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-
 
 const COUNTRY_FLAG_EMOJIS = [
   '🏠','🇦🇺','🇮🇳','🇺🇸','🇬🇧','🇨🇦','🇳🇿','🇸🇬','🇯🇵','🇨🇳','🇩🇪','🇫🇷','🇮🇹','🇪🇸','🇧🇷','🇲🇽','🇦🇪','🇸🇦','🇿🇦','🇰🇷','🇹🇭','🇲🇾','🇮🇩','🇵🇭','🇻🇳','🇵🇰','🇧🇩','🇱🇰','🇳🇵','🇨🇭','🇸🇪','🇳🇴','🇩🇰','🇵🇱','🇨🇿','🇭🇺',
 ];
 
 const EMOJI_OPTIONS = COUNTRY_FLAG_EMOJIS.map(e => ({ value: e, label: e }));
-
 const emptyForm = { name: '', country: '', currency: 'AUD', emoji: '🏠' };
 
 const COUNTRY_CURRENCY_MAP = {
@@ -40,7 +36,6 @@ const COUNTRY_CURRENCY_MAP = {
 export default function HomesPage() {
   const { homes, activeHomeId, switchHome, fetchHomes } = useHome();
   const navigate = useNavigate();
-  const currentUser = useCurrentUser();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -52,7 +47,6 @@ export default function HomesPage() {
   const set = (k, v) => {
     setForm(f => {
       const updated = { ...f, [k]: v };
-      // Auto-set currency when country changes
       if (k === 'country') {
         const mapped = COUNTRY_CURRENCY_MAP[v.trim().toLowerCase()];
         if (mapped) updated.currency = mapped;
@@ -62,38 +56,110 @@ export default function HomesPage() {
   };
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
-  const openEdit = (h) => { setEditing(h); setForm({ name: h.name, country: h.country || '', currency: h.currency, emoji: h.emoji || '🏠' }); setModalOpen(true); };
+  const openEdit = (h) => {
+    setEditing(h);
+    setForm({ name: h.name, country: h.country || '', currency: h.currency, emoji: h.emoji || '🏠' });
+    setModalOpen(true);
+  };
 
-  const log = (home_id, entity, action, record_name, details) =>
-    base44.functions.invoke('logHomeActivity', { home_id, entity, action, record_name, details }).catch(() => {});
+  // Log activity to home_activities table
+  const log = async (home_id, entity, action, record_name, details) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('home_activities').insert({
+        home_id,
+        entity,
+        action,
+        record_name,
+        details,
+        actor_id: user.id,
+        actor_name: user.user_metadata?.full_name || user.email,
+      });
+    } catch (e) {
+      console.error('Error logging activity:', e);
+    }
+  };
 
   const handleSave = async () => {
     if (!form.name || !form.currency) return;
     setSaving(true);
-    if (editing) {
-      await base44.entities.Home.update(editing.id, form);
-      log(editing.id, 'Home', 'update', form.name, `Currency: ${form.currency}`);
-    } else {
-      const newHome = await base44.entities.Home.create(form);
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      await base44.entities.Budget.create({ month: currentMonth, amount: 0, home_id: newHome.id });
-      log(newHome.id, 'Home', 'create', form.name, `Currency: ${form.currency}`);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (editing) {
+        // Update existing home
+        const { error } = await supabase
+          .from('homes')
+          .update({
+            name: form.name,
+            country: form.country,
+            currency: form.currency,
+            emoji: form.emoji,
+          })
+          .eq('id', editing.id);
+
+        if (error) throw error;
+        await log(editing.id, 'Home', 'update', form.name, `Currency: ${form.currency}`);
+
+      } else {
+        // Create new home
+        const { data: newHome, error: homeError } = await supabase
+          .from('homes')
+          .insert({
+            name: form.name,
+            country: form.country,
+            currency: form.currency,
+            emoji: form.emoji,
+            created_by: user.id,
+            members: [],
+          })
+          .select()
+          .single();
+
+        if (homeError) throw homeError;
+
+        // Create default budget for current month
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        await supabase.from('budgets').insert({
+          month: currentMonth,
+          amount: 0,
+          home_id: newHome.id,
+          created_by: user.id,
+        });
+
+        await log(newHome.id, 'Home', 'create', form.name, `Currency: ${form.currency}`);
+      }
+
+      await fetchHomes();
+      setModalOpen(false);
+    } catch (e) {
+      console.error('Error saving home:', e);
+    } finally {
+      setSaving(false);
     }
-    await fetchHomes();
-    setSaving(false);
-    setModalOpen(false);
   };
 
   const handleDelete = async (id) => {
-    const home = homes.find(h => h.id === id);
-    log(id, 'Home', 'delete', home?.name || '', '');
-    await base44.entities.Home.delete(id);
-    const remaining = homes.filter(h => h.id !== id);
-    if (id === activeHomeId) {
-      const next = remaining[0] || null;
-      switchHome(next ? next.id : null);
+    try {
+      const home = homes.find(h => h.id === id);
+      await log(id, 'Home', 'delete', home?.name || '', '');
+
+      const { error } = await supabase
+        .from('homes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const remaining = homes.filter(h => h.id !== id);
+      if (id === activeHomeId) {
+        switchHome(remaining[0]?.id || null);
+      }
+
+      await fetchHomes();
+    } catch (e) {
+      console.error('Error deleting home:', e);
     }
-    await fetchHomes();
   };
 
   return (
@@ -115,7 +181,12 @@ export default function HomesPage() {
         </div>
       </div>
 
-      <PendingInvites onInviteActioned={async () => { setInviteRefreshKey(k => k + 1); await fetchHomes(); }} />
+      <PendingInvites
+        onInviteActioned={async () => {
+          setInviteRefreshKey(k => k + 1);
+          await fetchHomes();
+        }}
+      />
 
       {homes.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
@@ -131,12 +202,17 @@ export default function HomesPage() {
       <div className="space-y-3">
         {homes.map(home => {
           const isActive = home.id === activeHomeId;
-          const isShared = !!home._shared;
+          // In Supabase, shared homes are ones where created_by is not current user
+          // We detect this from the RLS — if it's in the list but not owned, it's shared
+          const isShared = home._shared || false;
+
           return (
             <div
               key={home.id}
               onClick={() => { switchHome(home.id); navigate('/'); }}
-              className={`bg-card rounded-2xl border p-4 flex items-center gap-4 cursor-pointer transition-all ${isActive ? 'border-primary shadow-warm-md' : 'border-border shadow-warm-sm hover:shadow-warm-md'}`}
+              className={`bg-card rounded-2xl border p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                isActive ? 'border-primary shadow-warm-md' : 'border-border shadow-warm-sm hover:shadow-warm-md'
+              }`}
             >
               <div className="text-3xl">{home.emoji || '🏠'}</div>
               <div className="flex-1 min-w-0">
@@ -148,7 +224,9 @@ export default function HomesPage() {
                     </span>
                   )}
                   {isShared && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Shared with you</span>
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      Shared with you
+                    </span>
                   )}
                 </div>
                 {home.country && <p className="text-xs text-muted-foreground">{home.country}</p>}
@@ -195,11 +273,21 @@ export default function HomesPage() {
           <div className="space-y-4 pt-2">
             <div>
               <Label>Home Name</Label>
-              <Input placeholder="e.g. Home Australia" value={form.name} onChange={e => set('name', e.target.value)} className="mt-1" />
+              <Input
+                placeholder="e.g. Home Australia"
+                value={form.name}
+                onChange={e => set('name', e.target.value)}
+                className="mt-1"
+              />
             </div>
             <div>
               <Label>Country (optional)</Label>
-              <Input placeholder="e.g. Australia" value={form.country} onChange={e => set('country', e.target.value)} className="mt-1" />
+              <Input
+                placeholder="e.g. Australia"
+                value={form.country}
+                onChange={e => set('country', e.target.value)}
+                className="mt-1"
+              />
             </div>
             <div>
               <Label>Currency</Label>
@@ -236,8 +324,18 @@ export default function HomesPage() {
               </div>
             </div>
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => setModalOpen(false)} className="flex-1 select-none">Cancel</Button>
-              <Button onClick={handleSave} disabled={saving} className="flex-1 bg-primary text-primary-foreground select-none">
+              <Button
+                variant="outline"
+                onClick={() => setModalOpen(false)}
+                className="flex-1 select-none"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 bg-primary text-primary-foreground select-none"
+              >
                 {saving ? 'Saving…' : editing ? 'Save Changes' : 'Add Home'}
               </Button>
             </div>

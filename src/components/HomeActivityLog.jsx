@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { History, Plus, Pencil, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -31,9 +31,15 @@ export default function HomeActivityLog({ home, open, onClose }) {
     if (!open || !home?.id) return;
     setLoading(true);
     setLogs([]);
-    base44.functions.invoke('getHomeActivity', { home_id: home.id })
-      .then(res => { setLogs(res.data?.logs || []); })
-      .catch(() => {})
+    supabase
+      .from('home_activities')
+      .select('*')
+      .eq('home_id', home.id)
+      .order('created_at', { ascending: false })
+      .limit(100)
+      .then(({ data, error }) => {
+        if (!error) setLogs(data || []);
+      })
       .finally(() => setLoading(false));
   }, [open, home?.id]);
 
@@ -74,7 +80,7 @@ export default function HomeActivityLog({ home, open, onClose }) {
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-xs text-muted-foreground font-medium">{log.actor_name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(log.created_date.endsWith('Z') ? log.created_date : log.created_date + 'Z'), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
                   </span>
                 </div>
                 {log.details && <p className="text-xs text-muted-foreground mt-0.5">{log.details}</p>}

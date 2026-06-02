@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
 
 const HomeContext = createContext(null);
 
@@ -8,58 +8,46 @@ export function HomeProvider({ children }) {
   const [activeHomeId, setActiveHomeId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchHomes = async ({ migrate = false } = {}) => {
+  const fetchHomes = async () => {
     try {
-      const user = await base44.auth.me();
-      // Load homes created by the user
-      const ownedHomes = await base44.entities.Home.filter({ created_by_id: user.id });
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) return;
 
-      // Load homes shared with this user — must use backend function (service role) to bypass RLS
-      const ownedIds = new Set(ownedHomes.map(h => h.id));
-      let validSharedHomes = [];
-      try {
-        const res = await base44.functions.invoke('getSharedHomes', {});
-        const all = res?.data?.sharedHomes || [];
-        validSharedHomes = all.filter(h => !ownedIds.has(h.id));
-      } catch (e) {
-        // silently ignore — shared homes just won't appear
-      }
+      const { data, error } = await supabase
+        .from('homes')
+        .select('*')
+        .order('created_at', { ascending: true });
 
-      const data = [...ownedHomes, ...validSharedHomes];
-      setHomes(data);
+      if (error) throw error;
 
-      // Restore last active home from localStorage, or pick first
+      const allHomes = data || [];
+      setHomes(allHomes);
+
       const stored = localStorage.getItem('activeHomeId');
-      if (stored && data.find(h => h.id === stored)) {
+      if (stored && allHomes.find(h => h.id === stored)) {
         setActiveHomeId(stored);
-      } else if (data.length > 0) {
-        setActiveHomeId(data[0].id);
-      }
-
-      // Only migrate on initial load, not on every refresh
-      if (migrate && data.length > 0) {
-        const oldestHome = [...data].sort((a, b) => new Date(a.created_date) - new Date(b.created_date))[0];
-        const [expenses, recurring] = await Promise.all([
-          base44.entities.Expense.filter({ created_by_id: user.id }),
-          base44.entities.RecurringExpense.filter({ created_by_id: user.id }),
-        ]);
-        const unownedExpenses = expenses.filter(e => !e.home_id);
-        const unownedRecurring = recurring.filter(e => !e.home_id);
-        if (unownedExpenses.length > 0 || unownedRecurring.length > 0) {
-          await Promise.all([
-            ...unownedExpenses.map(e => base44.entities.Expense.update(e.id, { home_id: oldestHome.id })),
-            ...unownedRecurring.map(e => base44.entities.RecurringExpense.update(e.id, { home_id: oldestHome.id })),
-          ]);
-        }
+      } else if (allHomes.length > 0) {
+        setActiveHomeId(allHomes[0].id);
       }
     } catch (e) {
-      // not logged in or no homes
+      console.error('Error fetching homes:', e);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchHomes({ migrate: true }); }, []);
+  const resetPaidCycles = async () => {
+    try {
+      await supabase.rpc('reset_paid_cycles');
+    } catch (e) {
+      console.error('Error resetting paid cycles:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchHomes();
+    resetPaidCycles();
+  }, []);
 
   const switchHome = (id) => {
     setActiveHomeId(id);
@@ -70,7 +58,14 @@ export function HomeProvider({ children }) {
   const activeHome = homes.find(h => h.id === activeHomeId) || null;
 
   return (
-    <HomeContext.Provider value={{ homes, activeHome, activeHomeId, switchHome, fetchHomes, loading }}>
+    <HomeContext.Provider value={{
+      homes,
+      activeHome,
+      activeHomeId,
+      switchHome,
+      fetchHomes,
+      loading
+    }}>
       {children}
     </HomeContext.Provider>
   );
