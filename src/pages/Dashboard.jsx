@@ -86,7 +86,7 @@ export default function Dashboard() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="space-y-4 animate-fade-up px-4 py-4 pb-28">
+    <div className="space-y-4 animate-fade-up px-4 py-4 pb-20">
       <div className="grid grid-cols-2 gap-2">
         <Button variant="outline" className="rounded-2xl h-16 flex-col gap-1 text-xs font-medium" onClick={() => setAllExpensesOpen(true)}>
           <FileBarChart size={18} className="text-muted-foreground" />
