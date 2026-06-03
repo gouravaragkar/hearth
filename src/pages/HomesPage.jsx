@@ -216,20 +216,22 @@ export default function HomesPage() {
             >
               <div className="text-2xl shrink-0">{home.emoji || '🏠'}</div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <p className="font-semibold text-foreground text-sm truncate">{home.name}</p>
-                  {isActive && (
-                    <span className="flex items-center gap-0.5 text-xs text-primary font-medium shrink-0">
-                      <Check size={11} /> Active
-                    </span>
-                  )}
-                </div>
-                {isShared && (
-                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full inline-block mt-0.5">
-                    Shared
-                  </span>
+                <p className="font-semibold text-foreground text-sm truncate">{home.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{home.currency}{home.country ? ` · ${home.country}` : ''}</p>
+                {(isActive || isShared) && (
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {isActive && (
+                      <span className="flex items-center gap-0.5 text-xs text-primary font-medium">
+                        <Check size={11} /> Active
+                      </span>
+                    )}
+                    {isShared && (
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        Shared
+                      </span>
+                    )}
+                  </div>
                 )}
-                <p className="text-xs text-muted-foreground font-medium mt-0.5">{home.currency}{home.country ? ` · ${home.country}` : ''}</p>
               </div>
               <div className="flex items-center gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActivityHome(home)}>
