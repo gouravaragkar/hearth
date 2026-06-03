@@ -16,8 +16,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const FREQ_SHORT = { weekly: 'Weekly', fortnightly: '2-Weekly', monthly: 'Monthly', quarterly: 'Quarterly' };
-const FREQ_SUFFIX = { weekly: '/wk', fortnightly: '/2wk', monthly: '/mo', quarterly: '/qtr' };
+const FREQ_SHORT = { weekly: 'Weekly', fortnightly: '2-Weekly', monthly: 'Monthly', quarterly: 'Quarterly', 'semi-annual': 'Semi-Annual', annual: 'Annual' };
+const FREQ_SUFFIX = { weekly: '/wk', fortnightly: '/2wk', monthly: '/mo', quarterly: '/qtr', 'semi-annual': '/6mo', annual: '/yr' };
 
 export default function ExpenseCard({ expense, type, onEdit, onDelete, onTogglePaid }) {
   const isRecurring = type === 'recurring';

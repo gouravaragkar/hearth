@@ -57,6 +57,8 @@ export function getNextDueDate(startDate, frequency) {
     if (frequency === 'weekly') next.setDate(next.getDate() + 7);
     else if (frequency === 'fortnightly') next.setDate(next.getDate() + 14);
     else if (frequency === 'quarterly') next.setMonth(next.getMonth() + 3);
+    else if (frequency === 'semi-annual') next.setMonth(next.getMonth() + 6);
+    else if (frequency === 'annual') next.setMonth(next.getMonth() + 12);
     else next.setMonth(next.getMonth() + 1);
   }
   return next;
@@ -66,5 +68,7 @@ export function getMonthlyEquivalent(amount, frequency) {
   if (frequency === 'weekly') return amount * 52 / 12;
   if (frequency === 'fortnightly') return amount * 26 / 12;
   if (frequency === 'quarterly') return amount / 3;
+  if (frequency === 'semi-annual') return amount / 6;
+  if (frequency === 'annual') return amount / 12;
   return amount;
 }
