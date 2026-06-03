@@ -55,10 +55,10 @@ export default function RecurringExpenses() {
       <div className="space-y-5 animate-fade-up px-4 py-6 pb-28">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <RefreshCw size={20} className="text-primary" /> Recurring Expenses
+            <h1 className="text-base sm:text-xl font-bold text-foreground flex items-center gap-2 whitespace-nowrap">
+              <RefreshCw size={18} className="text-primary shrink-0" /> Recurring Expenses
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               {filtered.length} active · <span className="font-medium text-foreground">{formatCurrency(monthlyTotal, currency)}/mo est.</span>
             </p>
           </div>

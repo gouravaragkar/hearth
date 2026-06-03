@@ -52,10 +52,10 @@ export default function OneTimeExpenses() {
       <div className="space-y-5 animate-fade-up px-4 py-6 pb-28">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Receipt size={20} className="text-primary" /> One-Time Expenses
+            <h1 className="text-base sm:text-xl font-bold text-foreground flex items-center gap-2 whitespace-nowrap">
+              <Receipt size={18} className="text-primary shrink-0" /> One-Time Expenses
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               <span className="font-medium text-foreground">{formatCurrency(total, currency)}</span>
               {' · '}{filtered.length} transactions
             </p>
