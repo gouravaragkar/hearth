@@ -44,7 +44,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-muted/50 rounded-xl p-3">
           <p className="text-[11px] text-muted-foreground mb-1">Total Spent</p>
-          <p className="text-base font-bold text-foreground leading-tight">
+          <p className="text-sm font-bold text-foreground leading-tight">
             {formatCurrency(totalSpent, currency)}
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function MonthlySummary({ totalSpent, budget, homeId, currency, m
           ) : (
             <button
               onClick={() => { setInputVal(budgetAmount ? budgetAmount.toString() : ''); setEditing(true); }}
-              className="flex items-center gap-1 text-base font-bold text-foreground hover:text-primary transition-colors leading-tight"
+              className="flex items-center gap-1 text-sm font-bold text-foreground hover:text-primary transition-colors leading-tight"
             >
               {budgetAmount > 0
                 ? formatCurrency(budgetAmount, currency)

@@ -32,12 +32,12 @@ export default function HomeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-1 bg-muted hover:bg-muted/70 rounded-full px-2.5 py-1 transition-colors select-none max-w-[140px]">
+        <button className="flex items-center gap-1.5 bg-muted hover:bg-muted/70 rounded-full px-3 py-1.5 transition-colors select-none max-w-[160px]">
           <span className="text-sm leading-none">{activeHome?.emoji || '🏠'}</span>
-          <span className="text-xs font-medium text-foreground truncate max-w-[70px]">
+          <span className="text-xs font-semibold text-foreground truncate max-w-[80px]">
             {activeHome?.name || 'Home'}
           </span>
-          <ChevronDown size={11} className="text-muted-foreground shrink-0" />
+          <ChevronDown size={12} className="text-muted-foreground shrink-0" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-52 rounded-xl">
