@@ -242,7 +242,7 @@ export default function Layout() {
                   <ChevronLeft size={22} className="text-foreground" />
                 </button>
               )}
-              <span className="text-xl">🏡</span>
+              <img src="/logo.png" alt="HomeSpend" className="h-7 w-auto" />
               <span className="font-semibold text-foreground text-lg tracking-tight">HomeSpend</span>
             </div>
             <div className="hidden sm:block shrink-0"><UserMenu /></div>

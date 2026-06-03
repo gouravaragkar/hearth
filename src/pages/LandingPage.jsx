@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+
 const PAIN_POINTS = [
   {
     emoji: '😩',
@@ -46,7 +47,7 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 bg-[#FFF7ED]/90 backdrop-blur-sm border-b border-orange-100">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 select-none">
-            <span className="text-2xl">🏡</span>
+            <img src="/logo.png" alt="HomeSpend" className="h-8 w-auto" />
             <span className="font-bold text-lg text-[#C2410C]">HomeSpend</span>
           </Link>
           <Link
@@ -60,6 +61,9 @@ export default function LandingPage() {
 
       {/* ── Hero ── */}
       <section className="max-w-5xl mx-auto px-4 pt-16 pb-12 text-center">
+        <div className="flex justify-center mb-6">
+          <img src="/logo.png" alt="HomeSpend" className="h-16 w-auto" />
+        </div>
         <div className="inline-flex items-center gap-1.5 bg-[#C2410C]/10 text-[#C2410C] text-xs font-semibold px-3 py-1 rounded-full mb-6">
           ✨ No app store needed — works on any device
         </div>

@@ -21,7 +21,9 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <span className="text-6xl">🏡</span>
+          <div className="flex justify-center">
+            <img src="/logo.png" alt="HomeSpend" className="h-16 w-auto" />
+          </div>
           <h1 className="text-3xl font-bold text-primary mt-4">HomeSpend</h1>
           <p className="text-muted-foreground mt-2">
             Home finances, made simple

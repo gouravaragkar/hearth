@@ -3,6 +3,37 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 
 const releases = [
   {
+    version: 'v1.3.0',
+    date: 'June 2026',
+    name: 'Landing Page & Branding Release',
+    sections: [
+      {
+        type: 'feature',
+        label: 'New Features',
+        items: [
+          'Professional marketing landing page at newhearths.com — visitors now see the full product story before signing up',
+          'Official HomeSpend logo introduced across the app, login page and PWA icon',
+          'Semi-Annual and Annual recurring expense frequency options added',
+          'Category and Frequency dropdowns now open inline instead of full screen',
+        ],
+      },
+      {
+        type: 'improvement',
+        label: 'Improvements',
+        items: [
+          'Privacy Policy and Changelog accessible from landing page footer',
+        ],
+      },
+      {
+        type: 'fix',
+        label: 'Bug Fixes',
+        items: [
+          'Fixed: Landing page Privacy Policy and Changelog links now working correctly',
+        ],
+      },
+    ],
+  },
+  {
     version: 'v1.2.0',
     date: 'June 2026',
     name: 'Mobile Polish Release',
