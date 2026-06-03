@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { CATEGORIES } from '@/lib/utils';
 import { CURRENCIES, getCurrency } from '@/lib/currencies';
 import { useHome } from '@/context/HomeContext';
@@ -119,12 +118,16 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
           <div>
             <Label>Category</Label>
             <div className="mt-1">
-              <BottomSheetSelect
-                value={form.category}
-                onValueChange={v => set('category', v)}
-                options={CATEGORY_OPTIONS}
-                placeholder="Select category"
-              />
+              <Select value={form.category} onValueChange={v => set('category', v)}>
+                <SelectTrigger className={errors.category ? 'border-destructive' : ''}>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {CATEGORY_OPTIONS.map(c => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {errors.category && <p className="text-xs text-destructive mt-1">{errors.category}</p>}
           </div>
@@ -134,12 +137,16 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
               <div>
                 <Label>Frequency</Label>
                 <div className="mt-1">
-                  <BottomSheetSelect
-                    value={form.frequency}
-                    onValueChange={v => set('frequency', v)}
-                    options={FREQUENCY_OPTIONS}
-                    placeholder="Select frequency"
-                  />
+                  <Select value={form.frequency} onValueChange={v => set('frequency', v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {FREQUENCY_OPTIONS.map(f => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
