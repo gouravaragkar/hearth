@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const GUEST_DAYS = 7;
 
 export default function GuestBanner() {
   const [user, setUser] = useState(null);
-  const [linking, setLinking] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -19,14 +18,12 @@ export default function GuestBanner() {
   const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
 
   const handleSignUp = async () => {
-    setLinking(true);
-    try {
-      await supabase.auth.linkIdentity({ provider: 'google' });
-      // Redirect happens automatically via OAuth flow
-    } catch (e) {
-      console.error('Link identity failed:', e);
-      setLinking(false);
-    }
+    // Store a flag so after Google OAuth we can migrate guest data
+    localStorage.setItem('guest_upgrade', 'true');
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
   };
 
   return (
@@ -41,10 +38,9 @@ export default function GuestBanner() {
       </p>
       <button
         onClick={handleSignUp}
-        disabled={linking}
-        className="shrink-0 text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700 transition-colors disabled:opacity-60 whitespace-nowrap"
+        className="shrink-0 text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700 transition-colors whitespace-nowrap"
       >
-        {linking ? 'Opening…' : 'Sign up to save →'}
+        Sign up to save →
       </button>
     </div>
   );

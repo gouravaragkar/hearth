@@ -59,10 +59,11 @@ function UserMenu() {
     };
   }, []);
 
+  const isGuest = user?.is_anonymous === true;
   const fullName = user?.user_metadata?.full_name || user?.email || '';
-  const initials = fullName
+  const initials = isGuest ? '👤' : (fullName
     ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : '?';
+    : '?');
 
   const referralLink = `${window.location.origin}?ref=${user?.id || 'homespend'}`;
 

@@ -19,8 +19,7 @@ const makeTooltip = (currency) => ({ active, payload, label }) => {
 
 export default function SpendingTrend({ expenses, recurring, currency = 'AUD' }) {
   const data = useMemo(() => {
-    console.log('RECURRING DATA:', JSON.stringify(recurring.map(e => ({ name: e.name, start_date: e.start_date }))));
-    const now = new Date();
+const now = new Date();
     return Array.from({ length: 6 }, (_, i) => {
       const monthDate = subMonths(now, 5 - i);
       const start = startOfMonth(monthDate);
