@@ -220,7 +220,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background font-inter flex flex-col overflow-hidden">
       <header
-        className="sticky top-0 z-30 bg-background/90 backdrop-blur-sm border-b border-border shrink-0"
+        className="sticky top-0 z-50 bg-background/90 backdrop-blur-sm border-b border-border shrink-0"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <div className="max-w-3xl mx-auto px-4">
@@ -246,7 +246,7 @@ export default function Layout() {
         </div>
       </header>
 
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden" style={{ zIndex: 0 }}>
         <div className="absolute inset-0">
           <AnimatePresence initial={false} custom={direction} mode="popLayout">
             <motion.div
