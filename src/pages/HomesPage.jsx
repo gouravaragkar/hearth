@@ -210,14 +210,14 @@ export default function HomesPage() {
             <div
               key={home.id}
               onClick={() => { switchHome(home.id); navigate('/'); }}
-              className={`bg-card rounded-2xl border p-4 flex items-center gap-4 cursor-pointer transition-all ${
+              className={`bg-card rounded-2xl border p-4 flex items-center gap-3 cursor-pointer transition-all ${
                 isActive ? 'border-primary shadow-warm-md' : 'border-border shadow-warm-sm hover:shadow-warm-md'
               }`}
             >
               <div className="text-2xl shrink-0">{home.emoji || '🏠'}</div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-foreground text-sm truncate">{home.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{home.currency}{home.country ? ` · ${home.country}` : ''}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{home.currency}</p>
                 {(isActive || isShared) && (
                   <div className="flex items-center gap-1.5 mt-0.5">
                     {isActive && (
