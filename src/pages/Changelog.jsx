@@ -3,6 +3,31 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 
 const releases = [
   {
+    version: 'v1.4.0',
+    date: 'June 2026',
+    name: 'New Domain & Landing Page Release',
+    sections: [
+      {
+        type: 'feature',
+        label: 'New Features',
+        items: [
+          'Official domain migration to myhomespend.com — app now accessible at www.myhomespend.com',
+          'Professional marketing landing page — visitors now see full product story before signing up',
+          'Official HomeSpend logo introduced across the app, login page, PWA icon and landing page',
+          'newhearths.com permanently redirects to myhomespend.com — old links still work',
+        ],
+      },
+      {
+        type: 'improvement',
+        label: 'Improvements',
+        items: [
+          'Privacy Policy and Changelog links fixed and accessible from landing page footer',
+          'All app references updated to myhomespend.com',
+        ],
+      },
+    ],
+  },
+  {
     version: 'v1.3.0',
     date: 'June 2026',
     name: 'Landing Page & Branding Release',
