@@ -274,7 +274,7 @@ export default function HomesPage() {
         {' · '}
         <Link to="/changelog" className="hover:text-primary transition-colors">Changelog</Link>
         {' · '}
-        <a href="https://newhearths.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">newhearths.com</a>
+        <a href="https://myhomespend.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">myhomespend.com</a>
       </p>
 
       {/* Account section — visible on mobile only, desktop uses header UserMenu */}

@@ -6,7 +6,7 @@ const SECTIONS = [
     title: '1. About This App',
     content: (
       <>
-        <p>HomeSpend is a shared home expense tracker available at <strong>newhearths.com</strong>. It helps households manage budgets, recurring bills, and one-time expenses in one place.</p>
+        <p>HomeSpend is a shared home expense tracker available at <strong>myhomespend.com</strong>. It helps households manage budgets, recurring bills, and one-time expenses in one place.</p>
         <p className="mt-2">This privacy policy explains what personal data we collect, how we store it, and what we do — and don't do — with it.</p>
       </>
     ),
@@ -111,7 +111,7 @@ export default function PrivacyPolicy() {
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-xl font-bold text-foreground">HomeSpend Privacy Policy</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">newhearths.com · Last updated June 2026</p>
+            <p className="text-xs text-muted-foreground mt-0.5">myhomespend.com · Last updated June 2026</p>
           </div>
         </div>
 
@@ -132,7 +132,7 @@ export default function PrivacyPolicy() {
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/changelog" className="text-xs text-primary hover:underline">View Changelog</Link>
-            <span className="text-xs text-muted-foreground">newhearths.com</span>
+            <span className="text-xs text-muted-foreground">myhomespend.com</span>
           </div>
         </div>
       </div>

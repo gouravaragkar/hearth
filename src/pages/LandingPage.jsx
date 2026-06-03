@@ -167,7 +167,7 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer className="bg-[#FFF7ED] border-t border-orange-100 py-6">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400">
-          <span>© 2026 HomeSpend · <a href="https://newhearths.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">newhearths.com</a></span>
+          <span>© 2026 HomeSpend · <a href="https://myhomespend.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">myhomespend.com</a></span>
           <div className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-gray-600 transition-colors">Privacy Policy</Link>
             <Link to="/changelog" className="hover:text-gray-600 transition-colors">Changelog</Link>

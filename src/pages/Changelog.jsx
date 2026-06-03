@@ -11,7 +11,7 @@ const releases = [
         type: 'feature',
         label: 'New Features',
         items: [
-          'Professional marketing landing page at newhearths.com — visitors now see the full product story before signing up',
+          'Professional marketing landing page at myhomespend.com — visitors now see the full product story before signing up',
           'Official HomeSpend logo introduced across the app, login page and PWA icon',
           'Semi-Annual and Annual recurring expense frequency options added',
           'Category and Frequency dropdowns now open inline instead of full screen',
@@ -145,7 +145,7 @@ export default function Changelog() {
       <div className="max-w-2xl mx-auto px-4 py-8 pb-20">
         <div className="mb-8">
           <h1 className="text-xl font-bold text-foreground">Release Notes</h1>
-          <p className="text-sm text-muted-foreground mt-1">What's new in HomeSpend · newhearths.com</p>
+          <p className="text-sm text-muted-foreground mt-1">What's new in HomeSpend · myhomespend.com</p>
         </div>
 
         <div className="space-y-10">
@@ -189,7 +189,7 @@ export default function Changelog() {
         {/* Footer */}
         <div className="pt-4 flex items-center justify-between">
           <Link to="/" className="text-xs text-primary hover:underline">← Back to HomeSpend</Link>
-          <span className="text-xs text-muted-foreground">newhearths.com</span>
+          <span className="text-xs text-muted-foreground">myhomespend.com</span>
         </div>
       </div>
     </div>
