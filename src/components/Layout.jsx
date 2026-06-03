@@ -204,7 +204,7 @@ export default function Layout() {
       >
         <div className="max-w-3xl mx-auto px-4">
           <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-2 select-none min-w-0 flex-1 overflow-hidden">
+            <div className="flex items-center gap-2 select-none">
               {!isRoot && (
                 <button
                   onClick={() => navigate(-1)}
@@ -216,9 +216,11 @@ export default function Layout() {
               )}
               <span className="text-xl">🏡</span>
               <span className="font-semibold text-foreground text-lg tracking-tight">HomeSpend</span>
-              <HomeSwitcher />
             </div>
             <div className="shrink-0"><UserMenu /></div>
+          </div>
+          <div className="pb-2">
+            <HomeSwitcher />
           </div>
         </div>
       </header>

@@ -87,20 +87,19 @@ export default function Dashboard() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="space-y-6 animate-fade-up px-4 py-6 pb-28">
-      <div className="flex items-start justify-between">
-        <div />
-        <div className="flex gap-2 mt-1">
-          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setAllExpensesOpen(true)}>
-            <FileBarChart size={14} /> Expenses
+      <div className="w-full">
+        <div className="grid grid-cols-4 gap-1.5 w-full">
+          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setAllExpensesOpen(true)}>
+            <FileBarChart size={12} /> Expenses
           </Button>
-          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setInsightsOpen(true)}>
-            <BarChart2 size={14} /> Insights
+          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setInsightsOpen(true)}>
+            <BarChart2 size={12} /> Insights
           </Button>
-          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setReportOpen(true)}>
-            <FileBarChart size={14} /> Report
+          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setReportOpen(true)}>
+            <FileBarChart size={12} /> Report
           </Button>
-          <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={() => setHistoryOpen(true)}>
-            <History size={14} /> History
+          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setHistoryOpen(true)}>
+            <History size={12} /> History
           </Button>
         </div>
       </div>
