@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 export default function Login() {
   const handleGoogleLogin = async () => {
@@ -49,6 +50,9 @@ export default function Login() {
 
         <p className="text-center text-xs text-muted-foreground mt-6">
           By signing in you agree to our terms of service
+        </p>
+        <p className="text-center text-xs text-muted-foreground mt-1">
+          <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
         </p>
       </motion.div>
     </div>

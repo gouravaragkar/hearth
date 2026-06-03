@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useHome } from '@/context/HomeContext';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -267,6 +267,13 @@ export default function HomesPage() {
         onClose={() => { setInviteOpen(false); setInviteRefreshKey(k => k + 1); }}
         homes={homes}
       />
+
+      {/* Privacy footer */}
+      <p className="text-center text-xs text-muted-foreground">
+        <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+        {' · '}
+        <a href="https://newhearths.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">newhearths.com</a>
+      </p>
 
       {/* Account section — visible on mobile only, desktop uses header UserMenu */}
       <div className="sm:hidden bg-card rounded-2xl border border-border p-4 flex items-center justify-between gap-3">
