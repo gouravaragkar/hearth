@@ -4,13 +4,6 @@ import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -40,14 +33,32 @@ const TABS = [
 
 function UserMenu() {
   const [user, setUser] = useState(null);
+  const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     supabase.auth.getUser()
       .then(({ data: { user } }) => setUser(user))
       .catch(() => {});
   }, []);
+
+  // Close on outside tap/click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [open]);
 
   const referralLink = `${window.location.origin}?ref=${user?.id || 'homespend'}`;
 
@@ -58,13 +69,13 @@ function UserMenu() {
   };
 
   const handleSignOut = async () => {
+    setOpen(false);
     await supabase.auth.signOut();
     window.location.href = '/';
   };
 
   const handleDeleteAccount = async () => {
     try {
-      // Delete all user's homes first (cascades to expenses, budgets etc)
       if (user?.id) {
         await supabase.from('homes').delete().eq('created_by', user.id);
       }
@@ -77,7 +88,6 @@ function UserMenu() {
     }
   };
 
-  // Get initials from user metadata
   const fullName = user?.user_metadata?.full_name || user?.email || '';
   const initials = fullName
     ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -85,62 +95,71 @@ function UserMenu() {
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary text-primary-foreground font-semibold text-sm select-none flex items-center justify-center cursor-pointer touch-manipulation"
-            style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
-          >
-            {initials}
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-60 rounded-xl">
-          <div className="px-3 py-2.5 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
-              {initials}
+      <div ref={containerRef} className="relative">
+        <button
+          type="button"
+          onPointerDown={(e) => { e.preventDefault(); setOpen(o => !o); }}
+          className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary text-primary-foreground font-semibold text-sm select-none flex items-center justify-center cursor-pointer touch-manipulation"
+          style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+        >
+          {initials}
+        </button>
+
+        {open && (
+          <div className="absolute right-0 top-12 z-50 w-64 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
+            {/* User info */}
+            <div className="px-3 py-2.5 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm text-foreground truncate">
+                  {user?.user_metadata?.full_name || 'User'}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-sm text-foreground truncate">
-                {user?.user_metadata?.full_name || 'User'}
+
+            <div className="h-px bg-border mx-3" />
+
+            {/* Share */}
+            <div className="px-3 py-2">
+              <p className="text-xs text-muted-foreground mb-1.5 font-medium flex items-center gap-1">
+                <Share2 size={11} /> Share HomeSpend
               </p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+              <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1.5">
+                <span className="text-xs text-muted-foreground truncate flex-1">{referralLink}</span>
+                <button
+                  type="button"
+                  onPointerDown={(e) => { e.preventDefault(); handleCopyLink(); }}
+                  className="shrink-0 text-primary min-h-[44px] min-w-[44px] flex items-center justify-center select-none touch-manipulation"
+                >
+                  {copied ? <Check size={13} /> : <Copy size={13} />}
+                </button>
+              </div>
+              {copied && <p className="text-xs text-primary mt-1">Link copied!</p>}
             </div>
+
+            <div className="h-px bg-border mx-3" />
+
+            {/* Actions */}
+            <button
+              type="button"
+              onPointerDown={(e) => { e.preventDefault(); handleSignOut(); }}
+              className="w-full flex items-center gap-2 px-3 min-h-[44px] text-sm text-destructive hover:bg-muted transition-colors touch-manipulation select-none"
+            >
+              <LogOut size={14} /> Sign out
+            </button>
+            <button
+              type="button"
+              onPointerDown={(e) => { e.preventDefault(); setOpen(false); setDeleteDialogOpen(true); }}
+              className="w-full flex items-center gap-2 px-3 min-h-[44px] text-sm text-destructive hover:bg-muted transition-colors touch-manipulation select-none"
+            >
+              <Trash2 size={14} /> Delete Account
+            </button>
           </div>
-          <DropdownMenuSeparator />
-
-          <div className="px-3 py-2">
-            <p className="text-xs text-muted-foreground mb-1.5 font-medium flex items-center gap-1">
-              <Share2 size={11} /> Share HomeSpend
-            </p>
-            <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1.5">
-              <span className="text-xs text-muted-foreground truncate flex-1">{referralLink}</span>
-              <button
-                onClick={handleCopyLink}
-                className="shrink-0 text-primary hover:text-primary/80 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center select-none"
-              >
-                {copied ? <Check size={13} className="text-sage" /> : <Copy size={13} />}
-              </button>
-            </div>
-            {copied && <p className="text-xs text-sage mt-1">Link copied!</p>}
-          </div>
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem
-            onClick={handleSignOut}
-            className="text-destructive focus:text-destructive cursor-pointer min-h-[44px] select-none"
-          >
-            <LogOut size={14} className="mr-2" /> Sign out
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            onClick={() => setDeleteDialogOpen(true)}
-            className="text-destructive focus:text-destructive cursor-pointer min-h-[44px] select-none"
-          >
-            <Trash2 size={14} className="mr-2" /> Delete Account
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        )}
+      </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="rounded-2xl">
