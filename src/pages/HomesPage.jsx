@@ -164,19 +164,19 @@ export default function HomesPage() {
 
   return (
     <div className="space-y-5 animate-fade-up px-4 py-6 pb-28">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <Home size={20} className="text-primary" /> My Homes
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold text-foreground flex items-center gap-1.5 whitespace-nowrap">
+            <Home size={18} className="text-primary shrink-0" /> My Homes
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Manage homes & currencies. Tap a home to switch.</p>
+          <p className="text-xs text-muted-foreground mt-0.5 whitespace-nowrap">Manage your homes</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setInviteOpen(true)} className="rounded-xl gap-1.5 select-none">
-            <UserPlus size={16} /> Invite
+        <div className="flex gap-1.5 shrink-0">
+          <Button variant="outline" size="sm" onClick={() => setInviteOpen(true)} className="rounded-xl gap-1 text-xs px-3 select-none">
+            <UserPlus size={13} /> Invite
           </Button>
-          <Button onClick={openAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
-            <Plus size={16} /> Add
+          <Button size="sm" onClick={openAdd} className="bg-primary text-primary-foreground rounded-xl gap-1 text-xs px-3 select-none">
+            <Plus size={13} /> Add
           </Button>
         </div>
       </div>
@@ -214,36 +214,35 @@ export default function HomesPage() {
                 isActive ? 'border-primary shadow-warm-md' : 'border-border shadow-warm-sm hover:shadow-warm-md'
               }`}
             >
-              <div className="text-3xl">{home.emoji || '🏠'}</div>
+              <div className="text-2xl shrink-0">{home.emoji || '🏠'}</div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-foreground">{home.name}</p>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <p className="font-semibold text-foreground text-sm truncate">{home.name}</p>
                   {isActive && (
-                    <span className="flex items-center gap-0.5 text-xs text-primary font-medium">
-                      <Check size={12} /> Active
-                    </span>
-                  )}
-                  {isShared && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      Shared with you
+                    <span className="flex items-center gap-0.5 text-xs text-primary font-medium shrink-0">
+                      <Check size={11} /> Active
                     </span>
                   )}
                 </div>
-                {home.country && <p className="text-xs text-muted-foreground">{home.country}</p>}
-                <p className="text-xs text-muted-foreground font-medium mt-0.5">{home.currency}</p>
+                {isShared && (
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full inline-block mt-0.5">
+                    Shared
+                  </span>
+                )}
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">{home.currency}{home.country ? ` · ${home.country}` : ''}</p>
               </div>
-              <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setActivityHome(home)}>
-                  <History size={15} className="text-muted-foreground" />
+              <div className="flex items-center gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActivityHome(home)}>
+                  <History size={14} className="text-muted-foreground" />
                 </Button>
                 {!isShared && (
                   <>
                     <HomeInvitesPopover home={home} />
-                    <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => openEdit(home)}>
-                      <Pencil size={15} className="text-muted-foreground" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(home)}>
+                      <Pencil size={14} className="text-muted-foreground" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => handleDelete(home.id)}>
-                      <Trash2 size={15} className="text-destructive" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(home.id)}>
+                      <Trash2 size={14} className="text-destructive" />
                     </Button>
                   </>
                 )}

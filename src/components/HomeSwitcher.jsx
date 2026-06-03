@@ -34,7 +34,7 @@ export default function HomeSwitcher() {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-1.5 bg-muted hover:bg-muted/70 rounded-full px-3 py-1.5 transition-colors select-none max-w-[160px]">
           <span className="text-sm leading-none">{activeHome?.emoji || '🏠'}</span>
-          <span className="text-xs font-semibold text-foreground truncate max-w-[80px]">
+          <span className="text-xs font-semibold text-foreground truncate max-w-[90px]">
             {activeHome?.name || 'Home'}
           </span>
           <ChevronDown size={12} className="text-muted-foreground shrink-0" />
