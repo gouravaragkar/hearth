@@ -86,22 +86,24 @@ export default function Dashboard() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="space-y-6 animate-fade-up px-4 py-6 pb-28">
-      <div className="w-full">
-        <div className="grid grid-cols-4 gap-1.5 w-full">
-          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setAllExpensesOpen(true)}>
-            <FileBarChart size={12} /> Expenses
-          </Button>
-          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setInsightsOpen(true)}>
-            <BarChart2 size={12} /> Insights
-          </Button>
-          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setReportOpen(true)}>
-            <FileBarChart size={12} /> Report
-          </Button>
-          <Button variant="outline" size="sm" className="rounded-xl text-xs px-2 gap-1" onClick={() => setHistoryOpen(true)}>
-            <History size={12} /> History
-          </Button>
-        </div>
+    <div className="space-y-4 animate-fade-up px-4 py-4 pb-28">
+      <div className="grid grid-cols-2 gap-2">
+        <Button variant="outline" className="rounded-2xl h-16 flex-col gap-1 text-xs font-medium" onClick={() => setAllExpensesOpen(true)}>
+          <FileBarChart size={18} className="text-muted-foreground" />
+          Expenses
+        </Button>
+        <Button variant="outline" className="rounded-2xl h-16 flex-col gap-1 text-xs font-medium" onClick={() => setInsightsOpen(true)}>
+          <BarChart2 size={18} className="text-muted-foreground" />
+          Insights
+        </Button>
+        <Button variant="outline" className="rounded-2xl h-16 flex-col gap-1 text-xs font-medium" onClick={() => setReportOpen(true)}>
+          <FileBarChart size={18} className="text-muted-foreground" />
+          Report
+        </Button>
+        <Button variant="outline" className="rounded-2xl h-16 flex-col gap-1 text-xs font-medium" onClick={() => setHistoryOpen(true)}>
+          <History size={18} className="text-muted-foreground" />
+          History
+        </Button>
       </div>
 
       {/* Upcoming Payments — topmost */}
