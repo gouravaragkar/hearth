@@ -34,9 +34,9 @@ const TABS = [
 function UserMenu() {
   const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const containerRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     supabase.auth.getUser()
@@ -44,11 +44,10 @@ function UserMenu() {
       .catch(() => {});
   }, []);
 
-  // Close on outside tap/click
+  // Close on outside click — always registered, not gated on open
   useEffect(() => {
-    if (!open) return;
     const handler = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
@@ -58,7 +57,12 @@ function UserMenu() {
       document.removeEventListener('mousedown', handler);
       document.removeEventListener('touchstart', handler);
     };
-  }, [open]);
+  }, []);
+
+  const fullName = user?.user_metadata?.full_name || user?.email || '';
+  const initials = fullName
+    ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
 
   const referralLink = `${window.location.origin}?ref=${user?.id || 'homespend'}`;
 
@@ -69,7 +73,6 @@ function UserMenu() {
   };
 
   const handleSignOut = async () => {
-    setOpen(false);
     await supabase.auth.signOut();
     window.location.href = '/';
   };
@@ -88,72 +91,58 @@ function UserMenu() {
     }
   };
 
-  const fullName = user?.user_metadata?.full_name || user?.email || '';
-  const initials = fullName
-    ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : '?';
-
   return (
     <>
-      <div ref={containerRef} className="relative">
+      <div ref={menuRef} className="relative shrink-0" style={{ zIndex: 100 }}>
         <button
           type="button"
-          onPointerDown={(e) => { e.preventDefault(); setOpen(o => !o); }}
-          className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary text-primary-foreground font-semibold text-sm select-none flex items-center justify-center cursor-pointer touch-manipulation"
-          style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+          onPointerDown={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+          className="rounded-full h-10 w-10 bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center select-none"
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
         >
           {initials}
         </button>
 
         {open && (
-          <div className="absolute right-0 top-12 z-50 w-64 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
-            {/* User info */}
-            <div className="px-3 py-2.5 flex items-center gap-3">
+          <div
+            className="absolute right-0 top-12 w-60 bg-card border border-border rounded-xl shadow-lg py-1"
+            style={{ zIndex: 100 }}
+          >
+            <div className="px-3 py-2.5 flex items-center gap-3 border-b border-border">
               <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
                 {initials}
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-sm text-foreground truncate">
-                  {user?.user_metadata?.full_name || 'User'}
-                </p>
+                <p className="font-semibold text-sm text-foreground truncate">{user?.user_metadata?.full_name || 'User'}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
               </div>
             </div>
 
-            <div className="h-px bg-border mx-3" />
-
-            {/* Share */}
-            <div className="px-3 py-2">
+            <div className="px-3 py-2 border-b border-border">
               <p className="text-xs text-muted-foreground mb-1.5 font-medium flex items-center gap-1">
                 <Share2 size={11} /> Share HomeSpend
               </p>
               <div className="flex items-center gap-1.5 bg-muted rounded-lg px-2 py-1.5">
                 <span className="text-xs text-muted-foreground truncate flex-1">{referralLink}</span>
-                <button
-                  type="button"
-                  onPointerDown={(e) => { e.preventDefault(); handleCopyLink(); }}
-                  className="shrink-0 text-primary min-h-[44px] min-w-[44px] flex items-center justify-center select-none touch-manipulation"
-                >
-                  {copied ? <Check size={13} /> : <Copy size={13} />}
+                <button type="button" onClick={handleCopyLink} className="shrink-0 text-primary text-xs px-1">
+                  {copied ? '✓' : 'Copy'}
                 </button>
               </div>
               {copied && <p className="text-xs text-primary mt-1">Link copied!</p>}
             </div>
 
-            <div className="h-px bg-border mx-3" />
-
-            {/* Actions */}
             <button
               type="button"
-              onPointerDown={(e) => { e.preventDefault(); handleSignOut(); }}
-              className="w-full flex items-center gap-2 px-3 min-h-[44px] text-sm text-destructive hover:bg-muted transition-colors touch-manipulation select-none"
+              onClick={handleSignOut}
+              className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-muted flex items-center gap-2"
             >
               <LogOut size={14} /> Sign out
             </button>
+
             <button
               type="button"
-              onPointerDown={(e) => { e.preventDefault(); setOpen(false); setDeleteDialogOpen(true); }}
-              className="w-full flex items-center gap-2 px-3 min-h-[44px] text-sm text-destructive hover:bg-muted transition-colors touch-manipulation select-none"
+              onClick={() => { setOpen(false); setDeleteDialogOpen(true); }}
+              className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-muted flex items-center gap-2"
             >
               <Trash2 size={14} /> Delete Account
             </button>
