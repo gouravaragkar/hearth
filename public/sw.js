@@ -18,14 +18,16 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+  // Never intercept Supabase auth requests or API calls
+  if (event.request.url.includes('supabase.co') ||
+      event.request.url.includes('accounts.google.com') ||
+      event.request.url.includes('googleapis.com')) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    }).catch(() => fetch(event.request))
   );
 });
