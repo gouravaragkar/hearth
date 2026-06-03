@@ -1,0 +1,12 @@
+{
+  "name": "HomeSpend",
+  "short_name": "HomeSpend",
+  "description": "Home finances, made simple",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF7ED",
+  "theme_color": "#C2410C",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
