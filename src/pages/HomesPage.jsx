@@ -216,24 +216,34 @@ export default function HomesPage() {
             >
               <div className="text-2xl shrink-0">{home.emoji || '🏠'}</div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground text-sm truncate">{home.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{home.currency}</p>
-                {(isActive || isShared) && (
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    {isActive && (
-                      <span className="flex items-center gap-0.5 text-xs text-primary font-medium">
-                        <Check size={11} /> Active
-                      </span>
-                    )}
-                    {isShared && (
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        Shared
-                      </span>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <p className="font-semibold text-foreground text-sm truncate">{home.name}</p>
+                  {isActive && (
+                    <span className="hidden sm:inline-flex items-center gap-0.5 text-xs text-primary font-medium shrink-0">
+                      <Check size={11} /> Active
+                    </span>
+                  )}
+                  {isShared && (
+                    <span className="hidden sm:inline-flex text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
+                      Shared
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <p className="text-xs text-muted-foreground">{home.currency}</p>
+                  {isActive && (
+                    <span className="sm:hidden inline-flex items-center gap-0.5 text-xs text-primary font-medium">
+                      <Check size={11} /> Active
+                    </span>
+                  )}
+                  {isShared && (
+                    <span className="sm:hidden text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      Shared
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActivityHome(home)}>
                   <History size={14} className="text-muted-foreground" />
                 </Button>
