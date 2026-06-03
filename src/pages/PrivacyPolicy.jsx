@@ -130,7 +130,10 @@ export default function PrivacyPolicy() {
           <Link to="/" className="text-xs text-primary hover:underline">
             ← Back to HomeSpend
           </Link>
-          <span className="text-xs text-muted-foreground">newhearths.com</span>
+          <div className="flex items-center gap-3">
+            <Link to="/changelog" className="text-xs text-primary hover:underline">View Changelog</Link>
+            <span className="text-xs text-muted-foreground">newhearths.com</span>
+          </div>
         </div>
       </div>
     </div>

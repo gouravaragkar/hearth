@@ -272,6 +272,8 @@ export default function HomesPage() {
       <p className="text-center text-xs text-muted-foreground">
         <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
         {' · '}
+        <Link to="/changelog" className="hover:text-primary transition-colors">Changelog</Link>
+        {' · '}
         <a href="https://newhearths.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">newhearths.com</a>
       </p>
 

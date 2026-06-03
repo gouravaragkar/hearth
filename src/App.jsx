@@ -9,6 +9,7 @@ import ThemeProvider from '@/lib/ThemeProvider';
 import Layout from '@/components/Layout';
 import Login from '@/pages/Login';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import Changelog from '@/pages/Changelog';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated } = useAuth();
@@ -53,6 +54,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/changelog" element={<Changelog />} />
             <Route path="*" element={
               <AuthProvider>
                 <AuthenticatedApp />
