@@ -131,21 +131,39 @@ function UserMenu() {
               {copied && <p className="text-xs text-primary mt-1">Link copied!</p>}
             </div>
 
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-muted flex items-center gap-2"
-            >
-              <LogOut size={14} /> Sign out
-            </button>
+            <div className="border-t border-border">
+              <Link
+                to="/changelog"
+                onClick={() => setOpen(false)}
+                className="w-full text-left px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-2 transition-colors"
+              >
+                📋 What's New
+              </Link>
+              <Link
+                to="/privacy"
+                onClick={() => setOpen(false)}
+                className="w-full text-left px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground flex items-center gap-2 transition-colors"
+              >
+                🔒 Privacy Policy
+              </Link>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => { setOpen(false); setDeleteDialogOpen(true); }}
-              className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-muted flex items-center gap-2"
-            >
-              <Trash2 size={14} /> Delete Account
-            </button>
+            <div className="border-t border-border">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-muted flex items-center gap-2"
+              >
+                <LogOut size={14} /> Sign out
+              </button>
+              <button
+                type="button"
+                onClick={() => { setOpen(false); setDeleteDialogOpen(true); }}
+                className="w-full text-left px-3 py-2.5 text-sm text-destructive hover:bg-muted flex items-center gap-2"
+              >
+                <Trash2 size={14} /> Delete Account
+              </button>
+            </div>
           </div>
         )}
       </div>

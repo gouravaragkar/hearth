@@ -278,19 +278,30 @@ export default function HomesPage() {
       </p>
 
       {/* Account section — visible on mobile only, desktop uses header UserMenu */}
-      <div className="sm:hidden bg-card rounded-2xl border border-border p-4 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-semibold text-sm text-foreground truncate">{user?.user_metadata?.full_name || 'Account'}</p>
-          <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+      <div className="sm:hidden bg-card rounded-2xl border border-border overflow-hidden">
+        <div className="p-4 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-semibold text-sm text-foreground truncate">{user?.user_metadata?.full_name || 'Account'}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="shrink-0 rounded-xl gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+          >
+            <LogOut size={13} /> Sign out
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSignOut}
-          className="shrink-0 rounded-xl gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
-        >
-          <LogOut size={13} /> Sign out
-        </Button>
+        <div className="flex items-center justify-center gap-4 py-2.5 border-t border-border">
+          <Link to="/changelog" className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+            📋 What's New
+          </Link>
+          <span className="text-border text-xs">·</span>
+          <Link to="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+            🔒 Privacy Policy
+          </Link>
+        </div>
       </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
