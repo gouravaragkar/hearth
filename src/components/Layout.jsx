@@ -88,7 +88,8 @@ function UserMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary text-primary-foreground font-semibold text-sm select-none flex items-center justify-center"
+            type="button"
+            className="rounded-full h-10 w-10 min-h-[44px] min-w-[44px] bg-primary text-primary-foreground font-semibold text-sm select-none flex items-center justify-center cursor-pointer touch-manipulation"
           >
             {initials}
           </button>
