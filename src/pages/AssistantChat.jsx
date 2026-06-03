@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Send, Bot, Sparkles, SquarePen } from 'lucide-react';
 import MessageBubble from '@/components/AssistantMessageBubble';
@@ -24,36 +23,14 @@ export default function AssistantChat() {
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // Start or load conversation
+  // TODO: rewrite with new assistant backend — base44 SDK removed
   useEffect(() => {
-    const init = async () => {
-      try {
-        const convs = await base44.agents.listConversations({ agent_name: 'homespend_assistant' });
-        let conv;
-        if (convs && convs.length > 0) {
-          conv = await base44.agents.getConversation(convs[0].id);
-        } else {
-          conv = await base44.agents.createConversation({
-            agent_name: 'homespend_assistant',
-            metadata: { name: 'My HomeSpend Chat' },
-          });
-        }
-        setConversation(conv);
-        setMessages(conv.messages || []);
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
+    setLoading(false);
   }, []);
 
-  // Subscribe to real-time updates
+  // eslint-disable-next-line no-unused-vars
   useEffect(() => {
     if (!conversation?.id) return;
-    const unsub = base44.agents.subscribeToConversation(conversation.id, (data) => {
-      setMessages(data.messages || []);
-    });
-    return unsub;
   }, [conversation?.id]);
 
   // Scroll to bottom on new messages
@@ -63,23 +40,15 @@ export default function AssistantChat() {
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || sending || !conversation) return;
+    if (!text || sending) return;
     setInput('');
-    setSending(true);
-    try {
-      await base44.agents.addMessage(conversation, { role: 'user', content: text });
-    } finally {
-      setSending(false);
-      textareaRef.current?.focus();
-    }
+    // TODO: wire up new assistant backend
+    setSending(false);
+    textareaRef.current?.focus();
   };
 
   const handleNewChat = async () => {
-    const conv = await base44.agents.createConversation({
-      agent_name: 'homespend_assistant',
-      metadata: { name: 'My HomeSpend Chat' },
-    });
-    setConversation(conv);
+    setConversation(null);
     setMessages([]);
     setConfirmNewChat(false);
   };
