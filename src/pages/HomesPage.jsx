@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHome } from '@/context/HomeContext';
 import { supabase } from '@/lib/supabase';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Pencil, Trash2, Plus, Home, UserPlus, History } from 'lucide-react';
+import { Pencil, Trash2, Plus, Home, UserPlus, History, LogOut } from 'lucide-react';
 import { CURRENCIES } from '@/lib/currencies';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InviteUserModal from '@/components/InviteUserModal';
@@ -43,6 +43,16 @@ export default function HomesPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteRefreshKey, setInviteRefreshKey] = useState(0);
   const [activityHome, setActivityHome] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user)).catch(() => {});
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
 
   const set = (k, v) => {
     setForm(f => {
@@ -257,6 +267,22 @@ export default function HomesPage() {
         onClose={() => { setInviteOpen(false); setInviteRefreshKey(k => k + 1); }}
         homes={homes}
       />
+
+      {/* Account section — visible on mobile only, desktop uses header UserMenu */}
+      <div className="sm:hidden bg-card rounded-2xl border border-border p-4 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-semibold text-sm text-foreground truncate">{user?.user_metadata?.full_name || 'Account'}</p>
+          <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSignOut}
+          className="shrink-0 rounded-xl gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+        >
+          <LogOut size={13} /> Sign out
+        </Button>
+      </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="rounded-2xl max-w-md mx-auto">

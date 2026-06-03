@@ -227,7 +227,7 @@ export default function Layout() {
               <span className="text-xl">🏡</span>
               <span className="font-semibold text-foreground text-lg tracking-tight">HomeSpend</span>
             </div>
-            <div className="shrink-0"><UserMenu /></div>
+            <div className="hidden sm:block shrink-0"><UserMenu /></div>
           </div>
           <div className="pb-2">
             <HomeSwitcher />
