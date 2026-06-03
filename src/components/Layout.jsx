@@ -212,9 +212,9 @@ export default function Layout() {
   const isRoot = location.pathname === '/';
 
   const slideVariants = {
-    enter: (dir) => ({ x: dir > 0 ? '30%' : '-30%', opacity: 0 }),
+    enter: (dir) => ({ x: dir > 0 ? '15%' : '-15%', opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit: (dir) => ({ x: dir > 0 ? '-30%' : '30%', opacity: 0 }),
+    exit: (dir) => ({ x: dir > 0 ? '-15%' : '15%', opacity: 0 }),
   };
 
   return (
@@ -256,7 +256,7 @@ export default function Layout() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ type: 'tween', duration: 0.22, ease: 'easeInOut' }}
+              transition={{ type: 'tween', duration: 0.1, ease: 'easeInOut' }}
               className="absolute inset-0"
             >
               {TABS[activeIdx].path === '/assistant' ? (
