@@ -8,6 +8,7 @@ import { HomeProvider } from '@/context/HomeContext';
 import ThemeProvider from '@/lib/ThemeProvider';
 import Layout from '@/components/Layout';
 import Login from '@/pages/Login';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated } = useAuth();
@@ -50,9 +51,14 @@ function App() {
     <ThemeProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <AuthProvider>
-            <AuthenticatedApp />
-          </AuthProvider>
+          <Routes>
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="*" element={
+              <AuthProvider>
+                <AuthenticatedApp />
+              </AuthProvider>
+            } />
+          </Routes>
         </Router>
         <Toaster />
       </QueryClientProvider>
