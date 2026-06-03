@@ -16,6 +16,7 @@ import MonthHistoryModal from '@/components/MonthHistoryModal';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import WelcomeScreen from '@/components/WelcomeScreen';
+import GuestBanner from '@/components/GuestBanner';
 
 function StatCard({ label, value, sub, emoji, color }) {
   return (
@@ -86,7 +87,9 @@ export default function Dashboard() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="space-y-4 animate-fade-up px-4 py-4 pb-20">
+    <div className="animate-fade-up pt-4 pb-20">
+      <GuestBanner />
+      <div className="space-y-4 px-4">
       <div className="grid grid-cols-2 gap-2">
         <Button variant="outline" className="rounded-2xl h-16 flex-col gap-1 text-xs font-medium" onClick={() => setAllExpensesOpen(true)}>
           <FileBarChart size={18} className="text-muted-foreground" />
@@ -184,6 +187,7 @@ export default function Dashboard() {
         currency={currency}
         mutateShared={mutateShared}
       />
+      </div> {/* end px-4 wrapper */}
     </div>
     </PullToRefresh>
   );

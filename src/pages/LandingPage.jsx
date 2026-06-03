@@ -88,6 +88,11 @@ export default function LandingPage() {
           </a>
         </div>
         <p className="text-xs text-gray-400 mt-4">Free to use · Sign in with Google · No credit card</p>
+        <p className="mt-3">
+          <Link to="/login" className="text-sm text-gray-500 hover:text-[#C2410C] transition-colors">
+            No account needed · Try as guest →
+          </Link>
+        </p>
       </section>
 
       {/* ── Pain Points ── */}
