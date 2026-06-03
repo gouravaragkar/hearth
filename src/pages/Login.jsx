@@ -17,8 +17,17 @@ export default function Login() {
   const handleGuestContinue = async () => {
     setGuestLoading(true);
     try {
-      await supabase.auth.signInAnonymously();
-      // AuthContext will detect the session and redirect automatically
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) {
+        console.error('Guest sign-in error:', error);
+        setGuestLoading(false);
+        return;
+      }
+      if (data?.user) {
+        // Force a session refresh so AuthContext picks it up
+        await supabase.auth.getSession();
+        window.location.href = '/';
+      }
     } catch (e) {
       console.error('Guest sign-in failed:', e);
       setGuestLoading(false);
