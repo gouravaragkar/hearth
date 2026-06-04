@@ -3,6 +3,40 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 
 const releases = [
   {
+    version: 'v1.5.0',
+    date: 'June 2026',
+    name: 'Guest Mode & Data Migration Release',
+    sections: [
+      {
+        type: 'feature',
+        label: 'New Features',
+        items: [
+          'Guest mode — try HomeSpend instantly without signing up',
+          'Guest data stored for 7 days with countdown banner',
+          'Seamless data migration when guest upgrades to Google account',
+          'Auto-cleanup of expired guest data runs daily at 3am',
+          'Timezone-based currency detection for guest home setup',
+          '\'Try as Guest\' option on landing page and login page',
+        ],
+      },
+      {
+        type: 'improvement',
+        label: 'Improvements',
+        items: [
+          'User menu shows guest icon for anonymous users',
+          'Guest banner shows days remaining with sign up prompt',
+        ],
+      },
+      {
+        type: 'fix',
+        label: 'Bug Fixes',
+        items: [
+          'Fixed: Service worker no longer blocks authentication requests',
+        ],
+      },
+    ],
+  },
+  {
     version: 'v1.4.0',
     date: 'June 2026',
     name: 'New Domain & Landing Page Release',
