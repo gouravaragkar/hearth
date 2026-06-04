@@ -26,11 +26,13 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth state changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        console.log('AUTH STATE CHANGE event:', _event, 'user:', session?.user?.id);
+        const redirectTo = localStorage.getItem('redirect_after_login');
+        console.log('redirect_after_login in storage:', redirectTo);
         if (session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
           // Check if we need to redirect somewhere specific after login
-          const redirectTo = localStorage.getItem('redirect_after_login');
           if (redirectTo) {
             localStorage.removeItem('redirect_after_login');
             window.location.href = redirectTo;

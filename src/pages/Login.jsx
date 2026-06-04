@@ -13,6 +13,7 @@ export default function Login() {
   // If arriving via invite link, remember to redirect to /homes after login
   if (isInviteFlow) {
     localStorage.setItem('redirect_after_login', '/homes');
+    console.log('SET redirect_after_login to /homes');
   }
 
   const handleGoogleLogin = async () => {
