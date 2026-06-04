@@ -53,6 +53,31 @@ export function HomeProvider({ children }) {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) return;
 
+      // Check if this is a guest upgrade — migrate data to new Google account
+      const guestUpgrade = localStorage.getItem('guest_upgrade');
+      const guestUserId = localStorage.getItem('guest_user_id');
+      if (guestUpgrade === 'true' && guestUserId) {
+        localStorage.removeItem('guest_upgrade');
+        localStorage.removeItem('guest_user_id');
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/migrate-guest-data`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.access_token}`,
+                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              },
+              body: JSON.stringify({ guest_user_id: guestUserId }),
+            }
+          );
+        } catch (e) {
+          console.error('Guest migration failed:', e);
+        }
+      }
+
       const { data, error } = await supabase
         .from('homes')
         .select('*')

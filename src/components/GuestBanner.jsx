@@ -18,8 +18,11 @@ export default function GuestBanner() {
   const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
 
   const handleSignUp = async () => {
-    // Store a flag so after Google OAuth we can migrate guest data
-    localStorage.setItem('guest_upgrade', 'true');
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser?.is_anonymous) {
+      localStorage.setItem('guest_upgrade', 'true');
+      localStorage.setItem('guest_user_id', currentUser.id);
+    }
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
