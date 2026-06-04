@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Copy, Check, Trash2, Home, ChevronLeft, Sparkles } from 'lucide-react';
+import { LayoutDashboard, RefreshCw, Receipt, CalendarDays, LogOut, Share2, Trash2, Home, ChevronLeft, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import {
@@ -13,7 +13,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import Dashboard from '@/pages/Dashboard';
 import RecurringExpenses from '@/pages/RecurringExpenses';
 import OneTimeExpenses from '@/pages/OneTimeExpenses';

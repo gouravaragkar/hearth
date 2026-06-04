@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CATEGORIES } from '@/lib/utils';
-import { format, addMonths, subMonths } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 
 export default function ExpenseFilters({ category, setCategory, monthOffset, setMonthOffset, showMonthPicker = true }) {
   const displayMonth = format(addMonths(new Date(), monthOffset), 'MMMM yyyy');

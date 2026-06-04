@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { startOfMonth, endOfMonth, eachDayOfInterval, format, isSameMonth, isToday, addMonths, subMonths, isSameDay } from 'date-fns';
+import { startOfMonth, endOfMonth, eachDayOfInterval, format, isToday, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { CATEGORY_COLORS, CATEGORY_ICONS, getNextDueDate } from '@/lib/utils';
+import { CATEGORY_COLORS, CATEGORY_ICONS } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 
 function getDueDatesForMonth(recurring, monthStart, monthEnd) {

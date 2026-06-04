@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/currencies';
-import { CATEGORY_COLORS, CATEGORY_ICONS, getMonthlyEquivalent } from '@/lib/utils';
+import { CATEGORY_COLORS, getMonthlyEquivalent } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Download, PieChart, List, FileBarChart, Pencil, Check, X } from 'lucide-react';
 import SpendingDonut from '@/components/SpendingDonut';

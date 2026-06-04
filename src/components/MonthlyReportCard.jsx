@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { CATEGORY_COLORS, getMonthlyEquivalent } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
