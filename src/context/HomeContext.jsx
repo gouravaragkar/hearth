@@ -118,6 +118,26 @@ export function HomeProvider({ children }) {
     }
   };
 
+  const checkPendingInvites = async (user) => {
+    if (!user || user.is_anonymous) return;
+    try {
+      const { data } = await supabase
+        .from('home_invites')
+        .select('id')
+        .eq('invitee_email', user.email.toLowerCase())
+        .eq('status', 'pending')
+        .limit(1);
+      if (data && data.length > 0) {
+        const currentPath = window.location.pathname;
+        if (currentPath === '/' || currentPath === '') {
+          window.location.href = '/homes';
+        }
+      }
+    } catch (e) {
+      console.error('Error checking pending invites:', e);
+    }
+  };
+
   const resetPaidCycles = async () => {
     try {
       await supabase.rpc('reset_paid_cycles');
@@ -127,7 +147,12 @@ export function HomeProvider({ children }) {
   };
 
   useEffect(() => {
-    fetchHomes();
+    const init = async () => {
+      await fetchHomes();
+      const { data: { user } } = await supabase.auth.getUser();
+      await checkPendingInvites(user);
+    };
+    init();
     resetPaidCycles();
   }, []);
 
