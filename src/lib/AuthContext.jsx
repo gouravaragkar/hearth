@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }) => {
           setUser(session.user);
           setIsAuthenticated(true);
           // Check if we need to redirect somewhere specific after login
+          localStorage.removeItem('login_context');
           if (redirectTo) {
             localStorage.removeItem('redirect_after_login');
             window.location.href = redirectTo;
@@ -56,7 +57,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    // Redirect to our login page
+    const params = new URLSearchParams(window.location.search);
+    const isInvite = params.get('invite') === 'true';
+    const currentPath = window.location.pathname;
+    if (isInvite || currentPath === '/homes') {
+      localStorage.setItem('redirect_after_login', '/homes');
+      localStorage.setItem('login_context', 'invite');
+    }
     window.location.href = '/login';
   };
 

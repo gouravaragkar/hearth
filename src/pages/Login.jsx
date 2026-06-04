@@ -8,7 +8,8 @@ export default function Login() {
   const [guestLoading, setGuestLoading] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
-  const isInviteFlow = params.get('invite') === 'true';
+  const isInviteFlow = params.get('invite') === 'true' ||
+    localStorage.getItem('login_context') === 'invite';
 
   // If arriving via invite link, remember to redirect to /homes after login
   if (isInviteFlow) {
