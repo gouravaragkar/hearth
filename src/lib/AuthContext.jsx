@@ -29,14 +29,11 @@ export const AuthProvider = ({ children }) => {
         if (session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
-          // Redirect to stored destination after login (e.g. /homes from invite link)
+          // Check if we need to redirect somewhere specific after login
           const redirectTo = localStorage.getItem('redirect_after_login');
           if (redirectTo) {
             localStorage.removeItem('redirect_after_login');
-            // Only redirect if we're not already there
-            if (window.location.pathname !== redirectTo) {
-              window.location.href = redirectTo;
-            }
+            window.location.href = redirectTo;
           }
         } else {
           setUser(null);

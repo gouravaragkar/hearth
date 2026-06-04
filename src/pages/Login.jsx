@@ -16,10 +16,9 @@ export default function Login() {
   }
 
   const handleGoogleLogin = async () => {
-    const redirectTo = window.location.origin + (window.location.pathname !== '/login' ? window.location.pathname : '/');
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo }
+      options: { redirectTo: window.location.origin }
     });
   };
 
