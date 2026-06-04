@@ -44,7 +44,7 @@ serve(async (req) => {
     <p>Click the button below to log in and accept or decline the invitation from your Homes page.</p>
     <a href="${app_url}/homes" class="button">View Invitation →</a>
     <p>If you don't have an account yet, you'll need to sign up first at <a href="${app_url}">${app_url}</a></p>
-    <div class="footer">HomeSpend · newhearths.com<br>You received this because someone invited you to share a home.</div>
+    <div class="footer">HomeSpend · myhomespend.com<br>You received this because someone invited you to share a home.</div>
   </div>
 </body>
 </html>`;
@@ -56,7 +56,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'HomeSpend <invites@newhearths.com>',
+        from: 'HomeSpend <invites@myhomespend.com>',
         to: [to],
         subject: `${inviter_name} invited you to "${home_name}" on HomeSpend`,
         html: emailBody,
