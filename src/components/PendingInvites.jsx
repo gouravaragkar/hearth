@@ -44,28 +44,12 @@ export default function PendingInvites({ onInviteActioned }) {
       if (!user) throw new Error('Not logged in');
 
       if (action === 'approved') {
-        const { error: inviteError } = await supabase
-          .from('home_invites')
-          .update({ status: 'approved' })
-          .eq('id', invite.id);
-        if (inviteError) throw inviteError;
-
-        const { data: home, error: homeError } = await supabase
-          .from('homes')
-          .select('members')
-          .eq('id', invite.home_id)
-          .maybeSingle();
-        if (homeError) throw homeError;
-
-        const currentMembers = home?.members || [];
-        if (!currentMembers.includes(user.id)) {
-          const { error: updateError } = await supabase
-            .from('homes')
-            .update({ members: [...currentMembers, user.id] })
-            .eq('id', invite.home_id);
-          if (updateError) throw updateError;
-        }
-
+        const { error } = await supabase.rpc('add_member_to_home', {
+          p_home_id: invite.home_id,
+          p_user_id: user.id,
+          p_invite_id: invite.id
+        });
+        if (error) throw error;
         await fetchHomes();
         onInviteActioned?.();
 
