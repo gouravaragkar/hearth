@@ -3,7 +3,7 @@
  
 > Track home expenses, recurring bills, and shared costs — all in one place.
  
-**Live app:** [newhearths.com](https://newhearths.com)
+**Live app:** [newhearths.com](https://newhearths.com) [myhomespend.com](https://myhomespend.com)
  
 ---
  
