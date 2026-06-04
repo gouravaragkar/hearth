@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useHome } from '@/context/HomeContext';
 import {
   DropdownMenu,
@@ -8,17 +9,28 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Plus, Check } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 export default function HomeSwitcher() {
   const { homes, activeHome, switchHome } = useHome();
   const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUserId(user?.id || null));
+  }, []);
 
   const handleSwitch = (id) => {
     switchHome(id);
     navigate('/');
   };
 
-  if (homes.length === 0) {
+  // Only show homes the user owns or is an accepted member of
+  const visibleHomes = userId
+    ? homes.filter(h => h.created_by === userId || (Array.isArray(h.members) && h.members.includes(userId)))
+    : homes;
+
+  if (visibleHomes.length === 0) {
     return (
       <Link
         to="/homes"
@@ -41,7 +53,7 @@ export default function HomeSwitcher() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-52 rounded-xl">
-        {homes.map(home => (
+        {visibleHomes.map(home => (
           <DropdownMenuItem
             key={home.id}
             onClick={() => handleSwitch(home.id)}
