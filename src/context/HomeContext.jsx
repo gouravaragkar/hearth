@@ -120,14 +120,17 @@ export function HomeProvider({ children }) {
 
   const checkPendingInvites = async (user) => {
     if (!user || user.is_anonymous) return;
+    console.log('CHECKING PENDING INVITES for:', user.email);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('home_invites')
         .select('id')
         .eq('invitee_email', user.email.toLowerCase())
         .eq('status', 'pending')
         .limit(1);
+      console.log('PENDING INVITES RESULT:', data, error);
       if (data && data.length > 0) {
+        console.log('FOUND PENDING INVITE - redirecting to /homes');
         const currentPath = window.location.pathname;
         if (currentPath === '/' || currentPath === '') {
           window.location.href = '/homes';
