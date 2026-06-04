@@ -15,7 +15,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') || '{}').service_role || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
 
     // Get new user ID from the JWT token
