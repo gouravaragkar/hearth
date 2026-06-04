@@ -7,6 +7,14 @@ export default function Login() {
   const [guestConfirm, setGuestConfirm] = useState(false);
   const [guestLoading, setGuestLoading] = useState(false);
 
+  const params = new URLSearchParams(window.location.search);
+  const isInviteFlow = params.get('invite') === 'true';
+
+  // If arriving via invite link, remember to redirect to /homes after login
+  if (isInviteFlow) {
+    localStorage.setItem('redirect_after_login', '/homes');
+  }
+
   const handleGoogleLogin = async () => {
     const redirectTo = window.location.origin + (window.location.pathname !== '/login' ? window.location.pathname : '/');
     await supabase.auth.signInWithOAuth({
@@ -69,43 +77,52 @@ export default function Login() {
             Continue with Google
           </button>
 
-          {/* Divider */}
-          <div className="flex items-center gap-2 py-1">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
-
-          {/* Guest confirm message */}
-          {guestConfirm ? (
-            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 space-y-3">
-              <p className="text-sm text-amber-800 font-medium">👤 Guest mode</p>
-              <p className="text-xs text-amber-700 leading-relaxed">
-                Guest data is stored for 7 days. Sign up anytime to save your data permanently — all your expenses carry over.
-              </p>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={handleGuestContinue}
-                  disabled={guestLoading}
-                  className="w-full bg-amber-600 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-amber-700 transition-colors disabled:opacity-60"
-                >
-                  {guestLoading ? 'Starting…' : 'Got it, continue as guest'}
-                </button>
-                <button
-                  onClick={() => { setGuestConfirm(false); handleGoogleLogin(); }}
-                  className="w-full border border-border rounded-xl py-2.5 text-sm text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  Sign up with Google instead
-                </button>
-              </div>
+          {isInviteFlow ? (
+            /* Invite flow — hide guest, show info note */
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-800 leading-relaxed">
+              👥 You have a home invitation waiting. Sign in with Google to accept it.
             </div>
           ) : (
-            <button
-              onClick={() => setGuestConfirm(true)}
-              className="w-full border border-border rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors flex items-center justify-center gap-2"
-            >
-              👤 Try as Guest
-            </button>
+            <>
+              {/* Divider */}
+              <div className="flex items-center gap-2 py-1">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              {/* Guest confirm message */}
+              {guestConfirm ? (
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 space-y-3">
+                  <p className="text-sm text-amber-800 font-medium">👤 Guest mode</p>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    Guest data is stored for 7 days. Sign up anytime to save your data permanently — all your expenses carry over.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleGuestContinue}
+                      disabled={guestLoading}
+                      className="w-full bg-amber-600 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-amber-700 transition-colors disabled:opacity-60"
+                    >
+                      {guestLoading ? 'Starting…' : 'Got it, continue as guest'}
+                    </button>
+                    <button
+                      onClick={() => { setGuestConfirm(false); handleGoogleLogin(); }}
+                      className="w-full border border-border rounded-xl py-2.5 text-sm text-muted-foreground hover:bg-muted transition-colors"
+                    >
+                      Sign up with Google instead
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setGuestConfirm(true)}
+                  className="w-full border border-border rounded-xl px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors flex items-center justify-center gap-2"
+                >
+                  👤 Try as Guest
+                </button>
+              )}
+            </>
           )}
         </div>
 

@@ -42,7 +42,7 @@ serve(async (req) => {
     <p><strong>${inviter_name}</strong> has invited you to share a home on <strong>HomeSpend</strong> — a home expense tracker for households.</p>
     <div class="home-badge">${home_emoji} ${home_name}</div>
     <p>Click the button below to log in and accept or decline the invitation from your Homes page.</p>
-    <a href="${app_url}/homes" class="button">View Invitation →</a>
+    <a href="${app_url}/homes?invite=true" class="button">View Invitation →</a>
     <p>If you don't have an account yet, you'll need to sign up first at <a href="${app_url}">${app_url}</a></p>
     <div class="footer">HomeSpend · myhomespend.com<br>You received this because someone invited you to share a home.</div>
   </div>
