@@ -43,6 +43,7 @@ serve(async (req) => {
     <div class="home-badge">${home_emoji} ${home_name}</div>
     <p>Click the button below to log in and accept or decline the invitation from your Homes page.</p>
     <a href="${app_url}/homes?invite=true" class="button">View Invitation →</a>
+    <p style="color: #6B7280; font-size: 13px;">Note: HomeSpend currently uses Google Sign-In. You'll need a Google account to accept this invitation.</p>
     <p>If you don't have an account yet, you'll need to sign up first at <a href="${app_url}">${app_url}</a></p>
     <div class="footer">HomeSpend · myhomespend.com<br>You received this because someone invited you to share a home.</div>
   </div>
