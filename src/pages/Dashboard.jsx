@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import PullToRefresh from '@/components/PullToRefresh';
-import { getMonthlyEquivalent, getNextDueDate, CATEGORY_COLORS } from '@/lib/utils';
+import { getMonthlyEquivalent, getNextDueDate } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 import { useHome } from '@/context/HomeContext';
 import { useHomeData } from '@/hooks/useHomeData';

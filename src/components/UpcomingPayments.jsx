@@ -1,4 +1,4 @@
-import { format, isThisWeek, differenceInDays } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currencies';
 import { CalendarClock } from 'lucide-react';
