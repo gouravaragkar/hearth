@@ -120,19 +120,15 @@ export function HomeProvider({ children }) {
 
   const checkPendingInvites = async (user) => {
     if (!user || user.is_anonymous) return;
-    console.log('CHECKING PENDING INVITES for:', user.email);
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('home_invites')
         .select('id')
         .eq('invitee_email', user.email.toLowerCase())
         .eq('status', 'pending')
         .limit(1);
-      console.log('PENDING INVITES RESULT:', data, error);
       if (data && data.length > 0) {
-        console.log('FOUND PENDING INVITE - redirecting to /homes');
-        const currentPath = window.location.pathname;
-        if (currentPath === '/' || currentPath === '') {
+        if (!window.location.pathname.includes('/homes')) {
           window.location.href = '/homes';
         }
       }
@@ -151,12 +147,16 @@ export function HomeProvider({ children }) {
 
   useEffect(() => {
     const init = async () => {
-      await fetchHomes();
       const { data: { user } } = await supabase.auth.getUser();
-      await checkPendingInvites(user);
+      await fetchHomes();
+      await resetPaidCycles();
+      // Check pending invites AFTER homes are loaded
+      // Small delay to ensure app is fully mounted
+      setTimeout(async () => {
+        await checkPendingInvites(user);
+      }, 500);
     };
     init();
-    resetPaidCycles();
   }, []);
 
   const switchHome = (id) => {
