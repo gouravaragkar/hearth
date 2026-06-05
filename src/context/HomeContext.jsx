@@ -128,9 +128,7 @@ export function HomeProvider({ children }) {
         .eq('status', 'pending')
         .limit(1);
       if (data && data.length > 0) {
-        if (!window.location.pathname.includes('/homes')) {
-          window.location.href = '/homes';
-        }
+        window.location.replace('/homes');
       }
     } catch (e) {
       console.error('Error checking pending invites:', e);
