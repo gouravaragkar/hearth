@@ -42,6 +42,7 @@ export function useHomeData() {
       if (expensesRes.error) throw expensesRes.error;
       if (recurringRes.error) throw recurringRes.error;
       if (budgetsRes.error) throw budgetsRes.error;
+      console.log('BUDGETS FETCHED:', budgetsRes.data);
 
       return {
         expenses: expensesRes.data || [],
