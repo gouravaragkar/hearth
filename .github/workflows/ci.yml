@@ -6,8 +6,11 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+permissions:
+  contents: read
+  statuses: write
+  checks: write
+  actions: read
 
 jobs:
   test:
@@ -23,6 +26,7 @@ jobs:
       - run: npm run test --if-present
       - run: npm run build
       - name: notify vercel
+        if: always()
         uses: vercel/repository-dispatch/actions/status@v1
         with:
           name: 'Vercel - homespend: CI Run'
