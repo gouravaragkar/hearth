@@ -22,3 +22,7 @@ jobs:
       - run: npm run lint --if-present
       - run: npm run test --if-present
       - run: npm run build
+      - name: notify vercel
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: 'Vercel - homespend: CI Run'
