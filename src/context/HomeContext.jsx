@@ -120,6 +120,8 @@ export function HomeProvider({ children }) {
 
   const checkPendingInvites = async (user) => {
     if (!user || user.is_anonymous) return;
+    // Prevent infinite redirect loop
+    if (sessionStorage.getItem('invite_redirect_done') === 'true') return;
     try {
       const { data } = await supabase
         .from('home_invites')
@@ -127,7 +129,8 @@ export function HomeProvider({ children }) {
         .eq('invitee_email', user.email.toLowerCase())
         .eq('status', 'pending')
         .limit(1);
-      if (data && data.length > 0) {
+      if (data && data.length > 0 && !window.location.pathname.includes('/homes')) {
+        sessionStorage.setItem('invite_redirect_done', 'true');
         window.location.replace('/homes');
       }
     } catch (e) {
