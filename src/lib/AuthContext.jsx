@@ -60,9 +60,11 @@ export const AuthProvider = ({ children }) => {
     const params = new URLSearchParams(window.location.search);
     const isInvite = params.get('invite') === 'true';
     const currentPath = window.location.pathname;
+    console.log('NAVIGATE TO LOGIN - path:', currentPath, 'isInvite:', isInvite);
     if (isInvite || currentPath === '/homes') {
       localStorage.setItem('redirect_after_login', '/homes');
       localStorage.setItem('login_context', 'invite');
+      console.log('SET login_context = invite');
     }
     window.location.href = '/login';
   };

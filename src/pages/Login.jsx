@@ -8,8 +8,10 @@ export default function Login() {
   const [guestLoading, setGuestLoading] = useState(false);
 
   const params = new URLSearchParams(window.location.search);
-  const isInviteFlow = params.get('invite') === 'true' ||
-    localStorage.getItem('login_context') === 'invite';
+  const inviteParam = params.get('invite');
+  const loginContext = localStorage.getItem('login_context');
+  console.log('LOGIN PAGE - invite param:', inviteParam, 'login_context:', loginContext);
+  const isInviteFlow = inviteParam === 'true' || loginContext === 'invite';
 
   // If arriving via invite link, remember to redirect to /homes after login
   if (isInviteFlow) {
