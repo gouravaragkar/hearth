@@ -51,7 +51,7 @@ export function useHomeData() {
       };
     },
     enabled: !!homeId,
-    staleTime: 60_000,
+    staleTime: 0,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
