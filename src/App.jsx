@@ -44,6 +44,13 @@ const AuthenticatedApp = () => {
   }
 
   if (!isAuthenticated) {
+    const params = new URLSearchParams(window.location.search);
+    const isInvite = params.get('invite') === 'true';
+    const currentPath = window.location.pathname;
+    if (isInvite || currentPath === '/homes') {
+      localStorage.setItem('redirect_after_login', '/homes');
+      localStorage.setItem('login_context', 'invite');
+    }
     return <Navigate to="/login" replace />;
   }
 
