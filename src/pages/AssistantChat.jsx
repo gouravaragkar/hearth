@@ -1,154 +1,222 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useHome } from '@/context/HomeContext';
+import { useHomeData } from '@/hooks/useHomeData';
+import { formatCurrency } from '@/lib/currencies';
+import { getMonthlyEquivalent } from '@/lib/utils';
+import { Send, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, Sparkles, SquarePen } from 'lucide-react';
-import MessageBubble from '@/components/AssistantMessageBubble';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+
+const SUGGESTIONS = [
+  'Add $120 electricity bill',
+  'How much did I spend this month?',
+  'Add $800 monthly rent',
+  'What are my recurring expenses?',
+  'Add $50 groceries today',
+];
 
 export default function AssistantChat() {
-  const [conversation, setConversation] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const { activeHome } = useHome();
+  const { expenses, recurring, budgets, mutateShared } = useHomeData();
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      content: `Hi! I'm your HomeSpend assistant 👋\n\nI can help you log expenses, check your spending, and answer questions about your finances.\n\nWhat would you like to do?`
+    }
+  ]);
   const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [confirmNewChat, setConfirmNewChat] = useState(false);
+  const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
-  const textareaRef = useRef(null);
+  const currency = activeHome?.currency || 'AUD';
 
-  // TODO: rewrite with new assistant backend — base44 SDK removed
-  useEffect(() => {
-    setLoading(false);
-  }, []);
-
-  // eslint-disable-next-line no-unused-vars
-  useEffect(() => {
-    if (!conversation?.id) return;
-  }, [conversation?.id]);
-
-  // Scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text || sending) return;
-    setInput('');
-    // TODO: wire up new assistant backend
-    setSending(false);
-    textareaRef.current?.focus();
+  const getHomeContext = () => {
+    const now = new Date();
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+    const thisMonthExpenses = expenses.filter(e =>
+      e.date && isWithinInterval(new Date(e.date), { start: monthStart, end: monthEnd })
+    );
+    const totalSpent = thisMonthExpenses.reduce((s, e) => s + (e.amount || 0), 0);
+    const recurringTotal = recurring.reduce((s, e) => s + getMonthlyEquivalent(e.amount, e.frequency), 0);
+    const currentMonth = now.toISOString().slice(0, 7);
+    const budget = budgets.find(b => b.month === currentMonth)?.amount || 0;
+
+    return {
+      homeName: activeHome?.name || 'My Home',
+      currency,
+      totalSpent: (totalSpent + recurringTotal).toFixed(2),
+      budget,
+      recurringCount: recurring.length,
+    };
   };
 
-  const handleNewChat = async () => {
-    setConversation(null);
-    setMessages([]);
-    setConfirmNewChat(false);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  const handleAction = async (actionData) => {
+    try {
+      if (actionData.action === 'create_expense') {
+        await mutateShared('Expense', 'create', {
+          ...actionData.data,
+          home_id: activeHome?.id,
+          currency,
+        });
+        return '✅ Expense added successfully!';
+      } else if (actionData.action === 'create_recurring') {
+        await mutateShared('RecurringExpense', 'create', {
+          ...actionData.data,
+          home_id: activeHome?.id,
+          currency,
+          start_date: actionData.data.start_date || new Date().toISOString().slice(0, 10),
+        });
+        return '✅ Recurring expense added successfully!';
+      }
+    } catch (e) {
+      return '❌ Failed to add expense. Please try again.';
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <Bot size={32} className="animate-pulse text-primary" />
-          <p className="text-sm">Starting your assistant…</p>
-        </div>
-      </div>
-    );
-  }
+  const sendMessage = async (text) => {
+    const userMsg = text || input.trim();
+    if (!userMsg || loading) return;
+    setInput('');
+
+    const newMessages = [...messages, { role: 'user', content: userMsg }];
+    setMessages(newMessages);
+    setLoading(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+            homeContext: getHomeContext(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      let assistantContent = data.content;
+
+      // Check if response contains a JSON action
+      const jsonMatch = assistantContent.match(/\{[\s\S]*"action"[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const actionData = JSON.parse(jsonMatch[0]);
+          const actionResult = await handleAction(actionData);
+          // Remove JSON from display text
+          assistantContent = assistantContent.replace(jsonMatch[0], '').trim();
+          if (actionResult) assistantContent += '\n' + actionResult;
+        } catch (e) {
+          console.error('Failed to parse action:', e);
+        }
+      }
+
+      setMessages(prev => [...prev, { role: 'assistant', content: assistantContent }]);
+    } catch (e) {
+      console.error('Assistant error:', e);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '❌ Something went wrong. Please try again.'
+      }]);
+    }
+    setLoading(false);
+  };
+
+  const clearChat = () => {
+    setMessages([{
+      role: 'assistant',
+      content: `Hi! I'm your HomeSpend assistant 👋\n\nWhat would you like to do?`
+    }]);
+  };
 
   return (
-    <>
-    <AlertDialog open={confirmNewChat} onOpenChange={setConfirmNewChat}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Start a new chat?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Your current conversation history will still be saved, but you'll start fresh with a clean slate.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleNewChat}>Confirm</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-
-    <div className="flex flex-col h-full max-h-full bg-background">
+    <div className="flex flex-col h-full pb-20">
       {/* Header */}
-      <div className="shrink-0 px-4 py-3 border-b border-border bg-card flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-          <Sparkles size={18} className="text-primary" />
+      <div className="px-4 pt-6 pb-3 flex items-center justify-between shrink-0">
+        <div>
+          <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
+            <Sparkles size={20} className="text-primary" /> AI Assistant
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Powered by Claude</p>
         </div>
-        <div className="flex-1">
-          <p className="font-semibold text-foreground text-sm">HomeSpend Assistant</p>
-          <p className="text-xs text-muted-foreground">Your friendly expense helper</p>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground shrink-0"
-          onClick={() => setConfirmNewChat(true)}
-          title="New chat"
-        >
-          <SquarePen size={18} />
+        <Button variant="ghost" size="icon" onClick={clearChat} title="Clear chat">
+          <Trash2 size={16} className="text-muted-foreground" />
         </Button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center gap-3 text-muted-foreground pt-12">
-            <span className="text-5xl">👋</span>
-            <p className="font-medium text-foreground">Hi! I'm your HomeSpend Assistant.</p>
-            <p className="text-sm max-w-xs">I can help you log expenses, check your spending, and keep you on budget. Just say something!</p>
+      <div className="flex-1 overflow-y-auto px-4 space-y-3 pb-4">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+              msg.role === 'user'
+                ? 'bg-primary text-primary-foreground rounded-br-sm'
+                : 'bg-muted text-foreground rounded-bl-sm'
+            }`}>
+              {msg.content}
+            </div>
+          </div>
+        ))}
+
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-2.5">
+              <Loader2 size={16} className="animate-spin text-muted-foreground" />
+            </div>
           </div>
         )}
-        {messages.map((msg, idx) => (
-          <MessageBubble key={idx} message={msg} />
-        ))}
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="shrink-0 px-4 py-3 border-t border-border bg-card">
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message… e.g. 'Log $45 for groceries today'"
-            rows={1}
-            className="flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring max-h-32 overflow-y-auto"
-            style={{ lineHeight: '1.5' }}
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!input.trim() || sending}
-            className="rounded-xl shrink-0 h-10 w-10"
-          >
-            <Send size={16} />
-          </Button>
+      {/* Suggestions (show only at start) */}
+      {messages.length === 1 && (
+        <div className="px-4 pb-3 flex gap-2 overflow-x-auto shrink-0">
+          {SUGGESTIONS.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => sendMessage(s)}
+              className="shrink-0 text-xs bg-muted hover:bg-muted/70 text-muted-foreground rounded-full px-3 py-1.5 transition-colors"
+            >
+              {s}
+            </button>
+          ))}
         </div>
-        <p className="text-[10px] text-muted-foreground mt-1.5 text-center">Press Enter to send · Shift+Enter for new line</p>
+      )}
+
+      {/* Input */}
+      <div className="px-4 pb-4 shrink-0">
+        <div className="flex gap-2 bg-card border border-border rounded-2xl px-4 py-2 shadow-warm-sm">
+          <input
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+            placeholder="Ask me anything or log an expense..."
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+            disabled={loading}
+          />
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || loading}
+            className="text-primary disabled:opacity-30 transition-opacity"
+          >
+            <Send size={18} />
+          </button>
+        </div>
       </div>
     </div>
-    </>
   );
 }

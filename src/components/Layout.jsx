@@ -27,7 +27,7 @@ const TABS = [
   { label: 'One-Time', path: '/one-time', icon: Receipt, component: OneTimeExpenses, shortLabel: 'One-Off' },
   { label: 'Calendar', path: '/calendar', icon: CalendarDays, component: CalendarPage },
   { label: 'Homes', path: '/homes', icon: Home, component: HomesPage },
-  { label: 'Assistant', path: '/assistant', icon: Sparkles, component: AssistantChat, comingSoon: true },
+  { label: 'Assistant', path: '/assistant', icon: Sparkles, component: AssistantChat },
 ];
 
 function UserMenu() {
