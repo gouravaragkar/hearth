@@ -68,15 +68,14 @@ export default function AssistantChat() {
   };
 
   const handleAction = async (actionData) => {
-    console.log('ACTION DATA:', JSON.stringify(actionData));
     try {
       if (actionData.action === 'create_expense') {
+        const { type, ...expenseFields } = actionData.data;
         const expenseData = {
-          ...actionData.data,
+          ...expenseFields,
           home_id: activeHome?.id,
           currency,
         };
-        console.log('CREATING EXPENSE:', JSON.stringify(expenseData));
         await mutateShared('Expense', 'create', expenseData);
         invalidate();
         return '✅ Expense added successfully!';

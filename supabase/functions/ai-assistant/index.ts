@@ -27,6 +27,8 @@ serve(async (req) => {
 
     const systemPrompt = `You are a helpful home finance assistant for HomeSpend app.
 
+Today's date is: ${new Date().toISOString().slice(0, 10)}
+
 Current home context:
 - Home: ${homeContext.homeName} (${homeContext.currency})
 - This month's spending: ${homeContext.currency} ${homeContext.totalSpent}
