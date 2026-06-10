@@ -7,6 +7,13 @@ import { Send, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
+const STORAGE_KEY = 'assistant_chat_messages';
+
+const defaultMessages = [{
+  role: 'assistant',
+  content: `Hi! I'm your HomeSpend assistant 👋\n\nI can help you log expenses, check your spending, and answer questions about your finances.\n\nWhat would you like to do?`
+}];
+
 const SUGGESTIONS = [
   'Add $120 electricity bill',
   'How much did I spend this month?',
@@ -17,13 +24,15 @@ const SUGGESTIONS = [
 
 export default function AssistantChat() {
   const { activeHome } = useHome();
-  const { expenses, recurring, budgets, mutateShared } = useHomeData();
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: `Hi! I'm your HomeSpend assistant 👋\n\nI can help you log expenses, check your spending, and answer questions about your finances.\n\nWhat would you like to do?`
+  const { expenses, recurring, budgets, mutateShared, invalidate } = useHomeData();
+  const [messages, setMessages] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : defaultMessages;
+    } catch {
+      return defaultMessages;
     }
-  ]);
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -31,6 +40,10 @@ export default function AssistantChat() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
   const getHomeContext = () => {
@@ -62,6 +75,7 @@ export default function AssistantChat() {
           home_id: activeHome?.id,
           currency,
         });
+        invalidate();
         return '✅ Expense added successfully!';
       } else if (actionData.action === 'create_recurring') {
         await mutateShared('RecurringExpense', 'create', {
@@ -70,6 +84,7 @@ export default function AssistantChat() {
           currency,
           start_date: actionData.data.start_date || new Date().toISOString().slice(0, 10),
         });
+        invalidate();
         return '✅ Recurring expense added successfully!';
       }
     } catch (e) {
@@ -135,10 +150,8 @@ export default function AssistantChat() {
   };
 
   const clearChat = () => {
-    setMessages([{
-      role: 'assistant',
-      content: `Hi! I'm your HomeSpend assistant 👋\n\nWhat would you like to do?`
-    }]);
+    sessionStorage.removeItem(STORAGE_KEY);
+    setMessages(defaultMessages);
   };
 
   return (
