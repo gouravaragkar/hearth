@@ -91,6 +91,7 @@ export default function AssistantChat() {
         return '✅ Recurring expense added successfully!';
       }
     } catch (e) {
+      console.error('FULL ERROR:', JSON.stringify(e), e.message, e.code, e.details, e.hint);
       return '❌ Failed to add expense. Please try again.';
     }
   };
