@@ -35,6 +35,12 @@ export default function AssistantChat() {
       return defaultMessages;
     }
   });
+  const [lastSession, setLastSession] = useState(() => {
+    try {
+      const stored = localStorage.getItem('last_chat_session');
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -51,11 +57,19 @@ export default function AssistantChat() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
+        const currentMessages = JSON.parse(sessionStorage.getItem('assistant_chat_messages') || '[]');
+        if (currentMessages.length > 1) {
+          localStorage.setItem('last_chat_session', JSON.stringify({
+            messages: currentMessages,
+            date: new Date().toISOString().slice(0, 10),
+            homeName: activeHome?.name || 'My Home'
+          }));
+        }
         sessionStorage.removeItem('assistant_chat_messages');
       }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [activeHome]);
 
   const getHomeContext = () => {
     const now = new Date();
@@ -183,6 +197,37 @@ export default function AssistantChat() {
           <Trash2 size={16} className="text-muted-foreground" />
         </Button>
       </div>
+
+      {/* Last session banner */}
+      {messages.length === 1 && lastSession && (
+        <div className="mx-4 mt-2 bg-muted rounded-xl p-3 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-foreground">Last session · {lastSession.date}</p>
+            <p className="text-xs text-muted-foreground truncate">{lastSession.homeName} · {lastSession.messages.length - 1} messages</p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => {
+                setMessages(lastSession.messages);
+                sessionStorage.setItem('assistant_chat_messages', JSON.stringify(lastSession.messages));
+                setLastSession(null);
+              }}
+              className="text-xs text-primary font-medium hover:underline"
+            >
+              Restore
+            </button>
+            <button
+              onClick={() => {
+                localStorage.removeItem('last_chat_session');
+                setLastSession(null);
+              }}
+              className="text-xs text-muted-foreground hover:underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 space-y-3 pb-4">
