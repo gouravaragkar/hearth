@@ -3,6 +3,33 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 
 const releases = [
   {
+    version: 'v1.6.0',
+    date: 'June 2026',
+    name: 'AI Assistant Release 🤖',
+    sections: [
+      {
+        type: 'feature',
+        label: 'New Features',
+        items: [
+          'AI Assistant powered by Claude — chat naturally to manage your finances',
+          'Log expenses by chatting — \'Add $120 electricity bill\' and it\'s done',
+          'Log recurring expenses via chat — \'Add $800 monthly rent\'',
+          'Ask questions about your spending — \'How much did I spend this month?\'',
+          'Chat history preserved within your session — switching tabs won\'t lose context',
+          'Last session archive — restore your previous chat when you log back in',
+        ],
+      },
+      {
+        type: 'improvement',
+        label: 'Improvements',
+        items: [
+          'Assistant uses today\'s date automatically for accurate expense logging',
+          'Expenses added via assistant reflect instantly in dashboard and reports',
+        ],
+      },
+    ],
+  },
+  {
     version: 'v1.5.0',
     date: 'June 2026',
     name: 'Guest Mode & Data Migration Release',
