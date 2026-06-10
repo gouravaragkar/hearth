@@ -200,31 +200,36 @@ export default function AssistantChat() {
 
       {/* Last session banner */}
       {messages.length === 1 && lastSession && (
-        <div className="mx-4 mt-2 bg-muted rounded-xl p-3 flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-foreground">Last session · {lastSession.date}</p>
-            <p className="text-xs text-muted-foreground truncate">{lastSession.homeName} · {lastSession.messages.length - 1} messages</p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <button
-              onClick={() => {
-                setMessages(lastSession.messages);
-                sessionStorage.setItem('assistant_chat_messages', JSON.stringify(lastSession.messages));
-                setLastSession(null);
-              }}
-              className="text-xs text-primary font-medium hover:underline"
-            >
-              Restore
-            </button>
-            <button
-              onClick={() => {
-                localStorage.removeItem('last_chat_session');
-                setLastSession(null);
-              }}
-              className="text-xs text-muted-foreground hover:underline"
-            >
-              Dismiss
-            </button>
+        <div className="mx-4 mt-3 mb-1">
+          <div className="flex items-center justify-between bg-primary/8 border border-primary/20 rounded-xl px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs">🕐</span>
+              <div className="min-w-0">
+                <span className="text-xs font-medium text-foreground">Last session</span>
+                <span className="text-xs text-muted-foreground"> · {lastSession.date} · {lastSession.homeName}</span>
+              </div>
+            </div>
+            <div className="flex gap-3 shrink-0 ml-2">
+              <button
+                onClick={() => {
+                  setMessages(lastSession.messages);
+                  sessionStorage.setItem('assistant_chat_messages', JSON.stringify(lastSession.messages));
+                  setLastSession(null);
+                }}
+                className="text-xs text-primary font-semibold"
+              >
+                Restore
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('last_chat_session');
+                  setLastSession(null);
+                }}
+                className="text-xs text-muted-foreground"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         </div>
       )}
