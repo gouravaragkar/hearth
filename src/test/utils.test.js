@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getMonthlyEquivalent } from '@/lib/utils';
+import { getMonthlyEquivalent, getNextDueDate } from '@/lib/utils';
 
 describe('getMonthlyEquivalent', () => {
   it('returns monthly amount as-is', () => {
@@ -19,5 +19,37 @@ describe('getMonthlyEquivalent', () => {
   });
   it('calculates semi-annual to monthly correctly', () => {
     expect(getMonthlyEquivalent(6000, 'semi-annual')).toBe(1000);
+  });
+});
+
+describe('getNextDueDate', () => {
+  // Use a past start date so the function must advance to the future
+  const pastStart = '2020-01-01';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  it('returns a future date for monthly frequency', () => {
+    const next = getNextDueDate(pastStart, 'monthly');
+    expect(next >= today).toBe(true);
+  });
+  it('returns a future date for weekly frequency', () => {
+    const next = getNextDueDate(pastStart, 'weekly');
+    expect(next >= today).toBe(true);
+  });
+  it('returns a future date for fortnightly frequency', () => {
+    const next = getNextDueDate(pastStart, 'fortnightly');
+    expect(next >= today).toBe(true);
+  });
+  it('returns a future date for quarterly frequency', () => {
+    const next = getNextDueDate(pastStart, 'quarterly');
+    expect(next >= today).toBe(true);
+  });
+  it('returns a future date for semi-annual frequency', () => {
+    const next = getNextDueDate(pastStart, 'semi-annual');
+    expect(next >= today).toBe(true);
+  });
+  it('returns a future date for annual frequency', () => {
+    const next = getNextDueDate(pastStart, 'annual');
+    expect(next >= today).toBe(true);
   });
 });
