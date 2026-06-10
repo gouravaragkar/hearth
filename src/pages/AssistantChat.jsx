@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useHome } from '@/context/HomeContext';
 import { useHomeData } from '@/hooks/useHomeData';
+import { useQueryClient } from '@tanstack/react-query';
 import { getMonthlyEquivalent } from '@/lib/utils';
 import { Send, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,8 @@ const SUGGESTIONS = [
 
 export default function AssistantChat() {
   const { activeHome } = useHome();
-  const { expenses, recurring, budgets, mutateShared, invalidate } = useHomeData();
+  const { expenses, recurring, budgets, mutateShared } = useHomeData();
+  const qc = useQueryClient();
   const [messages, setMessages] = useState(() => {
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -78,7 +80,7 @@ export default function AssistantChat() {
           currency,
         };
         await mutateShared('Expense', 'create', expenseData);
-        invalidate();
+        qc.invalidateQueries({ queryKey: ['homeData'] });
         return '✅ Expense added successfully!';
       } else if (actionData.action === 'create_recurring') {
         await mutateShared('RecurringExpense', 'create', {
@@ -87,7 +89,7 @@ export default function AssistantChat() {
           currency,
           start_date: actionData.data.start_date || new Date().toISOString().slice(0, 10),
         });
-        invalidate();
+        qc.invalidateQueries({ queryKey: ['homeData'] });
         return '✅ Recurring expense added successfully!';
       }
     } catch (e) {
