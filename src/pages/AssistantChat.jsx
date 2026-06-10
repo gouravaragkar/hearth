@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useHome } from '@/context/HomeContext';
 import { useHomeData } from '@/hooks/useHomeData';
-import { formatCurrency } from '@/lib/currencies';
 import { getMonthlyEquivalent } from '@/lib/utils';
 import { Send, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
