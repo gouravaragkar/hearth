@@ -68,13 +68,16 @@ export default function AssistantChat() {
   };
 
   const handleAction = async (actionData) => {
+    console.log('ACTION DATA:', JSON.stringify(actionData));
     try {
       if (actionData.action === 'create_expense') {
-        await mutateShared('Expense', 'create', {
+        const expenseData = {
           ...actionData.data,
           home_id: activeHome?.id,
           currency,
-        });
+        };
+        console.log('CREATING EXPENSE:', JSON.stringify(expenseData));
+        await mutateShared('Expense', 'create', expenseData);
         invalidate();
         return '✅ Expense added successfully!';
       } else if (actionData.action === 'create_recurring') {
