@@ -48,6 +48,15 @@ export default function AssistantChat() {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        sessionStorage.removeItem('assistant_chat_messages');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const getHomeContext = () => {
     const now = new Date();
     const monthStart = startOfMonth(now);
