@@ -68,7 +68,7 @@ Return ONLY a valid JSON array, no other text:
 ]
 
 Bank statement text:
-${rawText.slice(0, 12000)}`;
+${rawText.slice(0, 20000)}`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -79,7 +79,7 @@ ${rawText.slice(0, 12000)}`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
