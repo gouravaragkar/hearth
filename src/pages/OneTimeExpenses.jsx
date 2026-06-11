@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, Receipt, FileUp } from 'lucide-react';
+import { Plus, Receipt } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import ExpenseCard from '@/components/ExpenseCard';
 import ExpenseFormModal from '@/components/ExpenseFormModal';
@@ -44,7 +43,6 @@ export default function OneTimeExpenses() {
     mutationFn: (id) => mutateShared('Expense', 'delete', null, id),
   });
 
-  const navigate = useNavigate();
   const handleEdit = (item) => { setEditing(item); setModalOpen(true); };
   const handleAdd = () => { setEditing(null); setModalOpen(true); };
   const handleRefresh = () => qc.invalidateQueries({ queryKey: ['homeData'] });
@@ -62,18 +60,9 @@ export default function OneTimeExpenses() {
               {' · '}{filtered.length} transactions
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/import')}
-              className="rounded-xl gap-1.5 select-none"
-            >
-              <FileUp size={15} /> Import
-            </Button>
-            <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
-              <Plus size={16} /> Add
-            </Button>
-          </div>
+          <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
+            <Plus size={16} /> Add
+          </Button>
         </div>
 
         <ExpenseFilters

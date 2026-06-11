@@ -19,8 +19,6 @@ const CATEGORIES = [
   'Healthcare', 'Entertainment', 'Dining', 'Shopping', 'Education', 'Other',
 ];
 
-const STEPS = ['upload', 'processing', 'review', 'done'];
-
 async function extractPdfText(file) {
   const pdfjsLib = await import('pdfjs-dist');
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -39,13 +37,54 @@ async function extractPdfText(file) {
   return text;
 }
 
-async function extractCsvText(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
+function TransactionRow({ t, currency, onToggle, onCategoryChange, onRemove, showFrequency }) {
+  return (
+    <div className={`grid grid-cols-[auto_1fr_auto_auto] gap-3 px-4 py-3 items-start transition-colors ${!t.selected ? 'opacity-40' : ''}`}>
+      <button
+        onClick={() => onToggle(t.id)}
+        className={`mt-0.5 h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${t.selected ? 'bg-primary border-primary' : 'border-border'}`}
+      >
+        {t.selected && <CheckCircle2 size={10} className="text-primary-foreground" />}
+      </button>
+      <div className="min-w-0 space-y-1">
+        <p className="text-sm font-medium text-foreground truncate">{t.name}</p>
+        {showFrequency ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded-full capitalize">{t.frequency}</span>
+            <Select value={t.category} onValueChange={(v) => onCategoryChange(t.id, v)}>
+              <SelectTrigger className="h-6 text-xs rounded-lg px-2 py-0 w-32 border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground">{t.date}</p>
+            <Select value={t.category} onValueChange={(v) => onCategoryChange(t.id, v)}>
+              <SelectTrigger className="h-6 text-xs rounded-lg px-2 py-0 w-36 border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </>
+        )}
+      </div>
+      <p className="text-sm font-semibold text-foreground text-right whitespace-nowrap">
+        {currency} {t.amount.toFixed(2)}
+      </p>
+      <button
+        onClick={() => onRemove(t.id)}
+        className="mt-0.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
 }
 
 export default function ImportPage() {
@@ -60,15 +99,15 @@ export default function ImportPage() {
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
   const [transactions, setTransactions] = useState([]);
-  const [importedCount, setImportedCount] = useState(0);
+  const [importedCounts, setImportedCounts] = useState({ expenses: 0, recurring: 0 });
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleFile = useCallback((f) => {
     if (!f) return;
     const ext = f.name.split('.').pop().toLowerCase();
-    if (!['csv', 'pdf'].includes(ext)) {
-      setError('Only CSV and PDF files are supported.');
+    if (ext !== 'pdf') {
+      setError('Only PDF files are supported.');
       return;
     }
     setError('');
@@ -90,16 +129,8 @@ export default function ImportPage() {
     setError('');
 
     try {
-      let rawText = '';
-      const ext = file.name.split('.').pop().toLowerCase();
-
-      if (ext === 'pdf') {
-        rawText = await extractPdfText(file);
-      } else {
-        rawText = await extractCsvText(file);
-      }
-
-      if (!rawText.trim()) throw new Error('Could not extract text from file.');
+      const rawText = await extractPdfText(file);
+      if (!rawText.trim()) throw new Error('Could not extract text from file. Make sure it is a machine-readable PDF, not a scanned image.');
 
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
@@ -149,40 +180,55 @@ export default function ImportPage() {
     if (!selected.length) return;
     setImporting(true);
 
-    let count = 0;
+    let expenseCount = 0;
+    let recurringCount = 0;
+
     for (const t of selected) {
       try {
-        await mutateShared('Expense', 'create', {
-          name: t.name,
-          amount: t.amount,
-          category: t.category,
-          date: t.date,
-          home_id: activeHome?.id,
-          currency,
-        });
-        count++;
+        if (t.is_recurring) {
+          await mutateShared('RecurringExpense', 'create', {
+            name: t.name,
+            amount: t.amount,
+            category: t.category,
+            frequency: t.frequency || 'monthly',
+            start_date: t.date,
+            home_id: activeHome?.id,
+            currency,
+          });
+          recurringCount++;
+        } else {
+          await mutateShared('Expense', 'create', {
+            name: t.name,
+            amount: t.amount,
+            category: t.category,
+            date: t.date,
+            home_id: activeHome?.id,
+            currency,
+          });
+          expenseCount++;
+        }
       } catch (e) {
         console.error('Failed to import:', t.name, e);
       }
     }
 
     qc.invalidateQueries({ queryKey: ['homeData'] });
-    setImportedCount(count);
+    setImportedCounts({ expenses: expenseCount, recurring: recurringCount });
     setImporting(false);
     setStep('done');
   };
 
+  const recurringTransactions = transactions.filter(t => t.is_recurring);
+  const oneTimeTransactions = transactions.filter(t => !t.is_recurring);
   const selectedCount = transactions.filter(t => t.selected).length;
-  const totalAmount = transactions
-    .filter(t => t.selected)
-    .reduce((s, t) => s + t.amount, 0);
+  const totalAmount = transactions.filter(t => t.selected).reduce((s, t) => s + t.amount, 0);
 
   return (
     <div className="space-y-5 animate-fade-up px-4 py-6 pb-28 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => navigate('/one-time')}
+          onClick={() => navigate('/assistant')}
           className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors shrink-0"
         >
           <ArrowLeft size={20} className="text-foreground" />
@@ -191,7 +237,7 @@ export default function ImportPage() {
           <h1 className="text-base sm:text-xl font-bold text-foreground flex items-center gap-2">
             <FileUp size={18} className="text-primary shrink-0" /> Import Statement
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">CSV or PDF bank statements</p>
+          <p className="text-xs text-muted-foreground mt-0.5">PDF bank statements</p>
         </div>
       </div>
 
@@ -213,12 +259,12 @@ export default function ImportPage() {
             <div className="text-center">
               <p className="font-medium text-foreground">Drop your bank statement here</p>
               <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
-              <p className="text-xs text-muted-foreground mt-2">Supports CSV and PDF · Max 10MB</p>
+              <p className="text-xs text-muted-foreground mt-2">PDF only · Max 10MB</p>
             </div>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.pdf"
+              accept=".pdf"
               className="hidden"
               onChange={(e) => handleFile(e.target.files[0])}
             />
@@ -246,10 +292,10 @@ export default function ImportPage() {
 
           <div className="bg-muted/60 rounded-xl px-4 py-3 space-y-1.5 text-xs text-muted-foreground">
             <p className="font-medium text-foreground text-sm">Tips for best results</p>
-            <p>• Export a CSV from your bank's online portal (most banks support this)</p>
-            <p>• For PDFs, use machine-readable statements — scanned/image PDFs won't work</p>
+            <p>• Export a PDF statement from your bank's online portal or app</p>
+            <p>• Use machine-readable PDFs — scanned/image PDFs won't work</p>
             <p>• Only debit transactions (money out) will be imported</p>
-            <p>• You can review and edit categories before importing</p>
+            <p>• Recurring bills and subscriptions will be detected automatically</p>
           </div>
 
           <Button
@@ -277,7 +323,7 @@ export default function ImportPage() {
 
       {/* Step: Review */}
       {step === 'review' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-semibold text-foreground">{transactions.length} transactions found</p>
@@ -285,74 +331,65 @@ export default function ImportPage() {
                 {selectedCount} selected · {currency} {totalAmount.toFixed(2)}
               </p>
             </div>
-            <button
-              onClick={toggleAll}
-              className="text-xs text-primary font-medium"
-            >
+            <button onClick={toggleAll} className="text-xs text-primary font-medium">
               {transactions.some(t => t.selected) ? 'Deselect all' : 'Select all'}
             </button>
           </div>
 
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-3 px-4 py-2.5 border-b border-border bg-muted/40">
-              <span className="text-xs font-medium text-muted-foreground w-4" />
-              <span className="text-xs font-medium text-muted-foreground">Transaction</span>
-              <span className="text-xs font-medium text-muted-foreground text-right">Amount</span>
-              <span className="text-xs font-medium text-muted-foreground w-4" />
-            </div>
-
-            {/* Transaction rows */}
-            <div className="divide-y divide-border max-h-[50vh] overflow-y-auto">
-              {transactions.map((t) => (
-                <div
-                  key={t.id}
-                  className={`grid grid-cols-[auto_1fr_auto_auto] gap-3 px-4 py-3 items-start transition-colors ${
-                    t.selected ? '' : 'opacity-40'
-                  }`}
-                >
-                  {/* Checkbox */}
-                  <button
-                    onClick={() => toggleRow(t.id)}
-                    className={`mt-0.5 h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      t.selected ? 'bg-primary border-primary' : 'border-border'
-                    }`}
-                  >
-                    {t.selected && <CheckCircle2 size={10} className="text-primary-foreground" />}
-                  </button>
-
-                  {/* Name + date + category */}
-                  <div className="min-w-0 space-y-1">
-                    <p className="text-sm font-medium text-foreground truncate">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.date}</p>
-                    <Select value={t.category} onValueChange={(v) => updateCategory(t.id, v)}>
-                      <SelectTrigger className="h-6 text-xs rounded-lg px-2 py-0 w-36 border-border">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(c => (
-                          <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Amount */}
-                  <p className="text-sm font-semibold text-foreground text-right whitespace-nowrap">
-                    {currency} {t.amount.toFixed(2)}
-                  </p>
-
-                  {/* Remove */}
-                  <button
-                    onClick={() => removeRow(t.id)}
-                    className="mt-0.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+          {/* Recurring section */}
+          {recurringTransactions.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">🔄 Suggested Recurring</span>
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                  {recurringTransactions.filter(t => t.selected).length} selected
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">These look like regular bills or subscriptions</p>
+              <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                <div className="divide-y divide-border max-h-[30vh] overflow-y-auto">
+                  {recurringTransactions.map(t => (
+                    <TransactionRow
+                      key={t.id}
+                      t={t}
+                      currency={currency}
+                      onToggle={toggleRow}
+                      onCategoryChange={updateCategory}
+                      onRemove={removeRow}
+                      showFrequency={true}
+                    />
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* One-time section */}
+          {oneTimeTransactions.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">🧾 One-Time Expenses</span>
+                <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">
+                  {oneTimeTransactions.filter(t => t.selected).length} selected
+                </span>
+              </div>
+              <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                <div className="divide-y divide-border max-h-[40vh] overflow-y-auto">
+                  {oneTimeTransactions.map(t => (
+                    <TransactionRow
+                      key={t.id}
+                      t={t}
+                      currency={currency}
+                      onToggle={toggleRow}
+                      onCategoryChange={updateCategory}
+                      onRemove={removeRow}
+                      showFrequency={false}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-3">
             <Button
@@ -370,7 +407,7 @@ export default function ImportPage() {
               {importing ? (
                 <><Loader2 size={16} className="animate-spin" /> Importing...</>
               ) : (
-                `Import ${selectedCount} expense${selectedCount !== 1 ? 's' : ''}`
+                `Import ${selectedCount} item${selectedCount !== 1 ? 's' : ''}`
               )}
             </Button>
           </div>
@@ -386,7 +423,7 @@ export default function ImportPage() {
           <div className="text-center">
             <p className="font-semibold text-foreground text-lg">Import complete!</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {importedCount} expense{importedCount !== 1 ? 's' : ''} added to your home
+              {importedCounts.expenses} expense{importedCounts.expenses !== 1 ? 's' : ''} + {importedCounts.recurring} recurring added
             </p>
           </div>
           <div className="flex gap-3 mt-2">

@@ -34,12 +34,18 @@ Today's date: ${today}
 Currency: ${currency || 'AUD'}
 
 IMPORTANT RULES:
-- Only extract DEBITS (money going out). Skip credits, deposits, refunds, and interest.
-- Skip internal transfers between accounts.
+- Only extract DEBITS (money going out). Skip credits, deposits, salary, refunds, transfers between own accounts.
+- Skip peer-to-peer transfers (payments to people by name).
 - Dates must be in YYYY-MM-DD format. If year is missing, assume the most recent past year.
 - Amounts must be positive numbers (no currency symbols, no commas).
-- Clean up merchant names: remove transaction IDs, card numbers, location codes. Keep it readable (e.g. "WOOLWORTHS 1234 SYDNEY" → "Woolworths").
+- Clean up merchant names: remove transaction IDs, card numbers, location codes. Keep readable (e.g. "WOOLWORTHS 1234 SYDNEY" → "Woolworths").
 - Category must be one of: Housing, Transport, Groceries, Utilities, Healthcare, Entertainment, Dining, Shopping, Education, Other
+
+RECURRING DETECTION:
+- Mark a transaction as recurring if it appears multiple times with similar amounts, OR if it's clearly a subscription/bill/direct debit (e.g. Netflix, Spotify, rent, insurance, phone bill, internet, gym membership, loan repayment).
+- For recurring transactions, detect the frequency: weekly, fortnightly, monthly, quarterly, semi-annual, or annual.
+- If a recurring expense appears multiple times in the statement, include it ONCE with is_recurring: true.
+- One-time purchases (groceries, dining, shopping) should have is_recurring: false.
 
 Return ONLY a valid JSON array, no other text:
 [
@@ -47,7 +53,17 @@ Return ONLY a valid JSON array, no other text:
     "date": "YYYY-MM-DD",
     "name": "Merchant Name",
     "amount": 123.45,
-    "category": "Category"
+    "category": "Category",
+    "is_recurring": false,
+    "frequency": null
+  },
+  {
+    "date": "YYYY-MM-DD",
+    "name": "Netflix",
+    "amount": 22.99,
+    "category": "Entertainment",
+    "is_recurring": true,
+    "frequency": "monthly"
   }
 ]
 
@@ -81,14 +97,14 @@ ${rawText.slice(0, 12000)}`;
 
     // Validate and sanitise each transaction
     const valid = transactions
-      .filter((t: { date?: string; name?: string; amount?: number }) =>
-        t.date && t.name && typeof t.amount === 'number' && t.amount > 0
-      )
-      .map((t: { date: string; name: string; amount: number; category?: string }) => ({
+      .filter((t: any) => t.date && t.name && typeof t.amount === 'number' && t.amount > 0)
+      .map((t: any) => ({
         date: t.date,
         name: String(t.name).slice(0, 100),
         amount: Math.round(t.amount * 100) / 100,
         category: t.category || 'Other',
+        is_recurring: t.is_recurring === true,
+        frequency: t.frequency || null,
       }));
 
     return new Response(JSON.stringify({ transactions: valid }), {

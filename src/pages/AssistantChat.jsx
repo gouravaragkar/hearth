@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useHome } from '@/context/HomeContext';
 import { useHomeData } from '@/hooks/useHomeData';
 import { useQueryClient } from '@tanstack/react-query';
 import { getMonthlyEquivalent } from '@/lib/utils';
-import { Send, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { Send, Loader2, Sparkles, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
@@ -16,14 +17,15 @@ const defaultMessages = [{
 }];
 
 const SUGGESTIONS = [
+  '📄 Import my bank statement',
   'Add $120 electricity bill',
   'How much did I spend this month?',
   'Add $800 monthly rent',
   'What are my recurring expenses?',
-  'Add $50 groceries today',
 ];
 
 export default function AssistantChat() {
+  const navigate = useNavigate();
   const { activeHome } = useHome();
   const { expenses, recurring, budgets, mutateShared } = useHomeData();
   const qc = useQueryClient();
@@ -122,6 +124,10 @@ export default function AssistantChat() {
   };
 
   const sendMessage = async (text) => {
+    if (text === '📄 Import my bank statement') {
+      navigate('/import');
+      return;
+    }
     const userMsg = text || input.trim();
     if (!userMsg || loading) return;
     setInput('');
@@ -193,9 +199,14 @@ export default function AssistantChat() {
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">Powered by Claude</p>
         </div>
-        <Button variant="ghost" size="icon" onClick={clearChat} title="Clear chat">
-          <Trash2 size={16} className="text-muted-foreground" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate('/import')} className="gap-1.5 rounded-xl text-xs h-8">
+            <Upload size={13} /> Import Statement
+          </Button>
+          <Button variant="ghost" size="icon" onClick={clearChat} title="Clear chat">
+            <Trash2 size={16} className="text-muted-foreground" />
+          </Button>
+        </div>
       </div>
 
       {/* Last session banner */}
