@@ -47,6 +47,12 @@ RECURRING DETECTION:
 - If a recurring expense appears multiple times in the statement, include it ONCE with is_recurring: true.
 - One-time purchases (groceries, dining, shopping) should have is_recurring: false.
 
+DEDUPLICATION RULES:
+- If a recurring transaction appears multiple times in the statement, include it ONLY ONCE in the output.
+- Use the most recent occurrence's date for the date field.
+- Use the most common/latest amount if amounts vary slightly.
+- Example: If rent of $770 appears 4 times, return it once with is_recurring: true, frequency: monthly.
+
 Return ONLY a valid JSON array, no other text:
 [
   {

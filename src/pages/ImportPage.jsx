@@ -152,7 +152,24 @@ export default function ImportPage() {
       if (data.error) throw new Error(data.error);
       if (!data.transactions?.length) throw new Error('No debit transactions found in this statement.');
 
-      setTransactions(data.transactions.map((t, i) => ({ ...t, id: i, selected: true })));
+      // Deduplicate recurring transactions — keep only one per unique name
+      const deduplicated = data.transactions.reduce((acc, t) => {
+        if (t.is_recurring) {
+          const existing = acc.find(x =>
+            x.is_recurring &&
+            x.name.toLowerCase().trim() === t.name.toLowerCase().trim()
+          );
+          if (existing) {
+            if (t.amount > existing.amount) {
+              return acc.map(x => x === existing ? t : x);
+            }
+            return acc;
+          }
+        }
+        return [...acc, t];
+      }, []);
+
+      setTransactions(deduplicated.map((t, i) => ({ ...t, id: i, selected: true })));
       setStep('review');
     } catch (e) {
       setError(e.message || 'Failed to process file. Please try again.');
