@@ -11,6 +11,7 @@ import Login from '@/pages/Login';
 import LandingPage from '@/pages/LandingPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import Changelog from '@/pages/Changelog';
+import ImportPage from '@/pages/ImportPage';
 
 // Root: authenticated → dashboard, unauthenticated → landing page
 const RootRoute = () => {
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route path="/calendar" element={<Layout />} />
         <Route path="/homes" element={<Layout />} />
         <Route path="/assistant" element={<Layout />} />
+        <Route path="/import" element={<ImportPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </HomeProvider>
