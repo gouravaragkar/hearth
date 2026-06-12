@@ -3,6 +3,40 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 
 const releases = [
   {
+    version: 'v1.7.0',
+    date: 'June 2026',
+    name: 'Bank Statement Import & Welcome Experience',
+    sections: [
+      {
+        type: 'feature',
+        label: 'New Features',
+        items: [
+          'Bank statement import — upload a PDF and AI extracts all transactions automatically',
+          'Recurring expense detection — AI identifies subscriptions and bills from your statement',
+          'Two-section review screen — separate one-time and recurring transactions before importing',
+          'Duplicate recurring detection — same bill appears once regardless of how many times in statement',
+          'Welcome screen redesigned with two clear setup pathways — manual or AI import',
+          'Import bank statement option in AI Assistant tab and starter suggestions',
+        ],
+      },
+      {
+        type: 'improvement',
+        label: 'Improvements',
+        items: [
+          'Frequency detection — AI counts occurrences to correctly identify weekly vs monthly',
+          'PDF only import — cleaner and more reliable than CSV',
+        ],
+      },
+      {
+        type: 'fix',
+        label: 'Bug Fixes',
+        items: [
+          'Fixed: Google OAuth branding now shows HomeSpend name and logo on sign-in screen',
+        ],
+      },
+    ],
+  },
+  {
     version: 'v1.6.0',
     date: 'June 2026',
     name: 'AI Assistant Release 🤖',

@@ -5,36 +5,37 @@
 
 ---
 
-## Current Version — v1.5.0 (Released)
+## Completed (Shipped)
 
-Core app is live and in beta. See CHANGELOG for full history.
+- ✅ Core expense tracking — recurring + one-time expenses
+- ✅ Multi-home support with member invites
+- ✅ Google OAuth authentication
+- ✅ Guest mode with 7-day trial and data migration
+- ✅ AI Assistant — chat-based expense logging (Claude API)
+- ✅ Bank statement import — PDF upload with AI extraction and categorisation
+- ✅ PWA — installable on iOS and Android
+- ✅ Landing page and marketing site
+- ✅ Semi-annual and annual expense frequencies
+- ✅ Mobile UI overhaul
 
 ---
 
-## Near Term — v1.6.0 (Next Sprint)
+## Near Term — v1.8.0 (Next Sprint)
 
-### AI Assistant
-- Chat-based expense logging ("add $120 electricity")
-- Natural language queries ("how much did I spend on groceries last month?")
-- Budget alerts via AI ("you're trending 20% over budget")
-- Powered by Anthropic Claude API via Supabase Edge Function
+### Push Notifications
+- Push notifications for upcoming bills (3 days before due date)
+- Budget threshold alerts (80%, 100% used)
 
-### Guest Mode Improvements
-- Fix redirect to Homes tab after invite login
-- Improve guest-to-account upgrade flow
+### CSV Export
+- Export expenses to CSV for a selected month or date range
+- Download from Dashboard or One-Time Expenses page
 
 ---
 
 ## Medium Term — v2.0.0
 
-### Notifications
-- Push notifications for upcoming bills (3 days before due)
-- Budget threshold alerts (80%, 100% used)
-- Weekly spending summary notification
-
 ### Enhanced Reporting
 - Year-over-year comparison
-- Export to CSV
 - Custom date range reports
 
 ### Recurring Expense Improvements
@@ -55,7 +56,6 @@ Core app is live and in beta. See CHANGELOG for full history.
 - Referral program
 
 ### Integrations
-- Bank feed import (CSV)
 - Open Banking API (Australia — CDR)
 
 ---

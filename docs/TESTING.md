@@ -30,16 +30,30 @@ HomeSpend is a personal finance app — data integrity and correctness matter mo
 
 ## What We Test
 
+**Current test count: 42 tests across 4 files (all passing)**
+
 ### Unit Tests (src/test/)
 
-**utils.test.js** — Core calculation functions
+**utils.test.js** — Core calculation functions (12 tests)
 - `getMonthlyEquivalent` — all 6 frequencies (weekly, fortnightly, monthly, quarterly, semi-annual, annual)
-- `getNextDueDate` — next due date calculations
+- `getNextDueDate` — all 6 frequencies, always returns future date
 
-**currencies.test.js** — Currency formatting
-- `formatCurrency` — AUD, INR, USD formatting
-- `getCurrency` — currency lookup
-- Edge cases: zero, negative, large numbers
+**currencies.test.js** — Currency formatting (16 tests)
+- `formatCurrency` — AUD, INR, JPY formatting; symbol presence; no decimals for JPY
+- `getCurrency` — symbol lookup for USD, GBP, EUR, INR, JPY; unknown code fallback
+- `CURRENCIES` array — all 35 entries have required fields (code, name, symbol)
+
+**dateCalculations.test.js** — Date filtering logic (7 tests)
+- Recurring expense with future start_date excluded from past months
+- String date comparison used in SpendingTrend
+- One-time expense month filtering (June appears in June, not May or July)
+
+**assistant.test.js** — AI Assistant logic (10 tests)
+- Action extraction from Claude response (create_expense, create_recurring)
+- Null returns for missing/malformed JSON
+- Display text stripping after action extraction
+- Expense data sanitisation (type field removal)
+- sessionStorage serialisation round-trips
 
 ### Planned Tests
 
@@ -92,8 +106,9 @@ npm run test:ui
 
 | Area | Target | Current |
 |---|---|---|
-| Utility functions | 90% | ~60% |
-| Currency functions | 90% | ~60% |
+| Utility functions | 90% | ~80% |
+| Currency functions | 90% | ~85% |
+| AI Assistant logic | 80% | ~70% |
 | Components | 40% | 0% |
 | E2E flows | Key paths | 0% |
 
@@ -113,12 +128,34 @@ Run through this before every significant release:
 - [ ] Invite approval adds shared home
 
 ### Expenses
-- [ ] Add recurring expense (all frequencies)
+- [ ] Add recurring expense (all frequencies including semi-annual, annual)
 - [ ] Add one-time expense
 - [ ] Edit expense
 - [ ] Delete expense (with confirmation)
 - [ ] Mark recurring as paid
 - [ ] Calendar shows expenses correctly
+
+### Bank Statement Import
+- [ ] Upload PDF bank statement from upload screen
+- [ ] PDF text extraction succeeds (check for empty result error)
+- [ ] AI returns categorised transactions
+- [ ] Recurring transactions appear in 🔄 section with frequency badge
+- [ ] One-time transactions appear in 🧾 section
+- [ ] Duplicate recurring entries are deduplicated
+- [ ] Category can be changed per row
+- [ ] Individual rows can be toggled and removed
+- [ ] Import creates expenses and recurring expenses correctly
+- [ ] Done screen shows correct breakdown (X expenses + Y recurring)
+- [ ] Import from Welcome screen works for new users (auto-creates home)
+
+### AI Assistant
+- [ ] Chat sends messages to Claude
+- [ ] "Add $120 electricity" creates an expense
+- [ ] "Add $800 monthly rent" creates a recurring expense
+- [ ] Chat history preserved when switching tabs
+- [ ] Clear chat button resets conversation
+- [ ] Last session banner appears after re-login
+- [ ] Import Statement button navigates to /import
 
 ### Homes
 - [ ] Create home

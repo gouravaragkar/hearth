@@ -7,8 +7,6 @@
 
 ## Bugs & Fixes
 
-- [High] Guest invite redirect — user landing on Dashboard instead of Homes tab after clicking invite link
-- [High] Pending invite showing in HomeSwitcher before approval
 - [Medium] Debug console.log still present in SpendingTrend.jsx
 - [Low] `<meta name="apple-mobile-web-app-capable">` deprecation warning in console
 
@@ -16,13 +14,19 @@
 
 ## Features — User Requested (Beta Feedback)
 
-- [High] AI Assistant — chat-based expense logging (Anthropic API)
 - [High] Push notifications for upcoming bills
-- [Medium] Annual and semi-annual frequencies ✅ Done v1.5.0
-- [Medium] Guest mode ✅ Done v1.5.0
-- [Medium] Landing page ✅ Done v1.4.0
+- [Medium] Push notifications — bill due reminders 3 days before due date
+- [Medium] CSV export of expenses
 - [Low] Dark mode toggle
 - [Low] Receipt scanning via camera
+
+### Completed ✅
+- [High] AI Assistant — chat-based expense logging ✅ Done v1.6.0
+- [High] Bank statement import — PDF upload with AI categorisation ✅ Done v1.7.0
+- [Medium] Guest mode ✅ Done v1.5.0
+- [Medium] Annual and semi-annual frequencies ✅ Done v1.5.0
+- [Medium] Landing page ✅ Done v1.4.0
+- [Medium] Mobile UI overhaul ✅ Done v1.3.0
 
 ---
 
@@ -30,7 +34,6 @@
 
 - [Medium] Weekly email digest — "Your HomeSpend week in review"
 - [Medium] Bill payment reminders via SMS (Twilio)
-- [Medium] CSV export of expenses
 - [Medium] Custom categories (user-defined)
 - [Low] Recurring expense templates (common bills pre-filled)
 - [Low] Currency conversion on dashboard (show everything in base currency)
@@ -50,11 +53,13 @@
 
 ## Technical
 
-- [High] Automated test suite (Vitest + GitHub Actions) — in progress
 - [Medium] E2E tests with Playwright
 - [Medium] Error boundary components — better error handling UI
 - [Low] Performance monitoring (Sentry or similar)
 - [Low] Analytics (privacy-friendly, e.g. Plausible)
+
+### Completed ✅
+- [High] Automated test suite (Vitest + GitHub Actions) ✅ Done v1.6.0
 
 ---
 
