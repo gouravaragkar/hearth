@@ -89,7 +89,7 @@ function TransactionRow({ t, currency, onToggle, onCategoryChange, onRemove, sho
 
 export default function ImportPage() {
   const navigate = useNavigate();
-  const { activeHome } = useHome();
+  const { activeHome, fetchHomes } = useHome();
   const { mutateShared } = useHomeData();
   const qc = useQueryClient();
   const currency = activeHome?.currency || 'AUD';
@@ -199,6 +199,37 @@ export default function ImportPage() {
     if (!selected.length) return;
     setImporting(true);
 
+    // Auto-create a home if the user has none yet
+    let homeId = activeHome?.id;
+    let homeCurrency = currency;
+    if (!homeId) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const TIMEZONE_CURRENCY_MAP = {
+          'Australia/Sydney': 'AUD', 'Australia/Melbourne': 'AUD', 'Australia/Brisbane': 'AUD',
+          'Australia/Perth': 'AUD', 'Australia/Adelaide': 'AUD', 'America/New_York': 'USD',
+          'America/Chicago': 'USD', 'America/Denver': 'USD', 'America/Los_Angeles': 'USD',
+          'Europe/London': 'GBP', 'Europe/Paris': 'EUR', 'Europe/Berlin': 'EUR',
+          'Asia/Kolkata': 'INR', 'Asia/Tokyo': 'JPY', 'Asia/Shanghai': 'CNY',
+          'Asia/Singapore': 'SGD', 'Asia/Dubai': 'AED', 'America/Toronto': 'CAD',
+          'America/Vancouver': 'CAD', 'Pacific/Auckland': 'NZD',
+        };
+        homeCurrency = TIMEZONE_CURRENCY_MAP[tz] || 'USD';
+        const { data: newHome } = await supabase
+          .from('homes')
+          .insert({ name: 'My Home', currency: homeCurrency, emoji: '🏠', created_by: user.id, members: [] })
+          .select()
+          .single();
+        if (newHome) {
+          homeId = newHome.id;
+          await fetchHomes();
+        }
+      } catch (e) {
+        console.error('Failed to auto-create home:', e);
+      }
+    }
+
     let expenseCount = 0;
     let recurringCount = 0;
 
@@ -211,8 +242,8 @@ export default function ImportPage() {
             category: t.category,
             frequency: t.frequency || 'monthly',
             start_date: t.date,
-            home_id: activeHome?.id,
-            currency,
+            home_id: homeId,
+            currency: homeCurrency,
           });
           recurringCount++;
         } else {
@@ -221,8 +252,8 @@ export default function ImportPage() {
             amount: t.amount,
             category: t.category,
             date: t.date,
-            home_id: activeHome?.id,
-            currency,
+            home_id: homeId,
+            currency: homeCurrency,
           });
           expenseCount++;
         }
