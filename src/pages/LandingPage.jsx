@@ -17,6 +17,11 @@ const PAIN_POINTS = [
     title: 'Living across cities or countries',
     desc: 'Managing homes in different currencies with no single view.',
   },
+  {
+    emoji: '⌨️',
+    title: 'Manual data entry is a chore',
+    desc: "Who has time to type in every transaction? There has to be a better way.",
+  },
 ];
 
 const FEATURES = [
@@ -28,16 +33,16 @@ const FEATURES = [
   {
     emoji: '🤖',
     title: 'AI Assistant',
-    desc: 'Just chat to log expenses and ask about your spending.',
-    badge: 'Coming Soon',
+    desc: 'Chat to log expenses instantly or upload your bank statement — AI handles the rest.',
+  },
+  {
+    emoji: '📄',
+    title: 'Bank Statement Import',
+    desc: 'Upload your PDF statement and AI extracts, categorises and imports all transactions automatically.',
+    badge: 'New',
   },
 ];
 
-const STEPS = [
-  { n: '1', title: 'Create your Home', desc: 'Set up your household in under a minute — name it, pick a currency, invite members.' },
-  { n: '2', title: 'Add your bills', desc: 'Log recurring subscriptions, rent, utilities and one-off expenses with a few taps.' },
-  { n: '3', title: 'Stay in control', desc: 'Your dashboard shows everything at a glance — upcoming bills, monthly spend, budget status.' },
-];
 
 export default function LandingPage() {
   return (
@@ -65,13 +70,13 @@ export default function LandingPage() {
           <img src="/logo.png" alt="HomeSpend" className="h-16 w-auto" />
         </div>
         <div className="inline-flex items-center gap-1.5 bg-[#C2410C]/10 text-[#C2410C] text-xs font-semibold px-3 py-1 rounded-full mb-6">
-          ✨ No app store needed — works on any device
+          ✨ Now with AI — import your bank statement instantly
         </div>
         <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-900 leading-tight mb-5">
           Your home finances,<br className="hidden sm:block" /> finally under control
         </h1>
         <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto mb-8 leading-relaxed">
-          Track bills, share expenses with your household, and always know where your money goes — across one home or many.
+          Track bills, share expenses with your household, and always know where your money goes — across one home or many. Upload your bank statement and AI does the rest.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
@@ -136,16 +141,53 @@ export default function LandingPage() {
       <section id="how-it-works" className="max-w-5xl mx-auto px-4 py-14">
         <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-2">How it works</h2>
         <p className="text-center text-gray-500 text-sm mb-10">Up and running in under 2 minutes.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {STEPS.map(({ n, title, desc }) => (
-            <div key={n} className="flex flex-col items-center text-center">
-              <div className="w-10 h-10 rounded-full bg-[#C2410C] text-white font-bold text-lg flex items-center justify-center mb-4 shadow-md">
-                {n}
-              </div>
-              <h3 className="font-semibold text-gray-900 text-sm mb-1">{title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">{desc}</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+
+          {/* Path A — Manual */}
+          <div className="bg-white rounded-2xl border border-orange-100 p-6 shadow-sm">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Manual setup</p>
+            <div className="space-y-4">
+              {[
+                { n: '1', title: 'Create your Home', desc: 'Set up your household — name it, pick a currency, invite members.' },
+                { n: '2', title: 'Add your bills', desc: 'Log recurring subscriptions, rent, utilities and one-off expenses.' },
+                { n: '3', title: 'Stay in control', desc: 'Dashboard shows upcoming bills, monthly spend and budget status.' },
+              ].map(({ n, title, desc }) => (
+                <div key={n} className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-[#C2410C] text-white font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">
+                    {n}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{title}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Path B — Import */}
+          <div className="bg-[#FFF7ED] rounded-2xl border-2 border-[#C2410C]/20 p-6">
+            <p className="text-xs font-bold text-[#C2410C] uppercase tracking-wider mb-4">✨ Quick start with AI</p>
+            <div className="space-y-4">
+              {[
+                { n: '1', title: 'Upload your bank statement', desc: 'Just drop in your PDF — works with any Australian bank.' },
+                { n: '2', title: 'AI extracts everything', desc: 'Claude reads your statement and categorises every transaction automatically.' },
+                { n: '3', title: 'Review and import', desc: 'Check the results, confirm what to import, done. Fully set up in minutes.' },
+              ].map(({ n, title, desc }) => (
+                <div key={n} className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-[#C2410C]/10 text-[#C2410C] font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">
+                    {n}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{title}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
 
