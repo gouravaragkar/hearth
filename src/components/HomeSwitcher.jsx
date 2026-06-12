@@ -8,12 +8,13 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Plus, Check } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 
 export default function HomeSwitcher() {
   const { homes, activeHome, switchHome } = useHome();
   const navigate = useNavigate();
+  const location = useLocation();
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
@@ -30,7 +31,8 @@ export default function HomeSwitcher() {
     ? homes.filter(h => h.created_by === userId || (Array.isArray(h.members) && h.members.includes(userId)))
     : homes;
 
-  if (visibleHomes.length === 0) {
+  // Hide the Add Home pill on the Dashboard when WelcomeScreen is showing
+  if (visibleHomes.length === 0 && location.pathname !== '/') {
     return (
       <Link
         to="/homes"
@@ -40,6 +42,8 @@ export default function HomeSwitcher() {
       </Link>
     );
   }
+
+  if (visibleHomes.length === 0) return null;
 
   return (
     <DropdownMenu>
