@@ -17,6 +17,7 @@
 - [High] Push notifications for upcoming bills
 - [Medium] Push notifications — bill due reminders 3 days before due date
 - [Medium] CSV export of expenses
+- [Medium] Yearly savings projector
 - [Low] Dark mode toggle
 - [Low] Receipt scanning via camera
 
