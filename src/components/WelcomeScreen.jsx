@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Receipt, BarChart2, ArrowRight, FileUp, Sparkles } from 'lucide-react';
+import { Home, ArrowRight, FileUp, Sparkles } from 'lucide-react';
 
 export default function WelcomeScreen() {
   const navigate = useNavigate();
