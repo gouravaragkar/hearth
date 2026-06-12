@@ -74,3 +74,52 @@
 - Investment tracking (too complex, different product)
 - Tax reporting (compliance risk)
 - Credit card management (requires banking licence)
+
+---
+
+## Future — BizSpend (Separate Product Consideration)
+
+### Principles
+
+- Treated as a completely separate product — separate domain, separate branding
+- Built on top of HomeSpend infrastructure (Supabase, React, Vercel) but isolated codebase
+- Will not share UI or routes with HomeSpend — separate deployment
+- Only proceed after HomeSpend reaches 200+ active users
+
+### Proposed Name Options
+
+- **TradeSpend** (preferred — Australian, targets tradies/sole traders)
+- BizSpend
+- WorkSpend
+
+### Target Market
+
+- Australian freelancers and sole traders
+- Small trades businesses (plumbers, electricians, builders)
+- Small retail and hospitality
+- NOT competing with Xero/MYOB — simpler, cheaper, no accounting degree needed
+
+### Feature Delta from HomeSpend
+
+**Phase 1 — Minimal viable:**
+- Business home type with business expense categories
+- Income tracking (invoices sent, payments received)
+- Simple P&L view (income minus expenses)
+- GST flag on expenses (yes/no)
+
+**Phase 2 — Growth:**
+- BAS summary report (quarterly GST)
+- Mileage tracking
+- Receipt photo upload
+- Team members with role-based access (owner, employee, accountant)
+
+**Phase 3 — Scale:**
+- Xero/MYOB export
+- ATO integration
+- Payroll (very long term)
+
+### When to Start
+
+- HomeSpend has 200+ active monthly users
+- At least 10 users have organically requested business features
+- Founder has bandwidth for a second product
