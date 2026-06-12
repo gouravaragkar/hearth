@@ -130,9 +130,7 @@ export default function ImportPage() {
 
     try {
       const rawText = await extractPdfText(file);
-      console.log('EXTRACTED TEXT LENGTH:', rawText.length);
-      console.log('EXTRACTED TEXT PREVIEW:', rawText.slice(0, 500));
-      if (!rawText.trim()) throw new Error('Could not extract text from file. Make sure it is a machine-readable PDF, not a scanned image.');
+if (!rawText.trim()) throw new Error('Could not extract text from file. Make sure it is a machine-readable PDF, not a scanned image.');
 
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(

@@ -10,13 +10,11 @@ export default function Login() {
   const params = new URLSearchParams(window.location.search);
   const inviteParam = params.get('invite');
   const loginContext = localStorage.getItem('login_context');
-  console.log('LOGIN PAGE - invite param:', inviteParam, 'login_context:', loginContext);
   const isInviteFlow = inviteParam === 'true' || loginContext === 'invite';
 
   // If arriving via invite link, remember to redirect to /homes after login
   if (isInviteFlow) {
     localStorage.setItem('redirect_after_login', '/homes');
-    console.log('SET redirect_after_login to /homes');
   }
 
   const handleGoogleLogin = async () => {

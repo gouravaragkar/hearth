@@ -95,7 +95,6 @@ export default function AssistantChat() {
   };
 
   const handleAction = async (actionData) => {
-    console.log('ACTION DATA:', JSON.stringify(actionData));
     try {
       if (actionData.action === 'create_expense') {
         const { type, ...expenseFields } = actionData.data;

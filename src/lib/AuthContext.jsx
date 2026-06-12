@@ -26,9 +26,7 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth state changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        console.log('AUTH STATE CHANGE event:', _event, 'user:', session?.user?.id);
         const redirectTo = localStorage.getItem('redirect_after_login');
-        console.log('redirect_after_login in storage:', redirectTo);
         if (session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
@@ -60,11 +58,9 @@ export const AuthProvider = ({ children }) => {
     const params = new URLSearchParams(window.location.search);
     const isInvite = params.get('invite') === 'true';
     const currentPath = window.location.pathname;
-    console.log('NAVIGATE TO LOGIN - path:', currentPath, 'isInvite:', isInvite);
     if (isInvite || currentPath === '/homes') {
       localStorage.setItem('redirect_after_login', '/homes');
       localStorage.setItem('login_context', 'invite');
-      console.log('SET login_context = invite');
     }
     window.location.href = '/login';
   };
