@@ -42,16 +42,21 @@ IMPORTANT RULES:
 - Category must be one of: Housing, Transport, Groceries, Utilities, Healthcare, Entertainment, Dining, Shopping, Education, Other
 
 RECURRING DETECTION:
-- Mark a transaction as recurring if it appears multiple times with similar amounts, OR if it's clearly a subscription/bill/direct debit (e.g. Netflix, Spotify, rent, insurance, phone bill, internet, gym membership, loan repayment).
-- For recurring transactions, detect the frequency: weekly, fortnightly, monthly, quarterly, semi-annual, or annual.
-- If a recurring expense appears multiple times in the statement, include it ONCE with is_recurring: true.
+- Mark a transaction as recurring if it appears multiple times with similar amounts, OR if it's clearly a subscription/bill/direct debit.
+- FREQUENCY DETECTION — count actual occurrences in the statement to determine frequency:
+  * Appears ~4 times in a month → weekly
+  * Appears ~2 times in a month → fortnightly
+  * Appears ~1 time in a month → monthly
+  * Appears once but is clearly a quarterly bill → quarterly
+  * Appears once but is clearly annual → annual
+  * When in doubt based on count: 4+ times = weekly, 2 times = fortnightly, 1 time = monthly
+- Examples from a monthly statement:
+  * Rent $770 appearing 4 times → weekly, amount = $770
+  * Netflix $15 appearing once → monthly
+  * Phone bill appearing twice → fortnightly
+  * Insurance appearing once in March → monthly
+- DEDUPLICATION: If recurring transaction appears multiple times, include it ONCE using the most recent date and most common amount.
 - One-time purchases (groceries, dining, shopping) should have is_recurring: false.
-
-DEDUPLICATION RULES:
-- If a recurring transaction appears multiple times in the statement, include it ONLY ONCE in the output.
-- Use the most recent occurrence's date for the date field.
-- Use the most common/latest amount if amounts vary slightly.
-- Example: If rent of $770 appears 4 times, return it once with is_recurring: true, frequency: monthly.
 
 Return ONLY a valid JSON array, no other text:
 [
