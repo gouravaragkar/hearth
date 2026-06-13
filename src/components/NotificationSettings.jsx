@@ -13,14 +13,19 @@ const DAYS_OPTIONS = [
 export default function NotificationSettings() {
   const { isSupported, isSubscribed, daysBefore, loading, isIOS, isPWA, subscribe, unsubscribe, updateDaysBefore } = usePushNotifications();
   const [toggling, setToggling] = useState(false);
+  const [optimisticSubscribed, setOptimisticSubscribed] = useState(null);
+
+  const displaySubscribed = optimisticSubscribed !== null ? optimisticSubscribed : isSubscribed;
 
   const handleToggle = async () => {
     setToggling(true);
+    setOptimisticSubscribed(!isSubscribed);
     if (isSubscribed) {
       await unsubscribe();
     } else {
       await subscribe(daysBefore);
     }
+    setOptimisticSubscribed(null);
     setToggling(false);
   };
 
@@ -59,13 +64,13 @@ export default function NotificationSettings() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {isSubscribed
+          {displaySubscribed
             ? <Bell size={14} className="text-primary" />
             : <BellOff size={14} className="text-muted-foreground" />}
           <div>
             <p className="text-sm font-medium text-foreground">Bill reminders</p>
             <p className="text-xs text-muted-foreground">
-              {isSubscribed
+              {displaySubscribed
                 ? `Notified ${DAYS_OPTIONS.find(d => d.value === daysBefore)?.label?.toLowerCase()} bills are due`
                 : 'Get notified before bills are due'}
             </p>
@@ -74,13 +79,19 @@ export default function NotificationSettings() {
         <button
           onClick={handleToggle}
           disabled={toggling}
-          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${isSubscribed ? 'bg-primary' : 'bg-muted border border-border'}`}
+          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${displaySubscribed ? 'bg-primary' : 'bg-muted border border-border'}`}
         >
-          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isSubscribed ? 'translate-x-5' : 'translate-x-0'}`} />
+          {toggling ? (
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="w-3 h-3 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+            </span>
+          ) : (
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${displaySubscribed ? 'translate-x-5' : 'translate-x-0'}`} />
+          )}
         </button>
       </div>
 
-      {isSubscribed && (
+      {displaySubscribed && (
         <div>
           <p className="text-xs text-muted-foreground mb-2">Remind me:</p>
           <div className="flex flex-wrap gap-2">
