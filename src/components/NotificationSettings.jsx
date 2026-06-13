@@ -74,9 +74,9 @@ export default function NotificationSettings() {
         <button
           onClick={handleToggle}
           disabled={toggling}
-          className={`relative w-10 h-6 rounded-full transition-colors ${isSubscribed ? 'bg-primary' : 'bg-muted'}`}
+          className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${isSubscribed ? 'bg-primary' : 'bg-muted border border-border'}`}
         >
-          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${isSubscribed ? 'translate-x-4' : 'translate-x-0.5'}`} />
+          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isSubscribed ? 'translate-x-5' : 'translate-x-0'}`} />
         </button>
       </div>
 
