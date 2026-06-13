@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Pencil, Trash2, Plus, Home, UserPlus, History, LogOut } from 'lucide-react';
+import { Pencil, Trash2, Plus, Home, UserPlus, History, LogOut, Bell } from 'lucide-react';
 import { CURRENCIES } from '@/lib/currencies';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InviteUserModal from '@/components/InviteUserModal';
 import PendingInvites from '@/components/PendingInvites';
 import HomeInvitesPopover from '@/components/HomeInvitesPopover';
 import HomeActivityLog from '@/components/HomeActivityLog';
+import NotificationSettings from '@/components/NotificationSettings';
 
 const COUNTRY_FLAG_EMOJIS = [
   '🏠','🇦🇺','🇮🇳','🇺🇸','🇬🇧','🇨🇦','🇳🇿','🇸🇬','🇯🇵','🇨🇳','🇩🇪','🇫🇷','🇮🇹','🇪🇸','🇧🇷','🇲🇽','🇦🇪','🇸🇦','🇿🇦','🇰🇷','🇹🇭','🇲🇾','🇮🇩','🇵🇭','🇻🇳','🇵🇰','🇧🇩','🇱🇰','🇳🇵','🇨🇭','🇸🇪','🇳🇴','🇩🇰','🇵🇱','🇨🇿','🇭🇺',
@@ -267,6 +268,14 @@ export default function HomesPage() {
         onClose={() => { setInviteOpen(false); setInviteRefreshKey(k => k + 1); }}
         homes={homes}
       />
+
+      {/* Notifications */}
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Bell size={14} className="text-primary" /> Notifications
+        </p>
+        <NotificationSettings />
+      </div>
 
       {/* Privacy footer */}
       <p className="text-center text-xs text-muted-foreground">
