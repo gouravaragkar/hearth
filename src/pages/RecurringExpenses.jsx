@@ -62,7 +62,7 @@ export default function RecurringExpenses() {
               {filtered.length} active · <span className="font-medium text-foreground">{formatCurrency(monthlyTotal, currency)}/mo est.</span>
             </p>
           </div>
-          <Button onClick={handleAdd} className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
+          <Button onClick={handleAdd} data-testid="add-expense-btn" className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
             <Plus size={16} /> Add
           </Button>
         </div>
