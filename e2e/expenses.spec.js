@@ -7,8 +7,8 @@ async function signInAsGuest(page) {
   await page.getByText('Try as Guest').click();
   await page.getByText('Got it, continue as guest').click();
   await page.waitForURL('/');
-  // Wait for auto-created home to load
-  await expect(page.getByText('My Home')).toBeVisible({ timeout: 15000 });
+  // Wait for HomeSwitcher to show the auto-created home
+  await expect(page.locator('button').filter({ hasText: 'My Home' }).first()).toBeVisible({ timeout: 15000 });
 }
 
 test.describe('Expenses', () => {
