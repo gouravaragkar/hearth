@@ -31,24 +31,30 @@ test.describe('Expenses', () => {
   test('can add a one-time expense', async ({ page }) => {
     await page.goto('/one-time');
     await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.getByText('Add One-Time Expense')).toBeVisible();
     await page.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Grocery');
     await page.getByPlaceholder('0.00').fill('50');
     await page.getByText('Select category').click();
-    await page.getByRole('option', { name: 'Groceries' }).click();
-    await page.locator('input[type="date"]').fill('2026-06-15');
+    await page.getByText('Groceries').first().click();
+    const today = new Date().toISOString().slice(0, 10);
+    await page.locator('input[type="date"]').fill(today);
     await page.getByRole('button', { name: 'Add Expense' }).click();
-    await expect(page.getByText('E2E Test Grocery')).toBeVisible();
+    await expect(page.getByText('Add One-Time Expense')).not.toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('E2E Test Grocery')).toBeVisible({ timeout: 10000 });
   });
 
   test('can add a recurring expense', async ({ page }) => {
     await page.goto('/recurring');
     await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.getByText('Add Recurring Expense')).toBeVisible();
     await page.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Rent');
     await page.getByPlaceholder('0.00').fill('1000');
     await page.getByText('Select category').click();
-    await page.getByRole('option', { name: 'Housing' }).click();
-    await page.locator('input[type="date"]').fill('2026-06-15');
+    await page.getByText('Housing').first().click();
+    const today = new Date().toISOString().slice(0, 10);
+    await page.locator('input[type="date"]').fill(today);
     await page.getByRole('button', { name: 'Add Expense' }).click();
-    await expect(page.getByText('E2E Test Rent').first()).toBeVisible();
+    await expect(page.getByText('Add Recurring Expense')).not.toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('E2E Test Rent')).toBeVisible({ timeout: 10000 });
   });
 });
