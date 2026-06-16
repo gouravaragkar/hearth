@@ -48,7 +48,8 @@ test.describe('Expenses', () => {
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Grocery');
     await dialog.getByPlaceholder('0.00').fill('50');
     await dialog.locator('[role="combobox"]').first().click();
-    await page.getByRole('option', { name: 'Groceries' }).click();
+    await expect(page.locator('[role="listbox"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[role="option"]').filter({ hasText: 'Groceries' }).click();
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
@@ -64,7 +65,8 @@ test.describe('Expenses', () => {
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Rent');
     await dialog.getByPlaceholder('0.00').fill('1000');
     await dialog.locator('[role="combobox"]').first().click();
-    await page.getByRole('option', { name: 'Housing' }).click();
+    await expect(page.locator('[role="listbox"]')).toBeVisible({ timeout: 5000 });
+    await page.locator('[role="option"]').filter({ hasText: 'Housing' }).click();
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
