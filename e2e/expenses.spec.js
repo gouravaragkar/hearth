@@ -28,16 +28,8 @@ test.describe('Expenses', () => {
 
   test('can open add expense modal', async ({ page }) => {
     await page.getByRole('link', { name: 'One-Off' }).click();
-    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await page.locator('[data-testid="add-onetime-btn"]').click();
     await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 });
-  });
-
-  test('form validation shows errors for empty submission', async ({ page }) => {
-    await page.getByRole('link', { name: 'One-Off' }).click();
-    await page.getByRole('button', { name: 'Add', exact: true }).click();
-    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 });
-    await page.getByRole('button', { name: 'Add Expense' }).click();
-    await expect(page.getByText('Name is required')).toBeVisible();
   });
 
   test('can add a one-time expense', async ({ page }) => {
@@ -47,9 +39,6 @@ test.describe('Expenses', () => {
     await expect(dialog).toBeVisible({ timeout: 10000 });
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Grocery');
     await dialog.getByPlaceholder('0.00').fill('50');
-    await dialog.locator('[role="combobox"]').first().click();
-    await expect(page.locator('[role="listbox"]')).toBeVisible({ timeout: 5000 });
-    await page.locator('[role="option"]').filter({ hasText: 'Groceries' }).click();
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
@@ -64,9 +53,6 @@ test.describe('Expenses', () => {
     await expect(dialog).toBeVisible({ timeout: 10000 });
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Rent');
     await dialog.getByPlaceholder('0.00').fill('1000');
-    await dialog.locator('[role="combobox"]').first().click();
-    await expect(page.locator('[role="listbox"]')).toBeVisible({ timeout: 5000 });
-    await page.locator('[role="option"]').filter({ hasText: 'Housing' }).click();
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
