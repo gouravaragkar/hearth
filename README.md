@@ -1,126 +1,183 @@
+# HomeSpend
 
-# 🏡 HomeSpend
- 
 > Track home expenses, recurring bills, and shared costs — all in one place.
- 
-**Live app:** [newhearths.com](https://newhearths.com) [myhomespend.com](https://myhomespend.com)
- 
+
+**Live app:** [myhomespend.com](https://myhomespend.com)
+
 ---
- 
+
 ## About
- 
-HomeSpend is a home expense tracker built for households who want clarity over their finances without the complexity of spreadsheets. Whether you're managing bills solo, splitting costs with a partner, or tracking expenses across multiple homes in different countries — HomeSpend keeps everything in one clean, simple place.
- 
+
+HomeSpend is a household expense tracker built for people who want clarity over their finances without the complexity of spreadsheets. Manage recurring bills, one-time expenses, and shared home costs — solo or with a partner — with a clean mobile-first PWA that works on any device.
+
 ---
- 
+
 ## Features
- 
-- **Dashboard** — Monthly summary, upcoming bills due in the next 7 days, and a category spend breakdown at a glance
-- **Recurring Expenses** — Log rent, utilities, subscriptions, and insurance once; HomeSpend tracks weekly, fortnightly, monthly, and quarterly schedules
-- **One-Time Expenses** — Quickly log any spend across 10 categories
-- **Calendar View** — See all bills and expenses laid out on a monthly calendar
-- **Shared Homes** — Invite your partner, housemates, or family to a shared Home; everyone sees the same expenses, budget, and activity log
+
+- **Dashboard** — Monthly summary, upcoming bills due in the next 7 days, category spend breakdown, and a live budget progress bar
+- **Recurring Expenses** — Log rent, utilities, subscriptions, and insurance once; tracks weekly, fortnightly, monthly, and quarterly schedules with auto-calculated next due dates
+- **One-Time Expenses** — Quickly log any spend across 10+ categories
+- **Calendar View** — All bills and expenses laid out on a monthly calendar
+- **AI Assistant** — Chat-based expense logging; say "log $120 for electricity" and it's done. Understands natural language and today's date context
+- **Bank Statement Import** — Upload a PDF bank statement; AI categorises transactions and detects recurring bills automatically
+- **Push Notifications** — Bill reminders sent to your device 1–7 days before a recurring expense is due
+- **Shared Homes** — Invite a partner or housemates; everyone sees the same expenses, budget, and activity log
 - **Multiple Homes** — Manage finances across multiple properties or countries, each with its own currency (AUD, INR, USD, GBP, and 30+ more)
 - **Monthly Budget** — Set a budget and track it with a live progress bar
 - **Insights & Reports** — Spending by category (donut chart), 6-month trend, and downloadable monthly PDF reports
-- **AI Assistant** — Chat-based expense logging; just say "log $120 for electricity" and it's done
-- **Activity Log** — Every change to a shared Home is recorded so you always know who did what
+- **Activity Log** — Every change to a shared home is recorded so you always know who did what
+- **Guest Mode** — Try the app instantly without creating an account (7-day trial, anonymous Supabase auth)
+
 ---
- 
+
 ## Tech Stack
- 
+
 | Layer | Technology |
 |---|---|
-| Frontend | React + Vite |
+| Frontend | React 18 + Vite |
 | Styling | Tailwind CSS + shadcn/ui |
 | Animations | Framer Motion |
 | Charts | Recharts |
-| Backend / Database | Base44 |
-| Auth | Base44 Auth |
-| AI Agent | Base44 Agents |
-| Hosting | Base44 + Custom Domain |
- 
+| Backend / Database | Supabase (PostgreSQL + RLS) |
+| Auth | Supabase Auth (Google OAuth + anonymous) |
+| Edge Functions | Supabase Edge Functions (Deno) |
+| AI | Anthropic Claude API (`claude-sonnet-4-5`) |
+| PDF Parsing | pdfjs-dist (in-browser) |
+| Push Notifications | Web Push API + VAPID + pg_cron |
+| Hosting | Vercel |
+
 ---
- 
+
 ## Local Development
- 
+
 ### Prerequisites
-- Node.js 18+
-- A Base44 account with access to this app
+
+- Node.js 24+
+- A Supabase project with the schema applied
+- An Anthropic API key (for AI Assistant and bank import)
+- VAPID keys (for push notifications)
+
 ### Setup
- 
+
 1. Clone the repository
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
+git clone https://github.com/gouravaragkar/hearth.git
+cd hearth
 ```
- 
+
 2. Install dependencies
+
 ```bash
 npm install
 ```
- 
-3. Create a `.env.local` file in the root directory with your Base44 credentials
+
+3. Create a `.env.local` file in the root:
+
 ```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
 ```
- 
+
 4. Start the development server
+
 ```bash
 npm run dev
 ```
- 
-The app will be available at `http://localhost:5173`
- 
+
+The app will be available at `http://localhost:5173`.
+
 ---
- 
-## Deployment
- 
-This app is deployed via Base44. To publish changes:
- 
-1. Push your changes to this GitHub repository
-2. Base44 automatically picks up the changes and redeploys
-Or publish directly from the Base44 dashboard.
- 
----
- 
-## Project Structure
- 
+
+## Testing
+
+### Unit tests (Vitest)
+
+```bash
+npm test
 ```
-├── base44/
-│   ├── entities/          # Data models (Expense, Home, Budget, etc.)
-│   ├── functions/         # Backend serverless functions
-│   └── agents/            # AI assistant configuration
+
+42 tests covering expense utilities, date calculations, currency helpers, and AI assistant parsing.
+
+### E2E tests (Playwright)
+
+```bash
+npm run test:e2e
+```
+
+31 E2E tests across Chromium and Mobile (iPhone 14) covering guest mode, expense creation, and navigation. Tests use a saved guest auth session (`e2e/.auth/guest.json`) generated by `e2e/auth.setup.js`.
+
+```bash
+npm run test:e2e:ui   # open Playwright UI mode
+```
+
+---
+
+## Supabase Edge Functions
+
+| Function | Purpose |
+|---|---|
+| `ai-assistant` | Parses natural language into structured expense actions |
+| `categorise-transactions` | Categorises bank statement transactions and detects recurring bills |
+| `send-push-notifications` | Queries due recurring expenses and sends web push notifications via VAPID |
+
+Deploy all functions:
+
+```bash
+supabase functions deploy ai-assistant
+supabase functions deploy categorise-transactions
+supabase functions deploy send-push-notifications
+```
+
+Push notifications are scheduled via `pg_cron` to run daily at 9am UTC.
+
+---
+
+## Project Structure
+
+```
+├── e2e/                       # Playwright E2E tests
+│   ├── auth.setup.js          # Guest auth session setup
+│   ├── guest-mode.spec.js
+│   ├── expenses.spec.js
+│   └── navigation.spec.js
+├── public/
+│   └── sw.js                  # Service worker (push notifications)
 ├── src/
-│   ├── components/        # Reusable UI components
-│   ├── pages/             # App pages (Dashboard, Calendar, etc.)
-│   ├── context/           # React context (HomeContext)
-│   ├── hooks/             # Custom React hooks
-│   └── lib/               # Utilities and helpers
-├── index.html
+│   ├── components/            # Reusable UI components
+│   ├── context/               # HomeContext, AuthContext
+│   ├── hooks/                 # usePushNotifications, useHomeData, etc.
+│   ├── lib/                   # Supabase client, currencies, utilities
+│   ├── pages/                 # App pages (Dashboard, Calendar, ImportPage, etc.)
+│   └── test/                  # Vitest unit tests
+├── supabase/
+│   └── functions/             # Deno edge functions
+├── docs/
+│   ├── ROADMAP.md
+│   ├── BACKLOG.md
+│   └── TESTING.md
+├── playwright.config.js
+├── vitest.config.js
 └── vite.config.js
 ```
- 
+
 ---
- 
-## Data Entities
- 
-| Entity | Description |
+
+## Data Model
+
+| Table | Description |
 |---|---|
-| `Home` | A household with name, country, currency, and emoji |
-| `Expense` | A one-time expense with category, amount, and date |
-| `RecurringExpense` | A recurring bill with frequency and next due date |
-| `Budget` | A monthly budget target per home |
-| `HomeInvite` | An invitation to share a home with another user |
-| `HomeActivity` | An audit log of all changes made to a shared home |
- 
+| `homes` | A household with name, country, currency, emoji, and members |
+| `expenses` | One-time expenses with category, amount, and date |
+| `recurring_expenses` | Recurring bills with frequency and next due date |
+| `budgets` | Monthly budget targets per home |
+| `home_invites` | Invitations to share a home |
+| `home_activities` | Audit log of all changes made to a shared home |
+| `push_subscriptions` | Web push subscriptions with days-before preference |
+
 ---
- 
+
 ## License
- 
+
 Private — All rights reserved.
- 
----
- 
-*Built with ❤️ using Base44 and React*
