@@ -60,7 +60,7 @@ export default function OneTimeExpenses() {
               {' · '}{filtered.length} transactions
             </p>
           </div>
-          <Button onClick={handleAdd} data-testid="add-expense-btn" className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
+          <Button onClick={handleAdd} data-testid="add-onetime-btn" className="bg-primary text-primary-foreground rounded-xl gap-1.5 select-none">
             <Plus size={16} /> Add
           </Button>
         </div>
