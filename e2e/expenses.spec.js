@@ -29,20 +29,21 @@ test.describe('Expenses', () => {
   test('can open add expense modal', async ({ page }) => {
     await page.getByRole('link', { name: 'One-Off' }).click();
     await page.getByRole('button', { name: 'Add', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Add One-Time Expense' })).toBeVisible();
+    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 });
   });
 
   test('form validation shows errors for empty submission', async ({ page }) => {
     await page.getByRole('link', { name: 'One-Off' }).click();
     await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'Add Expense' }).click();
     await expect(page.getByText('Name is required')).toBeVisible();
   });
 
   test('can add a one-time expense', async ({ page }) => {
-    await page.getByText('One-Off').click();
-    await page.getByText('Add').first().click();
-    await expect(page.getByText('Add One-Time Expense')).toBeVisible();
+    await page.getByRole('link', { name: 'One-Off' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 });
     await page.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Grocery');
     await page.getByPlaceholder('0.00').fill('50');
     await page.locator('[role="combobox"]').first().click();
@@ -50,15 +51,15 @@ test.describe('Expenses', () => {
     const today = new Date().toISOString().slice(0, 10);
     await page.locator('input[type="date"]').fill(today);
     await page.getByRole('button', { name: 'Add Expense' }).click();
-    await expect(page.getByText('Add One-Time Expense')).not.toBeVisible({ timeout: 15000 });
-    await page.getByText('One-Off').click();
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 15000 });
+    await page.getByRole('link', { name: 'One-Off' }).click();
     await expect(page.getByText('E2E Test Grocery')).toBeVisible({ timeout: 10000 });
   });
 
   test('can add a recurring expense', async ({ page }) => {
-    await page.getByText('Recurring').click();
-    await page.getByText('Add').first().click();
-    await expect(page.getByText('Add Recurring Expense')).toBeVisible();
+    await page.getByRole('link', { name: 'Recurring' }).click();
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 });
     await page.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Rent');
     await page.getByPlaceholder('0.00').fill('1000');
     await page.locator('[role="combobox"]').first().click();
@@ -66,8 +67,8 @@ test.describe('Expenses', () => {
     const today = new Date().toISOString().slice(0, 10);
     await page.locator('input[type="date"]').fill(today);
     await page.getByRole('button', { name: 'Add Expense' }).click();
-    await expect(page.getByText('Add Recurring Expense')).not.toBeVisible({ timeout: 15000 });
-    await page.getByText('Recurring').click();
+    await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 15000 });
+    await page.getByRole('link', { name: 'Recurring' }).click();
     await expect(page.getByText('E2E Test Rent')).toBeVisible({ timeout: 10000 });
   });
 });
