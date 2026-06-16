@@ -12,6 +12,34 @@ HomeSpend is a household expense tracker built for people who want clarity over 
 
 ---
 
+## How It Was Built
+
+HomeSpend was built solo as a learning project exploring AI-assisted development.
+
+- **Prototyped** using [Base44](https://base44.com) — an AI app builder — to go from idea to working app rapidly without writing code
+- **Reviewed** using Claude (Anthropic) — conducted a structured code review that surfaced 12 bugs, security vulnerabilities, and architectural issues
+- **Migrated** the entire stack from Base44's proprietary backend to Supabase + Vercel for full data ownership and infrastructure independence
+- **Enhanced** with Claude API integration for the AI Assistant (natural language expense logging) and bank statement import (PDF parsing + categorisation)
+- **Shipped** 7+ production releases with a GitHub Actions CI/CD pipeline gating every Vercel deployment
+
+The project demonstrates the full product development loop — ideation, prototyping, code review, migration, AI integration, and production deployment — completed independently in under 6 weeks.
+
+---
+
+## Screenshots
+
+| Dashboard | Recurring Expenses | AI Assistant |
+|---|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Recurring](docs/screenshots/recurring.png) | ![Assistant](docs/screenshots/assistant.png) |
+
+| Bank Statement Import | Homes | Mobile PWA |
+|---|---|---|
+| ![Import](docs/screenshots/import.png) | ![Homes](docs/screenshots/homes.png) | ![Mobile](docs/screenshots/mobile.png) |
+
+> Screenshots taken on iPhone 14 and desktop Chrome.
+
+---
+
 ## Features
 
 - **Dashboard** — Monthly summary, upcoming bills due in the next 7 days, category spend breakdown, and a live budget progress bar
