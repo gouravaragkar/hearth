@@ -42,7 +42,7 @@ test.describe('Expenses', () => {
 
   test('can add a one-time expense', async ({ page }) => {
     await page.getByRole('link', { name: 'One-Off' }).click();
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.locator('button.bg-primary').filter({ hasText: 'Add' }).click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible({ timeout: 10000 });
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Grocery');
@@ -58,7 +58,7 @@ test.describe('Expenses', () => {
 
   test('can add a recurring expense', async ({ page }) => {
     await page.getByRole('link', { name: 'Recurring' }).click();
-    await page.getByRole('button', { name: 'Add' }).click();
+    await page.locator('button.bg-primary').filter({ hasText: 'Add' }).click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible({ timeout: 10000 });
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Rent');
