@@ -27,8 +27,8 @@ export default function ExpenseFormModal({ open, onClose, onSave, initialData, t
   const defaultHomeId = activeHome?.id || null;
 
   const empty = isRecurring
-    ? { name: '', amount: '', currency: defaultCurrency, category: '', frequency: 'monthly', start_date: '', notes: '', home_id: defaultHomeId }
-    : { name: '', amount: '', currency: defaultCurrency, category: '', date: '', notes: '', home_id: defaultHomeId };
+    ? { name: '', amount: '', currency: defaultCurrency, category: 'Other', frequency: 'monthly', start_date: '', notes: '', home_id: defaultHomeId }
+    : { name: '', amount: '', currency: defaultCurrency, category: 'Other', date: '', notes: '', home_id: defaultHomeId };
 
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState({});
