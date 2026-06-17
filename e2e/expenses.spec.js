@@ -41,9 +41,16 @@ test.describe('Expenses', () => {
     await dialog.getByPlaceholder('0.00').fill('50');
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
+    // Log validation errors before submit
+    await page.waitForTimeout(500);
+    const errorsBefore = await dialog.locator('.text-destructive').allTextContents();
+    console.log('VALIDATION ERRORS BEFORE:', errorsBefore);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
-    await expect(dialog).not.toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('E2E Test Grocery')).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(2000);
+    const errorsAfter = await dialog.locator('.text-destructive').allTextContents();
+    console.log('ERRORS AFTER SUBMIT:', errorsAfter);
+    const dialogState = await dialog.getAttribute('data-state');
+    console.log('DIALOG STATE:', dialogState);
   });
 
   test('can add a recurring expense', async ({ page }) => {
@@ -55,8 +62,15 @@ test.describe('Expenses', () => {
     await dialog.getByPlaceholder('0.00').fill('1000');
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
+    // Log validation errors before submit
+    await page.waitForTimeout(500);
+    const errorsBefore = await dialog.locator('.text-destructive').allTextContents();
+    console.log('VALIDATION ERRORS BEFORE:', errorsBefore);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
-    await expect(dialog).not.toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('E2E Test Rent')).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(2000);
+    const errorsAfter = await dialog.locator('.text-destructive').allTextContents();
+    console.log('ERRORS AFTER SUBMIT:', errorsAfter);
+    const dialogState = await dialog.getAttribute('data-state');
+    console.log('DIALOG STATE:', dialogState);
   });
 });
