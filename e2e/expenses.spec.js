@@ -42,9 +42,8 @@ test.describe('Expenses', () => {
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
-    await page.waitForTimeout(3000);
-    await page.getByRole('link', { name: 'Recurring' }).click();
-    await page.getByRole('link', { name: 'One-Off' }).click();
+    await page.waitForTimeout(2000);
+    await page.keyboard.press('Escape');
     await expect(page.getByText('E2E Test Grocery')).toBeVisible({ timeout: 10000 });
   });
 
@@ -58,9 +57,8 @@ test.describe('Expenses', () => {
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
     await dialog.getByRole('button', { name: 'Add Expense' }).click();
-    await page.waitForTimeout(3000);
-    await page.getByRole('link', { name: 'One-Off' }).click();
-    await page.getByRole('link', { name: 'Recurring' }).click();
+    await page.waitForTimeout(2000);
+    await page.keyboard.press('Escape');
     await expect(page.getByText('E2E Test Rent')).toBeVisible({ timeout: 10000 });
   });
 });
