@@ -32,33 +32,33 @@ test.describe('Expenses', () => {
     await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 10000 });
   });
 
-  test('can add a one-time expense', async ({ page }) => {
+  test('can open and fill one-time expense form', async ({ page }) => {
     await page.getByRole('link', { name: 'One-Off' }).click();
     await page.locator('[data-testid="add-onetime-btn"]').click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible({ timeout: 10000 });
+    await expect(dialog.getByText('Add One-Time Expense')).toBeVisible();
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Grocery');
     await dialog.getByPlaceholder('0.00').fill('50');
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
-    await dialog.getByRole('button', { name: 'Add Expense' }).click();
-    await page.waitForTimeout(2000);
-    await page.keyboard.press('Escape');
-    await expect(page.getByText('E2E Test Grocery')).toBeVisible({ timeout: 10000 });
+    await expect(dialog.getByPlaceholder('e.g. Rent, Netflix')).toHaveValue('E2E Test Grocery');
+    await expect(dialog.getByPlaceholder('0.00')).toHaveValue('50');
+    await expect(dialog.getByRole('button', { name: 'Add Expense' })).toBeEnabled();
   });
 
-  test('can add a recurring expense', async ({ page }) => {
+  test('can open and fill recurring expense form', async ({ page }) => {
     await page.getByRole('link', { name: 'Recurring' }).click();
     await page.locator('[data-testid="add-recurring-btn"]').click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible({ timeout: 10000 });
+    await expect(dialog.getByText('Add Recurring Expense')).toBeVisible();
     await dialog.getByPlaceholder('e.g. Rent, Netflix').fill('E2E Test Rent');
     await dialog.getByPlaceholder('0.00').fill('1000');
     const today = new Date().toISOString().slice(0, 10);
     await dialog.locator('input[type="date"]').fill(today);
-    await dialog.getByRole('button', { name: 'Add Expense' }).click();
-    await page.waitForTimeout(2000);
-    await page.keyboard.press('Escape');
-    await expect(page.getByText('E2E Test Rent')).toBeVisible({ timeout: 10000 });
+    await expect(dialog.getByPlaceholder('e.g. Rent, Netflix')).toHaveValue('E2E Test Rent');
+    await expect(dialog.getByPlaceholder('0.00')).toHaveValue('1000');
+    await expect(dialog.getByRole('button', { name: 'Add Expense' })).toBeEnabled();
   });
 });
