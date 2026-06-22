@@ -1,11 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
+function isInAppBrowser() {
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|Instagram|Line|WhatsApp|LinkedInApp|TikTok|MicroMessenger/i.test(ua);
+}
+
 export default function Login() {
   const [guestConfirm, setGuestConfirm] = useState(false);
   const [guestLoading, setGuestLoading] = useState(false);
+  const [inAppBrowser, setInAppBrowser] = useState(false);
+
+  useEffect(() => {
+    setInAppBrowser(isInAppBrowser());
+  }, []);
 
   const params = new URLSearchParams(window.location.search);
   const inviteParam = params.get('invite');
@@ -63,6 +73,13 @@ export default function Login() {
         {/* Login Card */}
         <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-3">
           <h2 className="text-lg font-semibold text-center mb-3">Sign in to continue</h2>
+
+          {/* In-app browser warning */}
+          {inAppBrowser && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-800 leading-relaxed mb-3">
+              ⚠️ Google sign-in doesn't work inside this app's browser. Tap the <strong>⋯</strong> menu above and select <strong>'Open in Browser'</strong> or <strong>'Open in Safari/Chrome'</strong>, then try again.
+            </div>
+          )}
 
           {/* Google */}
           <button
